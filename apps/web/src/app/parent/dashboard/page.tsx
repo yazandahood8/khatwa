@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { linkStudentSchema, type PublicUser } from '@khatwa/shared';
 import { apiFetch } from '@/lib/api';
+import { getParentReport, type ParentReport } from '@/lib/progress-api';
 import { DashboardHeader } from '@/components/dashboard-header';
+import { StatsView } from '@/components/progress/stats-view';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +17,18 @@ export default function ParentDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [report, setReport] = useState<ParentReport | null>(null);
+  const [reportFor, setReportFor] = useState<string | null>(null);
+
+  async function viewReport(studentId: string) {
+    setReportFor(studentId);
+    setReport(null);
+    try {
+      setReport(await getParentReport(studentId));
+    } catch {
+      /* ignore */
+    }
+  }
 
   const loadStudents = useCallback(async () => {
     try {
@@ -95,17 +109,45 @@ export default function ParentDashboard() {
             ) : (
               <ul className="divide-y">
                 {students.map((s) => (
-                  <li key={s.id} className="flex items-center justify-between py-3">
-                    <span className="font-medium">{s.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {s.grade ? `صف ${s.grade}` : ''} · {s.email}
-                    </span>
+                  <li key={s.id} className="flex items-center justify-between gap-2 py-3">
+                    <div>
+                      <span className="font-medium">{s.name}</span>
+                      <span className="ms-2 text-sm text-muted-foreground">
+                        {s.grade ? `صف ${s.grade}` : ''}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={reportFor === s.id ? 'default' : 'outline'}
+                      onClick={() => viewReport(s.id)}
+                    >
+                      📊 التقرير
+                    </Button>
                   </li>
                 ))}
               </ul>
             )}
           </CardContent>
         </Card>
+
+        {/* تقرير الطالب — student report */}
+        {reportFor && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                تقرير {report?.student.name ?? '…'}
+                {report?.student.grade ? ` · صف ${report.student.grade}` : ''}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {report ? (
+                <StatsView stats={report.stats} />
+              ) : (
+                <p className="text-sm text-muted-foreground">جارٍ تحميل التقرير…</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

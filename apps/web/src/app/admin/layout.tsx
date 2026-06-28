@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/content', label: 'المحتوى', icon: '📚' },
   { href: '/admin/new-methods', label: 'الطرق الجديدة', icon: '🆕', badge: true },
   { href: '/admin/subscriptions', label: 'الاشتراكات', icon: '💳' },
+  { href: '/admin/analytics', label: 'الإحصائيات', icon: '📈' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

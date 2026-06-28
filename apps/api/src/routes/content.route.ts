@@ -3,6 +3,7 @@ import { UserRole } from '@khatwa/shared';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 import * as c from '../controllers/content.controller';
 import * as review from '../controllers/adminReview.controller';
+import { adminAnalytics } from '../controllers/analytics.controller';
 
 const router = Router();
 const admin = [requireAuth, requireRole(UserRole.ADMIN)] as const;
@@ -20,6 +21,7 @@ router.get('/search', requireAuth, c.searchContent);
 
 // ---- إحصائيات الأدمن — admin stats ----
 router.get('/admin/stats', ...admin, c.adminStats);
+router.get('/admin/analytics', ...admin, adminAnalytics);
 
 // ---- مراجعة الطرق الجديدة (الطبقة الثانية) — new-method review ----
 router.get('/admin/new-methods', ...admin, review.listNewMethods);

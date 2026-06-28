@@ -52,13 +52,20 @@ export default function StudentDashboardPage() {
         )}
 
         {/* إحصائيات — stats */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="دروس مكتملة" value={data?.completedCount} icon="✅" />
           <Stat label="دروس جارية" value={data?.inProgressCount} icon="🔄" />
-          <Link href="/courses" className="sm:col-span-1">
+          <Link href="/courses">
             <Card className="h-full transition-colors hover:bg-accent">
               <CardContent className="flex h-full items-center justify-center gap-2 p-6 font-medium">
                 📚 كل الدروس
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/progress">
+            <Card className="h-full transition-colors hover:bg-accent">
+              <CardContent className="flex h-full items-center justify-center gap-2 p-6 font-medium">
+                📈 تقدّمي والإنجازات
               </CardContent>
             </Card>
           </Link>

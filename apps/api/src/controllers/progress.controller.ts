@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { saveProgressSchema } from '@khatwa/shared';
 import { prisma } from '../services/prisma';
 import { ApiError } from '../utils/ApiError';
+import { computeStudentStats } from '../services/stats';
 
 const ok = <T>(res: Response, data: T) => res.json({ success: true, data });
 
@@ -37,6 +38,11 @@ export async function myProgress(req: Request, res: Response) {
     select: { lessonId: true, watchTimeSeconds: true, completedAt: true },
   });
   ok(res, rows);
+}
+
+/** GET /api/progress/me — إحصائيات الطالب الكاملة (نقاط، إنجازات، سلسلة…). */
+export async function fullProgress(req: Request, res: Response) {
+  ok(res, await computeStudentStats(req.user!.id));
 }
 
 /** GET /api/me/dashboard — ملخّص لوحة الطالب. */
