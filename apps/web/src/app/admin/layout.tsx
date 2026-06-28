@@ -1,20 +1,30 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
+import { getNotificationCount } from '@/lib/admin-review-api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const NAV = [
   { href: '/admin/dashboard', label: 'لوحة الإدارة', icon: '📊' },
   { href: '/admin/content', label: 'المحتوى', icon: '📚' },
+  { href: '/admin/new-methods', label: 'الطرق الجديدة', icon: '🆕', badge: true },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [newCount, setNewCount] = useState(0);
+
+  useEffect(() => {
+    getNotificationCount()
+      .then((c) => setNewCount(c.newMethods))
+      .catch(() => {});
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen">
@@ -37,6 +47,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <span>{item.icon}</span>
               {item.label}
+              {item.badge && newCount > 0 && (
+                <span className="ms-auto rounded-full bg-red-500 px-2 text-xs text-white">
+                  {newCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

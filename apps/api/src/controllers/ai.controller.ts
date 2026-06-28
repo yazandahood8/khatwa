@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../services/prisma';
 import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
 import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
+import { recordDiscoveredMethod } from '../services/newMethod';
 import { buildTutorSystemPrompt } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
@@ -108,6 +109,10 @@ export async function askTutor(req: Request, res: Response) {
     const finalMsg = await stream.finalMessage();
     res.end();
 
+    // كشف الطرق الجديدة (الطبقة الثانية) — detect a discovered new method
+    const isNewMethod = /\[NEW_METHOD\]/.test(full);
+    const cleanFull = full.replace(/\[NEW_METHOD\]/g, '').trimEnd();
+
     // حفظ الجلسة + التكلفة — persist session + token usage
     const inTok = finalMsg.usage.input_tokens;
     const outTok = finalMsg.usage.output_tokens;
@@ -115,10 +120,16 @@ export async function askTutor(req: Request, res: Response) {
       data: {
         studentId,
         problemId,
-        messages: [...messages, { role: 'assistant', content: full }],
+        messages: [...messages, { role: 'assistant', content: cleanFull }],
         tokensUsed: inTok + outTok,
       },
     });
+
+    if (isNewMethod) {
+      await recordDiscoveredMethod(studentId, problemId, messages).catch((e) =>
+        logger.error('recordDiscoveredMethod failed', e instanceof Error ? e.message : e),
+      );
+    }
     logger.info(
       `AI tutor: ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,
     );

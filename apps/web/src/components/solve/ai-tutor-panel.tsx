@@ -104,7 +104,8 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
                 : 'bg-muted'
             }`}
           >
-            {m.content || (busy && i === messages.length - 1 ? '…' : '')}
+            {m.content.replace(/\s*\[NEW_METHOD\]\s*/g, '') ||
+              (busy && i === messages.length - 1 ? '…' : '')}
           </div>
         ))}
         {error && <p className="text-xs text-destructive">{error}</p>}

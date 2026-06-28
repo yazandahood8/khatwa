@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { UserRole } from '@khatwa/shared';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 import * as c from '../controllers/content.controller';
+import * as review from '../controllers/adminReview.controller';
 
 const router = Router();
 const admin = [requireAuth, requireRole(UserRole.ADMIN)] as const;
@@ -19,6 +20,12 @@ router.get('/search', requireAuth, c.searchContent);
 
 // ---- إحصائيات الأدمن — admin stats ----
 router.get('/admin/stats', ...admin, c.adminStats);
+
+// ---- مراجعة الطرق الجديدة (الطبقة الثانية) — new-method review ----
+router.get('/admin/new-methods', ...admin, review.listNewMethods);
+router.post('/admin/new-methods/:id/approve', ...admin, review.approveNewMethod);
+router.post('/admin/new-methods/:id/reject', ...admin, review.rejectNewMethod);
+router.get('/admin/notifications/count', ...admin, review.notificationCount);
 
 // ---- تعديلات الأدمن — admin mutations ----
 router.post('/subjects', ...admin, c.createSubject);
