@@ -1,13 +1,16 @@
 import { Router } from 'express';
+import authRoute from './auth.route';
+import usersRoute from './users.route';
+import parentRoute from './parent.route';
 
 /**
  * مُجمِّع مسارات /api — API router aggregator.
- * تُضاف المسارات الجديدة هنا (auth, users, lessons, ...) في السبرينتات القادمة.
  * ملاحظة: /health يُركَّب على الجذر مباشرة في app.ts.
  */
 const router = Router();
 
-// Sprint 2+ : router.use('/auth', authRoute);
-// Sprint 3+ : router.use('/subjects', subjectsRoute);
+router.use('/auth', authRoute);
+router.use('/users', usersRoute);
+router.use('/parent', parentRoute);
 
 export default router;

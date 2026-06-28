@@ -1,4 +1,23 @@
-import type { Difficulty } from './enums';
+import type { Difficulty, UserRole, SubscriptionPlan } from './enums';
+
+/** المستخدم كما يُعاد للواجهة (بدون كلمة السر) — public user shape */
+export interface PublicUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  grade: number | null;
+  level: string | null;
+  avatarUrl: string | null;
+  plan?: SubscriptionPlan;
+  createdAt: string;
+}
+
+/** استجابة المصادقة — auth response (login/register) */
+export interface AuthResponse {
+  user: PublicUser;
+  token: string;
+}
 
 /** استجابة API موحّدة — Standard API response envelope */
 export interface ApiResponse<T = unknown> {

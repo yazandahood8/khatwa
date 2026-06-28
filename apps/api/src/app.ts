@@ -1,3 +1,4 @@
+import 'express-async-errors'; // يحوّل أخطاء async إلى error handler — must be first
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -13,6 +14,9 @@ import { errorHandler } from './middleware/error.middleware';
  */
 export function createApp() {
   const app = express();
+
+  // خلف بروكسي Railway/Vercel — trust first proxy (correct client IP for rate limiting)
+  app.set('trust proxy', 1);
 
   // الأمان والوسائط الأساسية — Security & core middleware
   app.use(helmet());
