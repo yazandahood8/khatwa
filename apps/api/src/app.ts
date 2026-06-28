@@ -24,6 +24,7 @@ export function createApp() {
     cors({
       origin: env.WEB_ORIGIN,
       credentials: true,
+      exposedHeaders: ['X-AI-Remaining'], // ليقرأها المتصفح من ردّ الـ AI
     }),
   );
   app.use(express.json({ limit: '1mb' }));

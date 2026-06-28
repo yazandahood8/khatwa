@@ -45,6 +45,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     setError(null);
     const history = messages.filter((m) => m.content.trim()).slice(-10);
     setMessages((m) => [...m, { role: 'user', content: userMessage }, { role: 'assistant', content: '' }]);
+    setRemaining((r) => (r != null ? Math.max(0, r - 1) : r)); // تحديث فوري
     setBusy(true);
     try {
       const { remaining: rem } = await streamTutor(
