@@ -47,3 +47,27 @@ export const updateProblem = (id: string, body: UpdateProblemInput) =>
   apiFetch<ProblemFull>(`/api/problems/${id}`, { method: 'PUT', body: JSON.stringify(body) });
 export const deleteProblem = (id: string) =>
   apiFetch(`/api/problems/${id}`, { method: 'DELETE' });
+
+// ---- solving (students) ----
+export interface CheckResult {
+  correct: boolean;
+  attemptsCount: number;
+  completed: boolean;
+}
+export const checkAnswer = (
+  problemId: string,
+  body: { answer: string; steps?: string[]; methodUsed?: string },
+) =>
+  apiFetch<CheckResult>(`/api/problems/${problemId}/check`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+export interface AttemptInfo {
+  attemptsCount: number;
+  isCorrect: boolean;
+  completedAt: string | null;
+  stepsTaken: string[] | null;
+}
+export const getAttempt = (problemId: string) =>
+  apiFetch<AttemptInfo | null>(`/api/problems/${problemId}/attempt`);

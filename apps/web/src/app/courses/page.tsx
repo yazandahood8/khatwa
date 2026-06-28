@@ -16,7 +16,9 @@ import {
   getPublishedLessons,
   getMyProgress,
 } from '@/lib/content-api';
+import { getProblems, type ProblemListItem } from '@/lib/problems-api';
 import { DashboardHeader } from '@/components/dashboard-header';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function CoursesPage() {
@@ -26,6 +28,7 @@ export default function CoursesPage() {
   const [levels, setLevels] = useState<Level[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [topicProblems, setTopicProblems] = useState<ProblemListItem[]>([]);
   const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
 
   const [subject, setSubject] = useState<Subject | null>(null);
@@ -46,7 +49,11 @@ export default function CoursesPage() {
   useEffect(() => void (subject && getGrades(subject.id).then(setGrades)), [subject]);
   useEffect(() => void (grade && getLevels(grade.id).then(setLevels)), [grade]);
   useEffect(() => void (level && getTopics(level.id).then(setTopics)), [level]);
-  useEffect(() => void (topic && getPublishedLessons(topic.id).then(setLessons)), [topic]);
+  useEffect(() => {
+    if (!topic) return;
+    getPublishedLessons(topic.id).then(setLessons).catch(() => {});
+    getProblems(topic.id).then(setTopicProblems).catch(() => setTopicProblems([]));
+  }, [topic]);
 
   const crumb = (label: string, onClick?: () => void) => (
     <button
@@ -159,6 +166,18 @@ export default function CoursesPage() {
             }))}
             empty="لا توجد مواضيع بعد."
           />
+        )}
+
+        {/* Solve problems entry */}
+        {topic && topicProblems.length > 0 && (
+          <Card className="border-primary">
+            <CardContent className="flex items-center justify-between p-4">
+              <span className="font-medium">🧮 {topicProblems.length} مسألة للتمرّن</span>
+              <Button onClick={() => router.push(`/problems/${topicProblems[0].id}/solve`)}>
+                ابدأ التمارين 🚀
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {/* Lessons */}

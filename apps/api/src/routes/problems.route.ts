@@ -2,13 +2,18 @@ import { Router } from 'express';
 import { UserRole } from '@khatwa/shared';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 import * as p from '../controllers/problems.controller';
+import { checkAnswer, getAttempt } from '../controllers/attempts.controller';
 
 const router = Router();
 const admin = [requireAuth, requireRole(UserRole.ADMIN)] as const;
 
-// قراءة — reads (any authed user; students solve in Sprint 6)
+// قراءة — reads (any authed user)
 router.get('/problems', requireAuth, p.listProblems);
 router.get('/problems/:id', requireAuth, p.getProblem);
+
+// حل المسائل — solving (students)
+router.post('/problems/:id/check', requireAuth, checkAnswer);
+router.get('/problems/:id/attempt', requireAuth, getAttempt);
 
 // تعديلات الأدمن — admin mutations
 router.post('/problems', ...admin, p.createProblem);

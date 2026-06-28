@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   getLessonById,
   getLessonPlayback,
@@ -10,12 +10,14 @@ import {
   saveProgress,
   type Lesson,
 } from '@/lib/content-api';
+import { getProblems } from '@/lib/problems-api';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function LessonPage() {
   const id = useParams().id as string;
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastSaved = useRef(0);
   const resumeAt = useRef(0);
@@ -25,6 +27,7 @@ export default function LessonPage() {
   const [error, setError] = useState<string | null>(null);
   const [watchedPercent, setWatchedPercent] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [firstProblemId, setFirstProblemId] = useState<string | null>(null);
 
   // تحميل الدرس + رابط المشاهدة + موضع الاستئناف
   useEffect(() => {
@@ -41,6 +44,9 @@ export default function LessonPage() {
           const { url } = await getLessonPlayback(id);
           if (active) setVideoUrl(url);
         }
+        getProblems(l.topicId)
+          .then((ps) => active && setFirstProblemId(ps[0]?.id ?? null))
+          .catch(() => {});
       } catch (e) {
         if (active) setError(e instanceof Error ? e.message : 'تعذّر تحميل الدرس');
       }
@@ -150,11 +156,11 @@ export default function LessonPage() {
         )}
 
         {/* يظهر بعد 80% — appears after 80% watched */}
-        {watchedPercent >= 80 && (
+        {watchedPercent >= 80 && firstProblemId && (
           <Card className="border-primary">
             <CardContent className="flex items-center justify-between p-4">
               <span className="font-medium">📝 خلّصت الدرس؟ جرّب مسألة!</span>
-              <Button disabled title="يأتي في السبرينت القادم">
+              <Button onClick={() => router.push(`/problems/${firstProblemId}/solve`)}>
                 ابدأ التمرين 🚀
               </Button>
             </CardContent>
