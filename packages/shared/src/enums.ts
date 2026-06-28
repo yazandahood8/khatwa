@@ -34,9 +34,13 @@ export enum AdminNotificationType {
   PAYMENT = 'payment',
 }
 
-/** حدود الأسئلة اليومية للذكاء الاصطناعي حسب الباقة — Daily AI question limits */
+/**
+ * حدود الأسئلة اليومية للذكاء الاصطناعي حسب الباقة — Daily AI question limits.
+ * ملاحظة: المساعد يرد على كل خطوة تلقائياً، فالأرقام سخية عمداً (المسألة الواحدة ~5-8 أسئلة).
+ * التكلفة ~$0.005 للسؤال، فالهامش يبقى مرتفعاً.
+ */
 export const AI_DAILY_LIMITS: Record<SubscriptionPlan, number> = {
-  [SubscriptionPlan.FREE]: 3,
-  [SubscriptionPlan.BASIC]: 10,
-  [SubscriptionPlan.PREMIUM]: 30,
+  [SubscriptionPlan.FREE]: 10,
+  [SubscriptionPlan.BASIC]: 50,
+  [SubscriptionPlan.PREMIUM]: 150,
 };
