@@ -11,6 +11,7 @@ import {
   type Lesson,
 } from '@/lib/content-api';
 import { getProblems } from '@/lib/problems-api';
+import { ApiClientError } from '@/lib/api';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,6 +28,7 @@ export default function LessonPage() {
   const [error, setError] = useState<string | null>(null);
   const [watchedPercent, setWatchedPercent] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [firstProblemId, setFirstProblemId] = useState<string | null>(null);
 
   // تحميل الدرس + رابط المشاهدة + موضع الاستئناف
@@ -41,8 +43,14 @@ export default function LessonPage() {
         resumeAt.current = mine?.watchTimeSeconds ?? 0;
         if (mine?.completedAt) setCompleted(true);
         if (l.videoUrl) {
-          const { url } = await getLessonPlayback(id);
-          if (active) setVideoUrl(url);
+          try {
+            const { url } = await getLessonPlayback(id);
+            if (active) setVideoUrl(url);
+          } catch (pe) {
+            if (pe instanceof ApiClientError && pe.code === 'UPGRADE_REQUIRED') {
+              if (active) setLocked(true);
+            } else throw pe;
+          }
         }
         getProblems(l.topicId)
           .then((ps) => active && setFirstProblemId(ps[0]?.id ?? null))
@@ -121,7 +129,20 @@ export default function LessonPage() {
         <h1 className="text-2xl font-bold">{lesson?.title ?? 'جارٍ التحميل…'}</h1>
         {lesson?.description && <p className="text-muted-foreground">{lesson.description}</p>}
 
-        {videoUrl ? (
+        {locked ? (
+          <Card className="border-primary">
+            <CardContent className="space-y-3 p-8 text-center">
+              <p className="text-4xl">🔒</p>
+              <p className="font-semibold">هذا الدرس للباقات المدفوعة</p>
+              <p className="text-sm text-muted-foreground">
+                رقّ باقتك لتشاهد كل الدروس بدون قيود.
+              </p>
+              <Link href="/pricing">
+                <Button>شوف الباقات ⬆️</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : videoUrl ? (
           <video
             ref={videoRef}
             src={videoUrl}

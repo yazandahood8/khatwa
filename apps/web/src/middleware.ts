@@ -15,6 +15,7 @@ const PROTECTED: { prefix: string; roles: UserRole[] }[] = [
   { prefix: '/courses', roles: ALL_ROLES },
   { prefix: '/lessons', roles: ALL_ROLES },
   { prefix: '/problems', roles: ALL_ROLES },
+  { prefix: '/settings', roles: ALL_ROLES },
 ];
 
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -57,6 +58,7 @@ export const config = {
     '/courses/:path*',
     '/lessons/:path*',
     '/problems/:path*',
+    '/settings/:path*',
     ...AUTH_PAGES,
   ],
 };

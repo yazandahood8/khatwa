@@ -28,7 +28,7 @@ const envSchema = z.object({
   // الذكاء الاصطناعي — Claude (Sprint 7)
   ANTHROPIC_API_KEY: z.string().optional(),
   CLAUDE_MODEL: z.string().default('claude-sonnet-4-6'),
-  AI_DEFAULT_PLAN: z.enum(['free', 'basic', 'premium']).default('premium'),
+  AI_DEFAULT_PLAN: z.enum(['free', 'basic', 'premium']).default('free'),
 
   // تخزين الفيديوهات — Object storage (Cloudflare R2, S3-compatible)
   S3_REGION: z.string().default('auto'),

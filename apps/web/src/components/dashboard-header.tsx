@@ -32,6 +32,13 @@ export function DashboardHeader() {
             {user.name} · {ROLE_LABEL[user.role] ?? user.role}
           </span>
         )}
+        {user?.role === UserRole.STUDENT && (
+          <Link href="/settings/subscription">
+            <Button variant="ghost" size="sm">
+              الاشتراك
+            </Button>
+          </Link>
+        )}
         <Link href="/profile">
           <Button variant="ghost" size="sm">
             الملف الشخصي

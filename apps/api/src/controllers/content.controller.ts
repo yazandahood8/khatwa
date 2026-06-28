@@ -9,9 +9,29 @@ import {
   createLessonSchema,
   updateLessonSchema,
 } from '@khatwa/shared';
+import { SubscriptionPlan } from '@khatwa/shared';
 import { prisma } from '../services/prisma';
 import { ApiError } from '../utils/ApiError';
 import { presignUpload, presignDownload, isStorageConfigured } from '../services/storage';
+import { getUserPlan } from '../services/aiRateLimit';
+
+/**
+ * بوابة الوصول للدرس حسب الباقة — lesson access gate by plan.
+ * المجاني: أول درس فقط في كل موضوع. المدفوع/الأدمن: كل الدروس.
+ */
+async function assertLessonAccess(req: Request, lesson: { id: string; topicId: string }) {
+  if (req.user?.role === 'admin') return;
+  const plan = await getUserPlan(req.user!.id);
+  if (plan !== SubscriptionPlan.FREE) return;
+  const first = await prisma.lesson.findFirst({
+    where: { topicId: lesson.topicId, isPublished: true },
+    orderBy: { orderIndex: 'asc' },
+    select: { id: true },
+  });
+  if (first && lesson.id !== first.id) {
+    throw new ApiError(403, 'UPGRADE_REQUIRED', 'هذا الدرس للباقات المدفوعة — رقّ باقتك للمتابعة');
+  }
+}
 
 const ok = <T>(res: Response, data: T, status = 200) =>
   res.status(status).json({ success: true, data });
@@ -203,6 +223,7 @@ export async function attachLessonVideo(req: Request, res: Response) {
 export async function getLessonPlayback(req: Request, res: Response) {
   const lesson = await prisma.lesson.findUnique({ where: { id: req.params.id } });
   if (!lesson) throw ApiError.notFound('الدرس غير موجود');
+  await assertLessonAccess(req, lesson); // بوابة الباقة
   if (!lesson.videoUrl) throw ApiError.notFound('لا يوجد فيديو لهذا الدرس بعد');
   const url = await presignDownload(lesson.videoUrl);
   ok(res, { url });

@@ -17,6 +17,7 @@ import {
   getMyProgress,
 } from '@/lib/content-api';
 import { getProblems, type ProblemListItem } from '@/lib/problems-api';
+import { getCurrentSubscription } from '@/lib/subscription-api';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,6 +31,7 @@ export default function CoursesPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [topicProblems, setTopicProblems] = useState<ProblemListItem[]>([]);
   const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
+  const [plan, setPlan] = useState<string>('free');
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [grade, setGrade] = useState<Grade | null>(null);
@@ -44,6 +46,7 @@ export default function CoursesPage() {
 
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {});
+    getCurrentSubscription().then((s) => setPlan(s.plan)).catch(() => {});
     loadProgress();
   }, [loadProgress]);
   useEffect(() => void (subject && getGrades(subject.id).then(setGrades)), [subject]);
@@ -183,12 +186,19 @@ export default function CoursesPage() {
         {/* Lessons */}
         {topic && (
           <List
-            items={lessons.map((le) => ({
-              key: le.id,
-              label: `${statusBadge(le.id)} ${le.title}`.trim(),
-              meta: le.durationMinutes ? `${le.durationMinutes} دقيقة` : undefined,
-              onClick: () => router.push(`/lessons/${le.id}`),
-            }))}
+            items={lessons.map((le, idx) => {
+              const locked = plan === 'free' && idx > 0;
+              return {
+                key: le.id,
+                label: `${locked ? '🔒 ' : statusBadge(le.id) + ' '}${le.title}`.trim(),
+                meta: locked
+                  ? 'مدفوع'
+                  : le.durationMinutes
+                    ? `${le.durationMinutes} دقيقة`
+                    : undefined,
+                onClick: () => router.push(locked ? '/pricing' : `/lessons/${le.id}`),
+              };
+            })}
             empty="لا توجد دروس منشورة في هذا الموضوع بعد."
           />
         )}

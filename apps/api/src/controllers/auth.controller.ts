@@ -23,6 +23,10 @@ export async function register(req: Request, res: Response<{ success: true; data
       role: input.role,
       grade: input.role === UserRole.STUDENT ? (input.grade ?? null) : null,
       level: input.role === UserRole.STUDENT ? (input.level ?? null) : null,
+      // اشتراك مجاني افتراضي للطالب — default free subscription for students
+      ...(input.role === UserRole.STUDENT
+        ? { subscriptions: { create: { plan: 'free', status: 'active' } } }
+        : {}),
     },
   });
 
