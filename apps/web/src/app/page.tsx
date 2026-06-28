@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { AI_DAILY_LIMITS, SubscriptionPlan } from '@khatwa/shared';
 import { Button } from '@/components/ui/button';
 
@@ -13,10 +14,14 @@ export default function HomePage() {
       </div>
 
       <div className="flex gap-4">
-        <Button size="lg">ابدأ مجاناً</Button>
-        <Button size="lg" variant="outline">
-          شاهد كيف تعمل
-        </Button>
+        <Link href="/register">
+          <Button size="lg">ابدأ مجاناً</Button>
+        </Link>
+        <Link href="/login">
+          <Button size="lg" variant="outline">
+            تسجيل الدخول
+          </Button>
+        </Link>
       </div>
 
       {/* تأكيد ربط الحزمة المشتركة — verifies @khatwa/shared is wired up */}
