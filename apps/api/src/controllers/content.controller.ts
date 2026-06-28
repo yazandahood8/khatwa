@@ -11,6 +11,7 @@ import {
 } from '@khatwa/shared';
 import { prisma } from '../services/prisma';
 import { ApiError } from '../utils/ApiError';
+import { presignUpload, presignDownload, isStorageConfigured } from '../services/storage';
 
 const ok = <T>(res: Response, data: T, status = 200) =>
   res.status(status).json({ success: true, data });
@@ -161,6 +162,46 @@ export async function setLessonPublish(req: Request, res: Response) {
     data: { isPublished },
   });
   ok(res, lesson);
+}
+
+// ----------------------- Lesson video (R2) -----------------------
+
+/** POST /api/lessons/:id/upload-url — رابط رفع موقّع للفيديو (admin). */
+export async function getLessonUploadUrl(req: Request, res: Response) {
+  if (!isStorageConfigured()) throw ApiError.internal('التخزين غير مهيأ بعد');
+  const contentType = String(req.body?.contentType ?? '');
+  if (!contentType.startsWith('video/')) {
+    throw ApiError.badRequest('نوع الملف غير مدعوم — فيديو فقط');
+  }
+  const lesson = await prisma.lesson.findUnique({ where: { id: req.params.id } });
+  if (!lesson) throw ApiError.notFound('الدرس غير موجود');
+
+  const safe = String(req.body?.filename ?? 'video')
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .slice(-60);
+  const key = `lessons/${lesson.id}/${Date.now()}-${safe}`;
+  const uploadUrl = await presignUpload(key, contentType);
+  ok(res, { uploadUrl, key });
+}
+
+/** POST /api/lessons/:id/attach-video — حفظ مفتاح الفيديو بعد الرفع (admin). */
+export async function attachLessonVideo(req: Request, res: Response) {
+  const key = String(req.body?.key ?? '');
+  if (!key) throw ApiError.badRequest('مفتاح الفيديو مطلوب');
+  const lesson = await prisma.lesson.update({
+    where: { id: req.params.id },
+    data: { videoUrl: key, durationMinutes: req.body?.durationMinutes ?? undefined },
+  });
+  ok(res, lesson);
+}
+
+/** GET /api/lessons/:id/playback — رابط مشاهدة موقّع (any authed user). */
+export async function getLessonPlayback(req: Request, res: Response) {
+  const lesson = await prisma.lesson.findUnique({ where: { id: req.params.id } });
+  if (!lesson) throw ApiError.notFound('الدرس غير موجود');
+  if (!lesson.videoUrl) throw ApiError.notFound('لا يوجد فيديو لهذا الدرس بعد');
+  const url = await presignDownload(lesson.videoUrl);
+  ok(res, { url });
 }
 
 // ----------------------- Admin stats -----------------------

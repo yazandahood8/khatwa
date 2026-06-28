@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { LessonVideoUpload } from '@/components/admin/lesson-video-upload';
 
 const ALL_GRADES = [7, 8, 9, 10, 11, 12];
 
@@ -207,7 +208,7 @@ export default function ContentPage() {
           }
           items={lessons.map((le) => ({
             id: le.id,
-            label: le.title,
+            label: `${le.videoUrl ? '🎬 ' : ''}${le.title}`,
             meta: le.isPublished ? '🟢 منشور' : '⚪ مسودة',
             extra: (
               <Button
@@ -223,8 +224,13 @@ export default function ContentPage() {
               </Button>
             ),
             onDelete: () => run(deleteLesson(le.id), () => getLessons(topic.id).then(setLessons)),
+            body: (
+              <LessonVideoUpload
+                lesson={le}
+                onChange={() => getLessons(topic.id).then(setLessons)}
+              />
+            ),
           }))}
-          note="رفع الفيديو لكل درس سيُضاف قريباً (بعد إعداد التخزين)."
         />
       )}
     </div>
@@ -243,6 +249,7 @@ interface Item {
   label: string;
   meta?: string;
   extra?: React.ReactNode;
+  body?: React.ReactNode;
   onOpen?: () => void;
   onDelete?: () => void;
 }
@@ -296,29 +303,34 @@ function Section({
         <div className="grid gap-2">
           {items.map((it) => (
             <Card key={it.id}>
-              <CardContent className="flex items-center justify-between gap-2 p-3">
-                <button
-                  onClick={it.onOpen}
-                  disabled={!it.onOpen}
-                  className={it.onOpen ? 'text-start hover:underline' : 'text-start'}
-                >
-                  <span className="font-medium">{it.label}</span>
-                  {it.meta && <span className="ms-2 text-xs text-muted-foreground">{it.meta}</span>}
-                </button>
-                <div className="flex items-center gap-1">
-                  {it.extra}
-                  {it.onDelete && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm('متأكد من الحذف؟ سيُحذف كل ما بداخله.')) it.onDelete!();
-                      }}
-                    >
-                      🗑️
-                    </Button>
-                  )}
+              <CardContent className="space-y-3 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={it.onOpen}
+                    disabled={!it.onOpen}
+                    className={it.onOpen ? 'text-start hover:underline' : 'text-start'}
+                  >
+                    <span className="font-medium">{it.label}</span>
+                    {it.meta && (
+                      <span className="ms-2 text-xs text-muted-foreground">{it.meta}</span>
+                    )}
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {it.extra}
+                    {it.onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm('متأكد من الحذف؟ سيُحذف كل ما بداخله.')) it.onDelete!();
+                        }}
+                      >
+                        🗑️
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                {it.body}
               </CardContent>
             </Card>
           ))}

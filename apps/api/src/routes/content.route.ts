@@ -37,4 +37,9 @@ router.put('/lessons/:id', ...admin, c.updateLesson);
 router.delete('/lessons/:id', ...admin, c.deleteLesson);
 router.post('/lessons/:id/publish', ...admin, c.setLessonPublish);
 
+// رفع/مشاهدة الفيديو — video upload (admin) + playback (any authed user)
+router.post('/lessons/:id/upload-url', ...admin, c.getLessonUploadUrl);
+router.post('/lessons/:id/attach-video', ...admin, c.attachLessonVideo);
+router.get('/lessons/:id/playback', requireAuth, c.getLessonPlayback);
+
 export default router;

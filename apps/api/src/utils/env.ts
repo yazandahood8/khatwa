@@ -27,6 +27,13 @@ const envSchema = z.object({
 
   // الذكاء الاصطناعي — Claude (used from Sprint 7)
   ANTHROPIC_API_KEY: z.string().optional(),
+
+  // تخزين الفيديوهات — Object storage (Cloudflare R2, S3-compatible)
+  S3_REGION: z.string().default('auto'),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_ENDPOINT: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

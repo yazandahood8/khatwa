@@ -90,3 +90,41 @@ export const publishLesson = (id: string, isPublished: boolean) =>
     method: 'POST',
     body: JSON.stringify({ isPublished }),
   });
+
+// ---- video upload / playback ----
+export const getLessonUploadUrl = (id: string, contentType: string, filename: string) =>
+  apiFetch<{ uploadUrl: string; key: string }>(`/api/lessons/${id}/upload-url`, {
+    method: 'POST',
+    body: JSON.stringify({ contentType, filename }),
+  });
+
+export const attachLessonVideo = (id: string, key: string) =>
+  apiFetch<Lesson>(`/api/lessons/${id}/attach-video`, {
+    method: 'POST',
+    body: JSON.stringify({ key }),
+  });
+
+export const getLessonPlayback = (id: string) =>
+  apiFetch<{ url: string }>(`/api/lessons/${id}/playback`);
+
+/** رفع مباشر للتخزين مع تتبّع التقدّم — direct PUT to storage with progress (XHR). */
+export function uploadToUrl(
+  url: string,
+  file: File,
+  onProgress: (percent: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () =>
+      xhr.status >= 200 && xhr.status < 300
+        ? resolve()
+        : reject(new Error(`فشل الرفع (HTTP ${xhr.status})`));
+    xhr.onerror = () => reject(new Error('فشل الاتصال أثناء الرفع'));
+    xhr.send(file);
+  });
+}
