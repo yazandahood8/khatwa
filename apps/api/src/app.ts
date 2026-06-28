@@ -31,6 +31,9 @@ export function createApp() {
   app.use(morgan(isProduction ? 'combined' : 'dev'));
 
   // المسارات — Routes
+  app.get('/', (_req, res) => {
+    res.json({ name: 'Khatwa API', status: 'running', docs: '/health' });
+  });
   app.use('/health', healthRoute); // GET /health → { status: "ok" }
   app.use('/api', apiRouter);
 
