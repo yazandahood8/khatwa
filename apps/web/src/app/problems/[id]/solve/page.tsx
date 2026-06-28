@@ -121,8 +121,8 @@ export default function SolvePage() {
               <CardHeader>
                 <CardTitle className="text-base text-muted-foreground">المسألة</CardTitle>
               </CardHeader>
-              <CardContent className="text-xl">
-                {problem ? <Math expr={problem.question} block /> : 'جارٍ التحميل…'}
+              <CardContent className="text-xl" dir="auto">
+                {problem ? problem.question : 'جارٍ التحميل…'}
               </CardContent>
             </Card>
 
@@ -162,6 +162,9 @@ export default function SolvePage() {
                       onBackspace={() => setCurrent((c) => c.slice(0, -1))}
                       onClear={() => setCurrent('')}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      💡 لو في أكثر من حل، افصل بينها بفاصلة — مثال: <span dir="ltr">-2,-3</span>
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" onClick={addStep} disabled={!current.trim()}>
                         ➕ أضف خطوة
