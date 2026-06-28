@@ -25,8 +25,10 @@ const envSchema = z.object({
   // المصادقة — Auth
   JWT_SECRET: z.string().min(16).optional(),
 
-  // الذكاء الاصطناعي — Claude (used from Sprint 7)
+  // الذكاء الاصطناعي — Claude (Sprint 7)
   ANTHROPIC_API_KEY: z.string().optional(),
+  CLAUDE_MODEL: z.string().default('claude-sonnet-4-6'),
+  AI_DEFAULT_PLAN: z.enum(['free', 'basic', 'premium']).default('premium'),
 
   // تخزين الفيديوهات — Object storage (Cloudflare R2, S3-compatible)
   S3_REGION: z.string().default('auto'),

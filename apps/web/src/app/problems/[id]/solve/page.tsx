@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -15,6 +15,7 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { Math } from '@/components/math/math';
 import { MathKeyboard } from '@/components/math/math-keyboard';
 import { ScratchPad } from '@/components/math/scratch-pad';
+import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -31,6 +32,7 @@ export default function SolvePage() {
   const [solved, setSolved] = useState(false);
   const [showPad, setShowPad] = useState(false);
   const [checking, setChecking] = useState(false);
+  const aiRef = useRef<AiTutorHandle>(null);
 
   const reset = () => {
     setCurrent('');
@@ -63,8 +65,10 @@ export default function SolvePage() {
 
   const addStep = () => {
     if (!current.trim()) return;
-    setSteps((s) => [...s, current.trim()]);
+    const step = current.trim();
+    setSteps((s) => [...s, step]);
     setCurrent('');
+    aiRef.current?.sendStep(step); // اطلب رأي المعلم الذكي بالخطوة
   };
 
   const check = useCallback(async () => {
@@ -210,17 +214,13 @@ export default function SolvePage() {
             )}
           </div>
 
-          {/* right: AI panel placeholder */}
+          {/* right: AI tutor */}
           <div>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-base">🤖 المساعد الذكي</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                المساعد الذكي اللي بيوجّهك خطوة بخطوة بيوصل في التحديث القادم. هلّق جرّب تحلّ
-                المسألة بنفسك واكتب جوابك النهائي. 💪
-              </CardContent>
-            </Card>
+            <AiTutorPanel
+              ref={aiRef}
+              problemId={id}
+              getState={() => ({ attemptsCount: attempts, current })}
+            />
           </div>
         </div>
       </main>

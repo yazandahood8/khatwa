@@ -3,9 +3,14 @@ import { UserRole } from '@khatwa/shared';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 import * as p from '../controllers/problems.controller';
 import { checkAnswer, getAttempt } from '../controllers/attempts.controller';
+import { askTutor, aiQuota } from '../controllers/ai.controller';
 
 const router = Router();
 const admin = [requireAuth, requireRole(UserRole.ADMIN)] as const;
+
+// المساعد الذكي — AI tutor (streaming) + daily quota
+router.post('/problems/:id/ai', requireAuth, askTutor);
+router.get('/ai/quota', requireAuth, aiQuota);
 
 // قراءة — reads (any authed user)
 router.get('/problems', requireAuth, p.listProblems);

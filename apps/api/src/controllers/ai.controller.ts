@@ -1,0 +1,133 @@
+import type { Request, Response } from 'express';
+import { z } from 'zod';
+import { prisma } from '../services/prisma';
+import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
+import { consumeQuota, getQuota } from '../services/aiRateLimit';
+import { buildTutorSystemPrompt } from '../utils/aiPrompt';
+import { ApiError } from '../utils/ApiError';
+import { logger } from '../utils/logger';
+
+const askSchema = z.object({
+  message: z.string().trim().min(1, 'الرسالة مطلوبة').max(2000),
+  attemptsCount: z.coerce.number().int().min(0).default(0),
+  history: z
+    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) }))
+    .max(20)
+    .optional(),
+});
+
+/** GET /api/ai/quota — كم سؤال بقي للطالب اليوم. */
+export async function aiQuota(req: Request, res: Response) {
+  const quota = await getQuota(req.user!.id);
+  res.json({ success: true, data: { ...quota, configured: isAiConfigured() } });
+}
+
+/** POST /api/problems/:id/ai — رد المعلم السقراطي (بثّ مباشر). */
+export async function askTutor(req: Request, res: Response) {
+  if (!isAiConfigured() || !claude) {
+    throw ApiError.internal('المساعد الذكي غير مهيأ بعد (ANTHROPIC_API_KEY مفقود)');
+  }
+  const input = askSchema.parse(req.body);
+  const studentId = req.user!.id;
+  const problemId = req.params.id;
+
+  // المسألة الكاملة مع سياق التسلسل الهرمي
+  const problem = await prisma.problem.findUnique({
+    where: { id: problemId },
+    include: {
+      methods: { include: { steps: { orderBy: { stepNumber: 'asc' } } } },
+      commonMistakes: true,
+      topic: { include: { level: { include: { grade: { include: { subject: true } } } } } },
+    },
+  });
+  if (!problem) throw ApiError.notFound('المسألة غير موجودة');
+
+  // تحديد المعدل حسب الباقة — rate limit by plan (throws RATE_LIMITED)
+  let quota;
+  try {
+    quota = await consumeQuota(studentId);
+  } catch (e) {
+    if ((e as { code?: string }).code === 'RATE_LIMITED') {
+      res.status(429).json({
+        success: false,
+        error: { code: 'RATE_LIMITED', message: 'خلصت أسئلتك لليوم. جرّب بكرة أو رقّي باقتك 🙂' },
+      });
+      return;
+    }
+    throw e;
+  }
+
+  const systemPrompt = buildTutorSystemPrompt({
+    subject: problem.topic.level.grade.subject.nameAr,
+    grade: problem.topic.level.grade.gradeNumber,
+    level: problem.topic.level.name,
+    topic: problem.topic.nameAr,
+    question: problem.question,
+    finalAnswer: problem.finalAnswer,
+    methods: problem.methods.map((m) => ({
+      name: m.name,
+      isRecommended: m.isRecommended,
+      steps: m.steps.map((s) => ({
+        stepNumber: s.stepNumber,
+        description: s.description,
+        expression: s.expression,
+        hint: s.hint,
+      })),
+    })),
+    commonMistakes: problem.commonMistakes.map((c) => ({
+      description: c.description,
+      wrongExample: c.wrongExample,
+      correction: c.correction,
+    })),
+    attemptsCount: input.attemptsCount,
+  });
+
+  const messages = [
+    ...(input.history ?? []),
+    { role: 'user' as const, content: input.message },
+  ];
+
+  // بثّ الرد — stream the response as plain text chunks
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-AI-Remaining', String(quota.remaining));
+  res.flushHeaders?.();
+
+  let full = '';
+  try {
+    const stream = claude.messages.stream({
+      model: CLAUDE_MODEL,
+      max_tokens: 600,
+      system: systemPrompt,
+      messages,
+    });
+    stream.on('text', (t) => {
+      full += t;
+      res.write(t);
+    });
+    const finalMsg = await stream.finalMessage();
+    res.end();
+
+    // حفظ الجلسة + التكلفة — persist session + token usage
+    const inTok = finalMsg.usage.input_tokens;
+    const outTok = finalMsg.usage.output_tokens;
+    await prisma.aiSession.create({
+      data: {
+        studentId,
+        problemId,
+        messages: [...messages, { role: 'assistant', content: full }],
+        tokensUsed: inTok + outTok,
+      },
+    });
+    logger.info(
+      `AI tutor: ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,
+    );
+  } catch (err) {
+    logger.error('AI stream error', err instanceof Error ? err.message : err);
+    if (!res.headersSent) {
+      res.status(502).json({ success: false, error: { code: 'AI_ERROR', message: 'تعذّر الاتصال بالمساعد' } });
+    } else {
+      res.end('\n\n(عذراً، صار خطأ. حاول مرة ثانية)');
+    }
+  }
+}
