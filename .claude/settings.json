@@ -4,7 +4,11 @@
       "Bash(npm --version)",
       "Bash(git --version)",
       "Bash(git branch *)",
-      "Bash(git commit -q -m 'Sprint 1: monorepo scaffold \\(web + api + shared\\), Prisma schema, health endpoint, CI *)"
+      "Bash(git commit -q -m 'Sprint 1: monorepo scaffold \\(web + api + shared\\), Prisma schema, health endpoint, CI *)",
+      "Read(//c/Khatwa/apps/api/**)",
+      "Bash(npx prisma *)",
+      "Bash(node /tmp/verify-tables.mjs)",
+      "Bash(node verify-tables.mjs)"
     ]
   }
 }
