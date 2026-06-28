@@ -36,6 +36,13 @@ export async function getQuota(userId: string): Promise<Quota> {
   return { plan, limit, used, remaining: Math.max(0, limit - used) };
 }
 
+/** يُرجِع سؤالاً للطالب — refund one question (e.g. when the AI call fails). */
+export async function refundQuota(userId: string): Promise<void> {
+  if (!redis) return;
+  const used = Number((await redis.get(dayKey(userId))) ?? 0);
+  if (used > 0) await redis.decr(dayKey(userId));
+}
+
 /**
  * يتحقق ويزيد العدّاد — check the daily limit and increment.
  * يرمي خطأ بكود RATE_LIMITED إذا تجاوز الحد.

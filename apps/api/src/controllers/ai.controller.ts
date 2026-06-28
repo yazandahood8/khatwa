@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../services/prisma';
 import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
-import { consumeQuota, getQuota } from '../services/aiRateLimit';
+import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { buildTutorSystemPrompt } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
@@ -124,6 +124,7 @@ export async function askTutor(req: Request, res: Response) {
     );
   } catch (err) {
     logger.error('AI stream error', err instanceof Error ? err.message : err);
+    if (!full) await refundQuota(studentId); // لم يصل أي رد — لا تحتسب السؤال
     if (!res.headersSent) {
       res.status(502).json({ success: false, error: { code: 'AI_ERROR', message: 'تعذّر الاتصال بالمساعد' } });
     } else {
