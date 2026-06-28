@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   type Subject,
   type Grade,
@@ -188,6 +189,13 @@ export default function ContentPage() {
       )}
 
       {/* ---------------- Lessons ---------------- */}
+      {topic && (
+        <div className="flex justify-end">
+          <Link href={`/admin/problems?topicId=${topic.id}`}>
+            <Button variant="outline">🧮 مسائل هذا الموضوع</Button>
+          </Link>
+        </div>
+      )}
       {topic && (
         <Section
           title="الدروس"

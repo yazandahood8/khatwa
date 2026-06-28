@@ -4,6 +4,7 @@ import usersRoute from './users.route';
 import parentRoute from './parent.route';
 import contentRoute from './content.route';
 import progressRoute from './progress.route';
+import problemsRoute from './problems.route';
 
 /**
  * مُجمِّع مسارات /api — API router aggregator.
@@ -16,5 +17,6 @@ router.use('/users', usersRoute);
 router.use('/parent', parentRoute);
 router.use('/', contentRoute);
 router.use('/', progressRoute);
+router.use('/', problemsRoute);
 
 export default router;
