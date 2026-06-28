@@ -8,6 +8,7 @@ export interface AiQuota {
   limit: number;
   used: number;
   remaining: number;
+  unlimited?: boolean;
   configured: boolean;
 }
 

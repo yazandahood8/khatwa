@@ -45,7 +45,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     setError(null);
     const history = messages.filter((m) => m.content.trim()).slice(-10);
     setMessages((m) => [...m, { role: 'user', content: userMessage }, { role: 'assistant', content: '' }]);
-    setRemaining((r) => (r != null ? Math.max(0, r - 1) : r)); // تحديث فوري
+    setRemaining((r) => (r != null && r > 0 ? r - 1 : r)); // تحديث فوري (إلا غير المحدود)
     setBusy(true);
     try {
       const { remaining: rem } = await streamTutor(
@@ -91,7 +91,9 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
       <div className="flex items-center justify-between border-b px-3 py-2">
         <span className="font-medium">🤖 المساعد الذكي</span>
         {configured && remaining != null && (
-          <span className="text-xs text-muted-foreground">بقي {remaining} اليوم</span>
+          <span className="text-xs text-muted-foreground">
+            {remaining < 0 ? 'غير محدود ∞' : `بقي ${remaining} اليوم`}
+          </span>
         )}
       </div>
 

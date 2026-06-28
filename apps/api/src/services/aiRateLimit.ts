@@ -26,10 +26,20 @@ export interface Quota {
   limit: number;
   used: number;
   remaining: number;
+  unlimited?: boolean;
 }
 
+const UNLIMITED: Quota = {
+  plan: SubscriptionPlan.PREMIUM,
+  limit: -1,
+  used: 0,
+  remaining: -1,
+  unlimited: true,
+};
+
 /** يقرأ الحصة الحالية بدون زيادة — read today's usage without incrementing. */
-export async function getQuota(userId: string): Promise<Quota> {
+export async function getQuota(userId: string, role?: string): Promise<Quota> {
+  if (role === 'admin') return UNLIMITED; // الأدمن بلا حدود
   const plan = await getUserPlan(userId);
   const limit = AI_DAILY_LIMITS[plan];
   const used = redis ? Number((await redis.get(dayKey(userId))) ?? 0) : 0;
@@ -47,7 +57,8 @@ export async function refundQuota(userId: string): Promise<void> {
  * يتحقق ويزيد العدّاد — check the daily limit and increment.
  * يرمي خطأ بكود RATE_LIMITED إذا تجاوز الحد.
  */
-export async function consumeQuota(userId: string): Promise<Quota> {
+export async function consumeQuota(userId: string, role?: string): Promise<Quota> {
+  if (role === 'admin') return UNLIMITED; // الأدمن بلا حدود ولا عدّاد
   const plan = await getUserPlan(userId);
   const limit = AI_DAILY_LIMITS[plan];
 

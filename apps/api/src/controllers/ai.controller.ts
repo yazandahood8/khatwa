@@ -19,7 +19,7 @@ const askSchema = z.object({
 
 /** GET /api/ai/quota — كم سؤال بقي للطالب اليوم. */
 export async function aiQuota(req: Request, res: Response) {
-  const quota = await getQuota(req.user!.id);
+  const quota = await getQuota(req.user!.id, req.user!.role);
   res.json({ success: true, data: { ...quota, configured: isAiConfigured() } });
 }
 
@@ -46,7 +46,7 @@ export async function askTutor(req: Request, res: Response) {
   // تحديد المعدل حسب الباقة — rate limit by plan (throws RATE_LIMITED)
   let quota;
   try {
-    quota = await consumeQuota(studentId);
+    quota = await consumeQuota(studentId, req.user!.role);
   } catch (e) {
     if ((e as { code?: string }).code === 'RATE_LIMITED') {
       res.status(429).json({
