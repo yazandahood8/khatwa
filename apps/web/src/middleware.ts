@@ -6,11 +6,14 @@ const TOKEN_COOKIE = 'khatwa_token';
 const ROLE_COOKIE = 'khatwa_role';
 
 // مسارات محمية حسب الدور — protected path prefixes per allowed role
+const ALL_ROLES = [UserRole.ADMIN, UserRole.STUDENT, UserRole.PARENT];
 const PROTECTED: { prefix: string; roles: UserRole[] }[] = [
   { prefix: '/admin', roles: [UserRole.ADMIN] },
   { prefix: '/parent', roles: [UserRole.PARENT] },
   { prefix: '/dashboard', roles: [UserRole.STUDENT] },
-  { prefix: '/profile', roles: [UserRole.ADMIN, UserRole.STUDENT, UserRole.PARENT] },
+  { prefix: '/profile', roles: ALL_ROLES },
+  { prefix: '/courses', roles: ALL_ROLES },
+  { prefix: '/lessons', roles: ALL_ROLES },
 ];
 
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -45,5 +48,13 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/parent/:path*', '/dashboard/:path*', '/profile/:path*', ...AUTH_PAGES],
+  matcher: [
+    '/admin/:path*',
+    '/parent/:path*',
+    '/dashboard/:path*',
+    '/profile/:path*',
+    '/courses/:path*',
+    '/lessons/:path*',
+    ...AUTH_PAGES,
+  ],
 };

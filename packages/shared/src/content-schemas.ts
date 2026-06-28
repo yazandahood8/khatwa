@@ -58,5 +58,12 @@ export type CreateGradeInput = z.infer<typeof createGradeSchema>;
 export type CreateLevelInput = z.infer<typeof createLevelSchema>;
 export type CreateTopicInput = z.infer<typeof createTopicSchema>;
 export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;
+// تقدّم المشاهدة — lesson watch progress
+export const saveProgressSchema = z.object({
+  watchTimeSeconds: z.coerce.number().int().min(0),
+  completed: z.boolean().optional(),
+});
+
 export type CreateLessonInput = z.infer<typeof createLessonSchema>;
 export type UpdateLessonInput = z.infer<typeof updateLessonSchema>;
+export type SaveProgressInput = z.infer<typeof saveProgressSchema>;

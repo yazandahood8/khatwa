@@ -14,6 +14,9 @@ router.get('/topics', c.listTopics);
 router.get('/lessons', c.listLessons);
 router.get('/lessons/:id', c.getLesson);
 
+// ---- بحث — search (any authed user) ----
+router.get('/search', requireAuth, c.searchContent);
+
 // ---- إحصائيات الأدمن — admin stats ----
 router.get('/admin/stats', ...admin, c.adminStats);
 

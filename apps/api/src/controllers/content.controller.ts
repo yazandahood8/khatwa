@@ -125,8 +125,12 @@ export async function deleteTopic(req: Request, res: Response) {
 
 export async function listLessons(req: Request, res: Response) {
   const topicId = req.query.topicId as string | undefined;
+  const publishedOnly = req.query.published === 'true';
   const lessons = await prisma.lesson.findMany({
-    where: topicId ? { topicId } : undefined,
+    where: {
+      ...(topicId ? { topicId } : {}),
+      ...(publishedOnly ? { isPublished: true } : {}),
+    },
     orderBy: { orderIndex: 'asc' },
   });
   ok(res, lessons);
@@ -202,6 +206,30 @@ export async function getLessonPlayback(req: Request, res: Response) {
   if (!lesson.videoUrl) throw ApiError.notFound('لا يوجد فيديو لهذا الدرس بعد');
   const url = await presignDownload(lesson.videoUrl);
   ok(res, { url });
+}
+
+// ----------------------- Search -----------------------
+
+/** GET /api/search?q= — بحث في الدروس المنشورة والمواضيع. */
+export async function searchContent(req: Request, res: Response) {
+  const q = String(req.query.q ?? '').trim();
+  if (q.length < 2) {
+    ok(res, { lessons: [], topics: [] });
+    return;
+  }
+  const [lessons, topics] = await Promise.all([
+    prisma.lesson.findMany({
+      where: { isPublished: true, title: { contains: q, mode: 'insensitive' } },
+      select: { id: true, title: true, topicId: true },
+      take: 10,
+    }),
+    prisma.topic.findMany({
+      where: { nameAr: { contains: q, mode: 'insensitive' } },
+      select: { id: true, nameAr: true, levelId: true },
+      take: 10,
+    }),
+  ]);
+  ok(res, { lessons, topics });
 }
 
 // ----------------------- Admin stats -----------------------

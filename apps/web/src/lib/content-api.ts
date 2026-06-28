@@ -57,6 +57,42 @@ export const getLevels = (gradeId: string) => apiFetch<Level[]>(`/api/levels?gra
 export const getTopics = (levelId: string) => apiFetch<Topic[]>(`/api/topics?levelId=${levelId}`);
 export const getLessons = (topicId: string) =>
   apiFetch<Lesson[]>(`/api/lessons?topicId=${topicId}`);
+export const getPublishedLessons = (topicId: string) =>
+  apiFetch<Lesson[]>(`/api/lessons?topicId=${topicId}&published=true`);
+export const getLessonById = (id: string) => apiFetch<Lesson>(`/api/lessons/${id}`);
+
+// ---- student progress ----
+export interface ProgressRow {
+  lessonId: string;
+  watchTimeSeconds: number;
+  completedAt: string | null;
+}
+export interface StudentDashboard {
+  lastLesson: {
+    id: string;
+    title: string;
+    topicId: string;
+    topicName: string;
+    watchTimeSeconds: number;
+    durationMinutes: number | null;
+  } | null;
+  completedCount: number;
+  inProgressCount: number;
+}
+export const getMyProgress = () => apiFetch<ProgressRow[]>('/api/me/progress');
+export const getStudentDashboard = () => apiFetch<StudentDashboard>('/api/me/dashboard');
+export const saveProgress = (lessonId: string, watchTimeSeconds: number, completed?: boolean) =>
+  apiFetch(`/api/lessons/${lessonId}/progress`, {
+    method: 'POST',
+    body: JSON.stringify({ watchTimeSeconds, completed }),
+  });
+
+export interface SearchResults {
+  lessons: { id: string; title: string; topicId: string }[];
+  topics: { id: string; nameAr: string; levelId: string }[];
+}
+export const searchContent = (q: string) =>
+  apiFetch<SearchResults>(`/api/search?q=${encodeURIComponent(q)}`);
 
 // ---- subjects ----
 export const createSubject = (body: CreateSubjectInput) =>
