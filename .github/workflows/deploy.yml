@@ -1,0 +1,33 @@
+name: Deploy (Staging)
+
+# نشر تلقائي عند Push على develop — auto-deploy on push to develop.
+# يتطلب ضبط Secrets في GitHub (انظر docs/INFRA_SETUP.md):
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID  → Frontend
+#   RAILWAY_TOKEN                                    → Backend
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-web:
+    name: Deploy Web → Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Vercel
+        run: echo "TODO Sprint 1 infra — أضف خطوة نشر Vercel بعد ربط المشروع"
+        # مثال بعد الإعداد:
+        # run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  deploy-api:
+    name: Deploy API → Railway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Railway
+        run: echo "TODO Sprint 1 infra — أضف خطوة نشر Railway بعد ربط المشروع"
+        # مثال بعد الإعداد:
+        # run: railway up --service api
+        # env:
+        #   RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

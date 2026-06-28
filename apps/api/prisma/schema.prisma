@@ -1,0 +1,330 @@
+// ============================================================
+//  Khatwa — Prisma Schema
+//  منصة تعليمية تفاعلية — قاعدة البيانات الكاملة (16 جدول)
+//  راجع: خطة المشروع القسم 12
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------- Enums -----------------------
+
+enum Role {
+  admin
+  student
+  parent
+}
+
+enum Plan {
+  free
+  basic
+  premium
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  expired
+  pending
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+enum AdminNotificationType {
+  new_method
+  new_student
+  payment
+}
+
+// ----------------------- Users -----------------------
+
+/// المستخدمون — students, parents, admins
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String?   @map("password_hash") // null for OAuth-only users
+  role         Role      @default(student)
+  grade        Int? // 7..12 (students)
+  level        String? // "3יח׳" / "4יח׳" / "5יח׳"
+  avatarUrl    String?   @map("avatar_url")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  lastActive   DateTime? @map("last_active")
+
+  // علاقات الأهل والأبناء — parent/student links
+  asParentLinks  ParentStudent[] @relation("ParentLinks")
+  asStudentLinks ParentStudent[] @relation("StudentLinks")
+
+  // نشاط الطالب — student activity
+  lessonProgress    LessonProgress[]
+  problemAttempts   ProblemAttempt[]
+  aiSessions        AiSession[]
+  subscriptions     Subscription[]
+  discoveredMethods SolutionMethod[] @relation("DiscoveredMethods")
+
+  @@index([role])
+  @@map("users")
+}
+
+/// ربط الأهل بالأبناء — parent ↔ student relation
+model ParentStudent {
+  id        String   @id @default(cuid())
+  parentId  String   @map("parent_id")
+  studentId String   @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  parent  User @relation("ParentLinks", fields: [parentId], references: [id], onDelete: Cascade)
+  student User @relation("StudentLinks", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@map("parent_student")
+}
+
+// ----------------- Content hierarchy -----------------
+
+/// المواد — subjects (math, physics, ...)
+model Subject {
+  id         String   @id @default(cuid())
+  nameAr     String   @map("name_ar")
+  nameHe     String?  @map("name_he")
+  icon       String?
+  isActive   Boolean  @default(true) @map("is_active")
+  orderIndex Int      @default(0) @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  grades Grade[]
+
+  @@map("subjects")
+}
+
+/// الصفوف — grades (7..12) per subject
+model Grade {
+  id          String @id @default(cuid())
+  gradeNumber Int    @map("grade_number") // 7..12
+  subjectId   String @map("subject_id")
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  levels  Level[]
+
+  @@unique([subjectId, gradeNumber])
+  @@map("grades")
+}
+
+/// المستويات (יחידות) — levels (3/4/5 units)
+model Level {
+  id      String @id @default(cuid())
+  name    String // "3יח׳" / "4יח׳" / "5יח׳"
+  gradeId String @map("grade_id")
+
+  grade  Grade   @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  topics Topic[]
+
+  @@map("levels")
+}
+
+/// المواضيع — topics
+model Topic {
+  id          String   @id @default(cuid())
+  nameAr      String   @map("name_ar")
+  description String?
+  levelId     String   @map("level_id")
+  orderIndex  Int      @default(0) @map("order_index")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  level    Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  lessons  Lesson[]
+  problems Problem[]
+
+  @@index([levelId])
+  @@map("topics")
+}
+
+/// الدروس — lessons (video)
+model Lesson {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  durationMinutes Int?     @map("duration_minutes")
+  videoUrl        String?  @map("video_url") // AWS S3 / CloudFront
+  thumbnailUrl    String?  @map("thumbnail_url")
+  topicId         String   @map("topic_id")
+  orderIndex      Int      @default(0) @map("order_index")
+  isPublished     Boolean  @default(false) @map("is_published")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  topic    Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  progress LessonProgress[]
+
+  @@index([topicId])
+  @@map("lessons")
+}
+
+// ------------------ Problems & solutions ------------------
+
+/// المسائل — problems
+model Problem {
+  id              String     @id @default(cuid())
+  code            String?    @unique // "MATH-10-4YH-EQ2-Q3"
+  question        String
+  finalAnswer     String     @map("final_answer")
+  answerTolerance Float      @default(0) @map("answer_tolerance")
+  difficulty      Difficulty @default(medium)
+  topicId         String     @map("topic_id")
+  allowFreeMethod Boolean    @default(true) @map("allow_free_method")
+  orderIndex      Int        @default(0) @map("order_index")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  topic          Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  methods        SolutionMethod[]
+  commonMistakes CommonMistake[]
+  attempts       ProblemAttempt[]
+  aiSessions     AiSession[]
+
+  @@index([topicId])
+  @@map("problems")
+}
+
+/// طرق الحل — solution methods
+model SolutionMethod {
+  id                  String   @id @default(cuid())
+  problemId           String   @map("problem_id")
+  name                String   @map("method_name")
+  isRecommended       Boolean  @default(false) @map("is_recommended")
+  isApproved          Boolean  @default(true) @map("is_approved") // false = pending review (new method)
+  discoveredByStudent String?  @map("discovered_by_student_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  problem    Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  discoverer User?          @relation("DiscoveredMethods", fields: [discoveredByStudent], references: [id], onDelete: SetNull)
+  steps      SolutionStep[]
+
+  @@index([problemId])
+  @@map("solution_methods")
+}
+
+/// خطوات الحل — solution steps
+model SolutionStep {
+  id          String @id @default(cuid())
+  methodId    String @map("method_id")
+  stepNumber  Int    @map("step_number")
+  description String
+  expression  String
+  hint        String
+
+  method SolutionMethod @relation(fields: [methodId], references: [id], onDelete: Cascade)
+
+  @@index([methodId])
+  @@map("solution_steps")
+}
+
+/// الأخطاء الشائعة — common mistakes
+model CommonMistake {
+  id           String @id @default(cuid())
+  problemId    String @map("problem_id")
+  description  String
+  wrongExample String @map("wrong_example")
+  correction   String
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
+  @@map("common_mistakes")
+}
+
+// ------------------ Progress & activity ------------------
+
+/// تقدم الطالب في الدروس — lesson progress
+model LessonProgress {
+  id                String    @id @default(cuid())
+  studentId         String    @map("student_id")
+  lessonId          String    @map("lesson_id")
+  watchTimeSeconds  Int       @default(0) @map("watch_time_seconds")
+  completedAt       DateTime? @map("completed_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lesson  Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+  @@map("lesson_progress")
+}
+
+/// محاولات حل المسائل — problem attempts
+model ProblemAttempt {
+  id            String    @id @default(cuid())
+  studentId     String    @map("student_id")
+  problemId     String    @map("problem_id")
+  methodUsed    String?   @map("method_used")
+  stepsTaken    Json?     @map("steps_taken")
+  isCorrect     Boolean   @default(false) @map("is_correct")
+  attemptsCount Int       @default(0) @map("attempts_count")
+  completedAt   DateTime? @map("completed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  student User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, problemId])
+  @@map("problem_attempts")
+}
+
+/// جلسات الذكاء الاصطناعي — AI sessions
+model AiSession {
+  id         String   @id @default(cuid())
+  studentId  String   @map("student_id")
+  problemId  String?  @map("problem_id")
+  messages   Json     @default("[]")
+  tokensUsed Int      @default(0) @map("tokens_used")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  student User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  problem Problem? @relation(fields: [problemId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@map("ai_sessions")
+}
+
+// ------------------ Billing & admin ------------------
+
+/// الاشتراكات — subscriptions
+model Subscription {
+  id                    String             @id @default(cuid())
+  studentId             String             @map("student_id")
+  plan                  Plan               @default(free)
+  status                SubscriptionStatus @default(active)
+  payplusSubscriptionId String?            @map("payplus_subscription_id")
+  startsAt              DateTime           @default(now()) @map("starts_at")
+  endsAt                DateTime?          @map("ends_at")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("subscriptions")
+}
+
+/// إشعارات الأدمن — admin notifications
+model AdminNotification {
+  id        String                @id @default(cuid())
+  type      AdminNotificationType
+  data      Json                  @default("{}")
+  isRead    Boolean               @default(false) @map("is_read")
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  @@index([isRead])
+  @@map("admin_notifications")
+}
