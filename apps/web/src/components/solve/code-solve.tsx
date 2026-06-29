@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal } from 'lucide-react';
+import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal, Lightbulb } from 'lucide-react';
 import { streamJudge } from '@/lib/ai-api';
 import { getAttempt, getTopicProgress, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
 import { ApiClientError } from '@/lib/api';
@@ -26,6 +26,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [verdict, setVerdict] = useState<Verdict | null>(null);
+  const [panelMode, setPanelMode] = useState<'judge' | 'hint'>('judge');
   const [attempts, setAttempts] = useState(0);
   const [solved, setSolved] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
@@ -63,9 +64,34 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     else router.push('/courses');
   }
 
+  async function hint() {
+    if (busy) return;
+    setBusy(true);
+    setPanelMode('hint');
+    setFeedback('');
+    setVerdict(null);
+    setError(null);
+    rawRef.current = '';
+    try {
+      await streamJudge(id, { code, history: [], hint: true }, (chunk) => {
+        rawRef.current += chunk;
+        setFeedback(rawRef.current.trimEnd());
+      });
+    } catch (e) {
+      setError(
+        e instanceof ApiClientError && e.code === 'RATE_LIMITED'
+          ? e.message
+          : 'تعذّر الحصول على تلميح. حاول مرة ثانية.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function judge() {
     if (!code.trim() || busy) return;
     setBusy(true);
+    setPanelMode('judge');
     setFeedback('');
     setVerdict(null);
     setError(null);
@@ -159,7 +185,10 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
 
           <div className="flex flex-wrap gap-2">
             <Button variant="gradient" onClick={judge} disabled={busy || !code.trim()} className="flex-1 sm:flex-none">
-              <Play /> {busy ? 'جارٍ التصحيح…' : 'صحّح كودي'}
+              <Play /> {busy && panelMode === 'judge' ? 'جارٍ التصحيح…' : 'صحّح كودي'}
+            </Button>
+            <Button variant="secondary" onClick={hint} disabled={busy}>
+              <Lightbulb /> {busy && panelMode === 'hint' ? 'جارٍ التلميح…' : 'تلميح'}
             </Button>
           </div>
 
@@ -171,15 +200,25 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
           {(feedback || busy) && (
             <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
               <div className="mb-2 flex items-center gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">المصحّح الذكي</p>
-                {badge && (
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {panelMode === 'hint' ? (
+                    <>
+                      <Lightbulb className="h-3.5 w-3.5 text-warning" /> تلميح
+                    </>
+                  ) : (
+                    'المصحّح الذكي'
+                  )}
+                </p>
+                {panelMode === 'judge' && badge && (
                   <span className={cn('flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold', badge.cls)}>
                     <badge.icon className="h-3.5 w-3.5" /> {badge.text}
                   </span>
                 )}
               </div>
               <div className="whitespace-pre-wrap text-sm leading-relaxed" dir="auto">
-                {feedback || <span className="text-muted-foreground">…يفحص كودك</span>}
+                {feedback || (
+                  <span className="text-muted-foreground">{panelMode === 'hint' ? '…يجهّز تلميحاً' : '…يفحص كودك'}</span>
+                )}
                 {busy && <span className="ml-0.5 inline-block animate-pulse">▍</span>}
               </div>
             </div>

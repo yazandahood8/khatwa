@@ -64,7 +64,7 @@ export async function streamTutor(
  */
 export async function streamJudge(
   problemId: string,
-  body: { code: string; history: TutorTurn[] },
+  body: { code: string; history: TutorTurn[]; hint?: boolean },
   onToken: (chunk: string) => void,
 ): Promise<{ remaining: number | null }> {
   const token = getToken();

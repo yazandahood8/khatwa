@@ -5,7 +5,7 @@ import { prisma } from '../services/prisma';
 import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
 import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { recordDiscoveredMethod } from '../services/newMethod';
-import { buildTutorSystemPrompt, buildCodeJudgePrompt } from '../utils/aiPrompt';
+import { buildTutorSystemPrompt, buildCodeJudgePrompt, buildCodeHintPrompt } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
 
@@ -21,7 +21,8 @@ const askSchema = z.object({
 });
 
 const judgeSchema = z.object({
-  code: z.string().trim().min(1, 'اكتب كودك أولاً').max(10_000),
+  code: z.string().max(10_000).default(''),
+  hint: z.boolean().default(false), // طلب تلميح بدل تقييم
   history: z
     .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(4000) }))
     .max(20)
@@ -219,6 +220,9 @@ export async function judgeCode(req: Request, res: Response) {
   if (!problem.language) {
     throw ApiError.badRequest('هذه ليست مسألة برمجة — استخدم المساعد التعليمي العادي');
   }
+  if (!input.hint && !input.code.trim()) {
+    throw ApiError.badRequest('اكتب كودك أولاً');
+  }
 
   // تحديد المعدل حسب الباقة — rate limit by plan
   let quota;
@@ -235,18 +239,25 @@ export async function judgeCode(req: Request, res: Response) {
     throw e;
   }
 
-  const systemPrompt = buildCodeJudgePrompt({
+  const ctx = {
     subject: problem.topic.level.grade.subject.nameAr,
     topic: problem.topic.nameAr,
     question: problem.question,
     language: problem.language,
     starterCode: problem.starterCode,
     referenceSolution: problem.finalAnswer,
-  });
+  };
+  const systemPrompt = input.hint ? buildCodeHintPrompt(ctx) : buildCodeJudgePrompt(ctx);
+
+  const userContent = input.hint
+    ? input.code.trim()
+      ? `كود الطالب الحالي (قد يكون ناقصاً):\n\n${input.code}\n\n(يطلب تلميحاً)`
+      : 'الطالب لم يكتب كوداً بعد ويطلب تلميحاً للبداية.'
+    : `كود الطالب:\n\n${input.code}`;
 
   const messages: Anthropic.MessageParam[] = [
     ...(input.history ?? []),
-    { role: 'user', content: `كود الطالب:\n\n${input.code}` },
+    { role: 'user', content: userContent },
   ];
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -269,13 +280,7 @@ export async function judgeCode(req: Request, res: Response) {
     const finalMsg = await stream.finalMessage();
     res.end();
 
-    const verdict = /\[CORRECT\]/.test(full)
-      ? 'correct'
-      : /\[PARTIAL\]/.test(full)
-        ? 'partial'
-        : 'incorrect';
     const cleanFull = full.replace(/\[(CORRECT|PARTIAL|INCORRECT)\]/g, '').trimEnd();
-
     const inTok = finalMsg.usage.input_tokens;
     const outTok = finalMsg.usage.output_tokens;
     await prisma.aiSession.create({
@@ -287,34 +292,39 @@ export async function judgeCode(req: Request, res: Response) {
       },
     });
 
-    // تسجيل المحاولة — record attempt (solved only when fully correct)
-    const existing = await prisma.problemAttempt.findFirst({ where: { studentId, problemId } });
-    if (existing) {
-      await prisma.problemAttempt.update({
-        where: { id: existing.id },
-        data: {
-          attemptsCount: existing.attemptsCount + 1,
-          isCorrect: existing.isCorrect || verdict === 'correct',
-          completedAt: verdict === 'correct' ? (existing.completedAt ?? new Date()) : existing.completedAt,
-          methodUsed: 'AI-judge',
-        },
-      });
+    if (input.hint) {
+      // تلميح فقط — لا تقييم ولا تسجيل محاولة
+      logger.info(`AI hint: ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`);
     } else {
-      await prisma.problemAttempt.create({
-        data: {
-          studentId,
-          problemId,
-          attemptsCount: 1,
-          isCorrect: verdict === 'correct',
-          completedAt: verdict === 'correct' ? new Date() : null,
-          methodUsed: 'AI-judge',
-        },
-      });
+      const verdict = /\[CORRECT\]/.test(full) ? 'correct' : /\[PARTIAL\]/.test(full) ? 'partial' : 'incorrect';
+      // تسجيل المحاولة — record attempt (solved only when fully correct)
+      const existing = await prisma.problemAttempt.findFirst({ where: { studentId, problemId } });
+      if (existing) {
+        await prisma.problemAttempt.update({
+          where: { id: existing.id },
+          data: {
+            attemptsCount: existing.attemptsCount + 1,
+            isCorrect: existing.isCorrect || verdict === 'correct',
+            completedAt: verdict === 'correct' ? (existing.completedAt ?? new Date()) : existing.completedAt,
+            methodUsed: 'AI-judge',
+          },
+        });
+      } else {
+        await prisma.problemAttempt.create({
+          data: {
+            studentId,
+            problemId,
+            attemptsCount: 1,
+            isCorrect: verdict === 'correct',
+            completedAt: verdict === 'correct' ? new Date() : null,
+            methodUsed: 'AI-judge',
+          },
+        });
+      }
+      logger.info(
+        `AI judge (${verdict}): ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,
+      );
     }
-
-    logger.info(
-      `AI judge (${verdict}): ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,
-    );
   } catch (err) {
     logger.error('AI judge error', err instanceof Error ? err.message : err);
     if (!full) await refundQuota(studentId);
