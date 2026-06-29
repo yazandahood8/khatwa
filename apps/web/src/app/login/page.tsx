@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { loginSchema } from '@khatwa/shared';
 import { useAuth } from '@/providers/auth-provider';
 import { dashboardPathForRole } from '@/lib/routes';
+import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 function LoginForm() {
   const { login } = useAuth();
@@ -42,58 +42,54 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>تسجيل الدخول</CardTitle>
-          <CardDescription>أهلاً بعودتك إلى خطوة 👋</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input
-                id="email"
-                type="email"
-                dir="ltr"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">كلمة السر</Label>
-                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                  نسيت كلمة السر؟
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-            </div>
-
-            {error && <p className="text-sm text-destructive">{error}</p>}
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'جارٍ الدخول…' : 'دخول'}
-            </Button>
-          </form>
-
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            ما عندك حساب؟{' '}
-            <Link href="/register" className="text-primary hover:underline">
-              سجّل الآن
+    <AuthLayout title="تسجيل الدخول" subtitle="أهلاً بعودتك إلى خطوة 👋">
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="email">البريد الإلكتروني</Label>
+          <Input
+            id="email"
+            type="email"
+            dir="ltr"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            aria-invalid={!!error}
+          />
+        </div>
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <Label htmlFor="password" className="mb-0">
+              كلمة السر
+            </Label>
+            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+              نسيت كلمة السر؟
             </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+          </div>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            aria-invalid={!!error}
+          />
+        </div>
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading ? 'جارٍ الدخول…' : 'دخول'}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        ما عندك حساب؟{' '}
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          سجّل الآن
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }
 

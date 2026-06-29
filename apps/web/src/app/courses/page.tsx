@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft, Lock, CheckCircle2, CirclePlay, Clock, Calculator, Rocket } from 'lucide-react';
 import {
   type Subject,
   type Grade,
@@ -18,9 +19,11 @@ import {
 } from '@/lib/content-api';
 import { getProblems, type ProblemListItem } from '@/lib/problems-api';
 import { getCurrentSubscription } from '@/lib/subscription-api';
-import { DashboardHeader } from '@/components/dashboard-header';
+import { AppShell } from '@/components/app-shell';
+import { studentNav } from '@/components/nav-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -62,26 +65,19 @@ export default function CoursesPage() {
     <button
       onClick={onClick}
       disabled={!onClick}
-      className={onClick ? 'text-primary hover:underline' : 'font-medium'}
+      className={onClick ? 'text-primary transition-colors hover:underline' : 'font-semibold text-foreground'}
     >
       {label}
     </button>
   );
 
-  function statusBadge(lessonId: string) {
-    const p = progress[lessonId];
-    if (!p) return '';
-    return p.completedAt ? '✅' : '🔄';
-  }
-
   return (
-    <div className="min-h-screen">
-      <DashboardHeader />
-      <main className="mx-auto max-w-4xl space-y-6 p-6">
-        <h1 className="text-2xl font-bold">الدروس</h1>
+    <AppShell nav={studentNav} title="الدروس">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <h1 className="font-display text-2xl font-bold">الدروس</h1>
 
-        {/* breadcrumb */}
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        {/* مسار التنقّل — breadcrumb */}
+        <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           {crumb(
             'المواد',
             subject
@@ -93,7 +89,7 @@ export default function CoursesPage() {
                 }
               : undefined,
           )}
-          {subject && <span>›</span>}
+          {subject && <ChevronLeft className="h-4 w-4" />}
           {subject &&
             crumb(
               `${subject.icon ?? ''} ${subject.nameAr}`,
@@ -105,7 +101,7 @@ export default function CoursesPage() {
                   }
                 : undefined,
             )}
-          {grade && <span>›</span>}
+          {grade && <ChevronLeft className="h-4 w-4" />}
           {grade &&
             crumb(
               `صف ${grade.gradeNumber}`,
@@ -116,18 +112,20 @@ export default function CoursesPage() {
                   }
                 : undefined,
             )}
-          {level && <span>›</span>}
+          {level && <ChevronLeft className="h-4 w-4" />}
           {level && crumb(level.name, topic ? () => setTopic(null) : undefined)}
-          {topic && <span>›</span>}
+          {topic && <ChevronLeft className="h-4 w-4" />}
           {topic && crumb(topic.nameAr)}
         </div>
 
         {/* Subjects */}
         {!subject && (
-          <Grid
+          <TileGrid
             items={subjects.map((s) => ({
               key: s.id,
-              label: `${s.icon ?? '📘'} ${s.nameAr}`,
+              icon: s.icon ?? '📘',
+              label: s.nameAr,
+              meta: s._count ? `${s._count.grades} صفوف` : undefined,
               onClick: () => setSubject(s),
             }))}
             empty="لا توجد مواد متاحة بعد."
@@ -136,48 +134,50 @@ export default function CoursesPage() {
 
         {/* Grades */}
         {subject && !grade && (
-          <Grid
-            items={grades.map((g) => ({
-              key: g.id,
-              label: `صف ${g.gradeNumber}`,
-              onClick: () => setGrade(g),
-            }))}
+          <TileGrid
+            items={grades.map((g) => ({ key: g.id, icon: '🎓', label: `صف ${g.gradeNumber}`, onClick: () => setGrade(g) }))}
             empty="لا توجد صفوف بعد."
           />
         )}
 
         {/* Levels */}
         {grade && !level && (
-          <Grid
-            items={levels.map((l) => ({
-              key: l.id,
-              label: l.name,
-              onClick: () => setLevel(l),
-            }))}
+          <TileGrid
+            items={levels.map((l) => ({ key: l.id, icon: '📗', label: l.name, onClick: () => setLevel(l) }))}
             empty="لا توجد مستويات بعد."
           />
         )}
 
         {/* Topics */}
         {level && !topic && (
-          <List
-            items={topics.map((t) => ({
-              key: t.id,
-              label: t.nameAr,
-              meta: `${t._count?.lessons ?? 0} دروس`,
-              onClick: () => setTopic(t),
-            }))}
-            empty="لا توجد مواضيع بعد."
-          />
+          <div className="grid gap-3">
+            {topics.length === 0 && <Empty text="لا توجد مواضيع بعد." />}
+            {topics.map((t) => (
+              <Card key={t.id} interactive onClick={() => setTopic(t)}>
+                <CardContent className="flex items-center justify-between p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="h-10 w-1 rounded-full bg-primary" />
+                    <span className="font-display font-semibold">{t.nameAr}</span>
+                  </div>
+                  <Badge variant="secondary" size="sm">{t._count?.lessons ?? 0} دروس</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
 
         {/* Solve problems entry */}
         {topic && topicProblems.length > 0 && (
-          <Card className="border-primary">
-            <CardContent className="flex items-center justify-between p-4">
-              <span className="font-medium">🧮 {topicProblems.length} مسألة للتمرّن</span>
-              <Button onClick={() => router.push(`/problems/${topicProblems[0].id}/solve`)}>
-                ابدأ التمارين 🚀
+          <Card className="border-primary/30 bg-primary-light/50">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-white">
+                  <Calculator className="h-5 w-5" />
+                </span>
+                <span className="font-display font-semibold">{topicProblems.length} مسألة للتمرّن</span>
+              </div>
+              <Button variant="gradient" onClick={() => router.push(`/problems/${topicProblems[0].id}/solve`)}>
+                <Rocket /> ابدأ التمارين
               </Button>
             </CardContent>
           </Card>
@@ -185,71 +185,84 @@ export default function CoursesPage() {
 
         {/* Lessons */}
         {topic && (
-          <List
-            items={lessons.map((le, idx) => {
+          <div className="grid gap-2.5">
+            {lessons.length === 0 && <Empty text="لا توجد دروس منشورة في هذا الموضوع بعد." />}
+            {lessons.map((le, idx) => {
               const locked = plan === 'free' && idx > 0;
-              return {
-                key: le.id,
-                label: `${locked ? '🔒 ' : statusBadge(le.id) + ' '}${le.title}`.trim(),
-                meta: locked
-                  ? 'مدفوع'
-                  : le.durationMinutes
-                    ? `${le.durationMinutes} دقيقة`
-                    : undefined,
-                onClick: () => router.push(locked ? '/pricing' : `/lessons/${le.id}`),
-              };
+              const p = progress[le.id];
+              const done = !!p?.completedAt;
+              return (
+                <Card
+                  key={le.id}
+                  interactive
+                  onClick={() => router.push(locked ? '/pricing' : `/lessons/${le.id}`)}
+                  className={locked ? 'opacity-70' : ''}
+                >
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <span
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
+                        locked
+                          ? 'bg-muted text-muted-foreground'
+                          : done
+                            ? 'bg-success/10 text-success'
+                            : 'bg-primary-light text-primary'
+                      }`}
+                    >
+                      {locked ? <Lock className="h-5 w-5" /> : done ? <CheckCircle2 className="h-5 w-5" /> : <CirclePlay className="h-5 w-5" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{le.title}</p>
+                      {le.durationMinutes && !locked && (
+                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" /> {le.durationMinutes} دقيقة
+                        </p>
+                      )}
+                    </div>
+                    {locked ? (
+                      <Badge variant="achievement" size="sm">مدفوع</Badge>
+                    ) : done ? (
+                      <Badge variant="success" size="sm">مكتمل</Badge>
+                    ) : p ? (
+                      <Badge variant="default" size="sm">قيد المتابعة</Badge>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              );
             })}
-            empty="لا توجد دروس منشورة في هذا الموضوع بعد."
-          />
+          </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 
-function Grid({
+function TileGrid({
   items,
   empty,
 }: {
-  items: { key: string; label: string; onClick: () => void }[];
+  items: { key: string; icon: string; label: string; meta?: string; onClick: () => void }[];
   empty: string;
 }) {
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
+  if (items.length === 0) return <Empty text={empty} />;
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {items.map((it) => (
-        <button key={it.key} onClick={it.onClick}>
-          <Card className="transition-colors hover:bg-accent">
-            <CardContent className="flex h-24 items-center justify-center p-4 text-center text-lg font-medium">
-              {it.label}
-            </CardContent>
-          </Card>
-        </button>
+        <Card key={it.key} interactive onClick={it.onClick} className="group">
+          <CardContent className="flex h-32 flex-col items-center justify-center gap-2 p-4 text-center">
+            <span className="text-3xl transition-transform group-hover:scale-110">{it.icon}</span>
+            <span className="font-display font-semibold">{it.label}</span>
+            {it.meta && <span className="text-xs text-muted-foreground">{it.meta}</span>}
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
 }
 
-function List({
-  items,
-  empty,
-}: {
-  items: { key: string; label: string; meta?: string; onClick: () => void }[];
-  empty: string;
-}) {
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
+function Empty({ text }: { text: string }) {
   return (
-    <div className="grid gap-2">
-      {items.map((it) => (
-        <button key={it.key} onClick={it.onClick} className="text-start">
-          <Card className="transition-colors hover:bg-accent">
-            <CardContent className="flex items-center justify-between p-4">
-              <span className="font-medium">{it.label}</span>
-              {it.meta && <span className="text-xs text-muted-foreground">{it.meta}</span>}
-            </CardContent>
-          </Card>
-        </button>
-      ))}
+    <div className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+      {text}
     </div>
   );
 }

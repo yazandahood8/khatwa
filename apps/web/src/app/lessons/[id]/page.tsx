@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { ChevronRight, Lock, CheckCircle2, Rocket, Clock, PlayCircle } from 'lucide-react';
 import {
   getLessonById,
   getLessonPlayback,
@@ -12,9 +13,12 @@ import {
 } from '@/lib/content-api';
 import { getProblems } from '@/lib/problems-api';
 import { ApiClientError } from '@/lib/api';
-import { DashboardHeader } from '@/components/dashboard-header';
+import { AppShell } from '@/components/app-shell';
+import { studentNav } from '@/components/nav-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 export default function LessonPage() {
   const id = useParams().id as string;
@@ -31,7 +35,6 @@ export default function LessonPage() {
   const [locked, setLocked] = useState(false);
   const [firstProblemId, setFirstProblemId] = useState<string | null>(null);
 
-  // تحميل الدرس + رابط المشاهدة + موضع الاستئناف
   useEffect(() => {
     let active = true;
     (async () => {
@@ -71,7 +74,6 @@ export default function LessonPage() {
     [id],
   );
 
-  // حفظ التقدّم عند مغادرة الصفحة
   useEffect(() => {
     return () => {
       const v = videoRef.current;
@@ -91,7 +93,6 @@ export default function LessonPage() {
     if (!v || !v.duration) return;
     const pct = Math.round((v.currentTime / v.duration) * 100);
     setWatchedPercent(pct);
-    // حفظ كل 20 ثانية — save every 20s
     if (v.currentTime - lastSaved.current >= 20) {
       lastSaved.current = v.currentTime;
       persist(v.currentTime);
@@ -107,87 +108,116 @@ export default function LessonPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen">
-        <DashboardHeader />
-        <main className="mx-auto max-w-3xl p-6">
+      <AppShell nav={studentNav} title="الدرس">
+        <div className="mx-auto max-w-3xl space-y-3 text-center">
           <p className="text-destructive">{error}</p>
-          <Link href="/courses" className="text-primary hover:underline">
-            العودة للدروس
+          <Link href="/courses">
+            <Button variant="secondary">العودة للدروس</Button>
           </Link>
-        </main>
-      </div>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <DashboardHeader />
-      <main className="mx-auto max-w-3xl space-y-4 p-6">
-        <Link href="/courses" className="text-sm text-primary hover:underline">
-          ‹ كل الدروس
+    <AppShell nav={studentNav} title="الدرس">
+      <div className="mx-auto max-w-4xl space-y-5">
+        <Link
+          href="/courses"
+          className="inline-flex items-center gap-1 text-sm text-primary transition-colors hover:underline"
+        >
+          <ChevronRight className="h-4 w-4" /> كل الدروس
         </Link>
-        <h1 className="text-2xl font-bold">{lesson?.title ?? 'جارٍ التحميل…'}</h1>
-        {lesson?.description && <p className="text-muted-foreground">{lesson.description}</p>}
 
+        {/* مشغّل الفيديو — video player */}
         {locked ? (
-          <Card className="border-primary">
-            <CardContent className="space-y-3 p-8 text-center">
-              <p className="text-4xl">🔒</p>
-              <p className="font-semibold">هذا الدرس للباقات المدفوعة</p>
-              <p className="text-sm text-muted-foreground">
-                رقّ باقتك لتشاهد كل الدروس بدون قيود.
-              </p>
+          <Card className="border-primary/30">
+            <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
+              <span className="grid h-16 w-16 place-items-center rounded-full bg-primary-light text-primary">
+                <Lock className="h-7 w-7" />
+              </span>
+              <p className="font-display text-lg font-semibold">هذا الدرس للباقات المدفوعة</p>
+              <p className="text-sm text-muted-foreground">رقِّ باقتك لتشاهد كل الدروس بدون قيود.</p>
               <Link href="/pricing">
-                <Button>شوف الباقات ⬆️</Button>
+                <Button variant="gradient">شاهد الباقات</Button>
               </Link>
             </CardContent>
           </Card>
         ) : videoUrl ? (
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            controls
-            controlsList="nodownload"
-            onLoadedMetadata={onLoadedMetadata}
-            onTimeUpdate={onTimeUpdate}
-            onEnded={onEnded}
-            className="aspect-video w-full rounded-lg bg-black"
-          >
-            <track kind="captions" />
-          </video>
+          <div className="overflow-hidden rounded-2xl bg-black shadow-elevated">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              controls
+              controlsList="nodownload"
+              onLoadedMetadata={onLoadedMetadata}
+              onTimeUpdate={onTimeUpdate}
+              onEnded={onEnded}
+              className="aspect-video w-full bg-black"
+            >
+              <track kind="captions" />
+            </video>
+          </div>
         ) : lesson && !lesson.videoUrl ? (
           <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
+            <CardContent className="flex flex-col items-center gap-2 p-12 text-center text-muted-foreground">
+              <PlayCircle className="h-10 w-10 opacity-40" />
               لم يُرفع فيديو لهذا الدرس بعد.
             </CardContent>
           </Card>
         ) : (
-          <div className="aspect-video w-full animate-pulse rounded-lg bg-muted" />
+          <div className="aspect-video w-full animate-pulse rounded-2xl bg-muted" />
         )}
 
+        {/* شريط التقدّم — watch progress */}
         {videoUrl && (
-          <div className="space-y-1">
-            <div className="h-2 w-full overflow-hidden rounded bg-muted">
-              <div className="h-full bg-primary transition-all" style={{ width: `${watchedPercent}%` }} />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {completed ? 'أكملت هذا الدرس ✅' : `شاهدت ${watchedPercent}%`}
+          <div className="space-y-1.5">
+            <Progress value={watchedPercent} />
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {completed ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" /> أكملت هذا الدرس
+                </>
+              ) : (
+                `شاهدت ${watchedPercent}%`
+              )}
             </p>
           </div>
         )}
 
-        {/* يظهر بعد 80% — appears after 80% watched */}
+        {/* معلومات الدرس — lesson info */}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {lesson?.durationMinutes && (
+              <Badge variant="secondary" size="sm">
+                <Clock className="h-3.5 w-3.5" /> {lesson.durationMinutes} دقيقة
+              </Badge>
+            )}
+            {completed && <Badge variant="success" size="sm">مكتمل</Badge>}
+          </div>
+          <h1 className="font-display text-2xl font-bold">{lesson?.title ?? 'جارٍ التحميل…'}</h1>
+          {lesson?.description && <p className="text-muted-foreground">{lesson.description}</p>}
+        </div>
+
+        {/* يظهر بعد 80% — practice CTA after 80% */}
         {watchedPercent >= 80 && firstProblemId && (
-          <Card className="border-primary">
-            <CardContent className="flex items-center justify-between p-4">
-              <span className="font-medium">📝 خلّصت الدرس؟ جرّب مسألة!</span>
-              <Button onClick={() => router.push(`/problems/${firstProblemId}/solve`)}>
-                ابدأ التمرين 🚀
+          <Card className="animate-fade-slide-up overflow-hidden border-none gradient-primary text-white shadow-glow-primary">
+            <CardContent className="flex flex-wrap items-center justify-between gap-4 p-6">
+              <div>
+                <p className="font-display text-lg font-bold">خلّصت الدرس؟ جرّب مسألة! 📝</p>
+                <p className="text-sm text-white/80">طبّق ما تعلّمته خطوة بخطوة مع المساعد الذكي.</p>
+              </div>
+              <Button
+                size="lg"
+                onClick={() => router.push(`/problems/${firstProblemId}/solve`)}
+                className="bg-white text-primary hover:bg-white/90"
+              >
+                <Rocket /> ابدأ التمرين
               </Button>
             </CardContent>
           </Card>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

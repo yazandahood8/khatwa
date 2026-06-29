@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Sparkles, Lightbulb, HelpCircle } from 'lucide-react';
 import { streamTutor, getAiQuota, type TutorTurn } from '@/lib/ai-api';
 import { ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
   async function send(userMessage: string) {
@@ -87,47 +88,77 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   }
 
   return (
-    <div className="flex h-full flex-col rounded-lg border">
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <span className="font-medium">🤖 المساعد الذكي</span>
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+      {/* رأس — header */}
+      <div className="flex items-center justify-between border-b border-border bg-primary-light/50 px-4 py-3">
+        <span className="flex items-center gap-2 font-display font-semibold text-primary">
+          <Sparkles className="h-[18px] w-[18px]" /> المساعد الذكي
+        </span>
         {configured && remaining != null && (
-          <span className="text-xs text-muted-foreground">
+          <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
             {remaining < 0 ? 'غير محدود ∞' : `بقي ${remaining} اليوم`}
           </span>
         )}
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-3" style={{ maxHeight: '50vh' }}>
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-              m.role === 'user'
-                ? 'ms-auto bg-primary text-primary-foreground'
-                : 'bg-muted'
-            }`}
-          >
-            {m.content.replace(/\s*\[NEW_METHOD\]\s*/g, '') ||
-              (busy && i === messages.length - 1 ? '…' : '')}
-          </div>
-        ))}
-        {error && <p className="text-xs text-destructive">{error}</p>}
+      {/* الرسائل — chat */}
+      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 scrollbar-thin">
+        {messages.map((m, i) => {
+          const text = m.content.replace(/\s*\[NEW_METHOD\]\s*/g, '');
+          const isAssistant = m.role === 'assistant';
+          const isEmptyStreaming = isAssistant && !text && busy && i === messages.length - 1;
+          return (
+            <div
+              key={i}
+              className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} animate-fade-slide-up`}
+            >
+              <div
+                className={`max-w-[88%] px-4 py-2.5 text-sm leading-relaxed ${
+                  isAssistant
+                    ? 'rounded-[18px] rounded-bl-[4px] bg-primary-light text-foreground'
+                    : 'rounded-[18px] rounded-br-[4px] bg-primary text-primary-foreground'
+                }`}
+              >
+                {isEmptyStreaming ? <TypingDots /> : text}
+              </div>
+            </div>
+          );
+        })}
+        {error && (
+          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
+        )}
       </div>
 
       {!configured && (
-        <p className="px-3 pb-2 text-xs text-muted-foreground">
+        <p className="px-4 pb-2 text-xs text-muted-foreground">
           المساعد الذكي قيد الإعداد. سيتفعّل قريباً.
         </p>
       )}
 
-      <div className="flex gap-2 border-t p-2">
-        <Button size="sm" variant="outline" onClick={askHint} disabled={busy || !configured}>
-          💡 تلميح
+      {/* أزرار — actions */}
+      <div className="flex gap-2 border-t border-border p-3">
+        <Button size="sm" variant="secondary" className="flex-1" onClick={askHint} disabled={busy || !configured}>
+          <Lightbulb className="text-gold" /> تلميح
         </Button>
-        <Button size="sm" variant="outline" onClick={askSimpler} disabled={busy || !configured}>
-          🤔 مش فاهم
+        <Button size="sm" variant="secondary" className="flex-1" onClick={askSimpler} disabled={busy || !configured}>
+          <HelpCircle /> مش فاهم
         </Button>
       </div>
     </div>
   );
 });
+
+/** مؤشّر الكتابة — three animated dots. */
+function TypingDots() {
+  return (
+    <span className="flex items-center gap-1 py-1">
+      {[0, 0.2, 0.4].map((delay, i) => (
+        <span
+          key={i}
+          className="h-2 w-2 rounded-full bg-primary/70 animate-typing-dot"
+          style={{ animationDelay: `${delay}s` }}
+        />
+      ))}
+    </span>
+  );
+}

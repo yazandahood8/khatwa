@@ -1,0 +1,83 @@
+'use client';
+
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+
+/** شريط تقدّم خطّي — animated linear progress bar. */
+export function Progress({
+  value,
+  className,
+  barClassName,
+}: {
+  value: number;
+  className?: string;
+  barClassName?: string;
+}) {
+  const pct = Math.max(0, Math.min(100, value));
+  return (
+    <div
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className={cn('h-2 w-full overflow-hidden rounded-full bg-primary-light', className)}
+    >
+      <div
+        className={cn(
+          'h-full rounded-full bg-gradient-to-l from-primary to-[#818CF8] transition-[width] duration-700 ease-soft',
+          barClassName,
+        )}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+/** تقدّم دائري — SVG circular progress with centered label. */
+export function CircularProgress({
+  value,
+  size = 96,
+  stroke = 8,
+  className,
+  children,
+}: {
+  value: number;
+  size?: number;
+  stroke?: number;
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  const pct = Math.max(0, Math.min(100, value));
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (pct / 100) * c;
+
+  return (
+    <div className={cn('relative inline-flex items-center justify-center', className)} style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90 rtl:rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          className="stroke-primary-light"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          className="stroke-primary transition-[stroke-dashoffset] duration-700 ease-soft"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center font-display font-bold">
+        {children ?? `${Math.round(pct)}%`}
+      </div>
+    </div>
+  );
+}

@@ -1,21 +1,25 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { BarChart3, GraduationCap, Link2, UserPlus } from 'lucide-react';
 import { linkStudentSchema, type PublicUser } from '@khatwa/shared';
 import { apiFetch } from '@/lib/api';
 import { getParentReport, type ParentReport } from '@/lib/progress-api';
-import { DashboardHeader } from '@/components/dashboard-header';
+import { AppShell } from '@/components/app-shell';
+import { parentNav } from '@/components/nav-items';
 import { StatsView } from '@/components/progress/stats-view';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 
 export default function ParentDashboard() {
+  const { toast } = useToast();
   const [students, setStudents] = useState<PublicUser[]>([]);
   const [studentEmail, setStudentEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<ParentReport | null>(null);
   const [reportFor, setReportFor] = useState<string | null>(null);
@@ -45,7 +49,6 @@ export default function ParentDashboard() {
   async function onLink(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setMsg(null);
     const parsed = linkStudentSchema.safeParse({ studentEmail });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'بريد غير صالح');
@@ -57,29 +60,36 @@ export default function ParentDashboard() {
         method: 'POST',
         body: JSON.stringify(parsed.data),
       });
-      setMsg('تم ربط الطالب بنجاح ✅');
+      toast('تم ربط الطالب بنجاح', 'success');
       setStudentEmail('');
       await loadStudents();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل الربط');
+      const m = err instanceof Error ? err.message : 'فشل الربط';
+      setError(m);
+      toast(m, 'error');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen">
-      <DashboardHeader />
-      <main className="mx-auto max-w-3xl space-y-6 p-6">
-        <h1 className="text-2xl font-bold">لوحة ولي الأمر</h1>
+    <AppShell nav={parentNav} title="متابعة الأبناء">
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold">لوحة وليّ الأمر</h1>
+          <p className="text-muted-foreground">تابع تقدّم أبنائك في مكان واحد.</p>
+        </div>
 
+        {/* ربط طالب — link a student */}
         <Card>
           <CardHeader>
-            <CardTitle>ربط حساب طالب</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Link2 className="h-5 w-5 text-primary" /> ربط حساب طالب
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={onLink} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="flex-1 space-y-2">
+              <div className="flex-1">
                 <Label htmlFor="studentEmail">بريد الطالب الإلكتروني</Label>
                 <Input
                   id="studentEmail"
@@ -88,40 +98,53 @@ export default function ParentDashboard() {
                   value={studentEmail}
                   onChange={(e) => setStudentEmail(e.target.value)}
                   placeholder="student@example.com"
+                  aria-invalid={!!error}
                 />
               </div>
               <Button type="submit" disabled={loading}>
-                {loading ? 'جارٍ الربط…' : 'ربط'}
+                <UserPlus /> {loading ? 'جارٍ الربط…' : 'ربط'}
               </Button>
             </form>
             {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
-            {msg && <p className="mt-2 text-sm text-green-600">{msg}</p>}
           </CardContent>
         </Card>
 
+        {/* الأبناء — children list */}
         <Card>
           <CardHeader>
-            <CardTitle>أبنائي ({students.length})</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <GraduationCap className="h-5 w-5 text-primary" /> أبنائي ({students.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {students.length === 0 ? (
-              <p className="text-sm text-muted-foreground">لم تربط أي طالب بعد.</p>
+              <p className="rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                لم تربط أي طالب بعد.
+              </p>
             ) : (
-              <ul className="divide-y">
+              <ul className="space-y-2">
                 {students.map((s) => (
-                  <li key={s.id} className="flex items-center justify-between gap-2 py-3">
-                    <div>
-                      <span className="font-medium">{s.name}</span>
-                      <span className="ms-2 text-sm text-muted-foreground">
-                        {s.grade ? `صف ${s.grade}` : ''}
+                  <li
+                    key={s.id}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-border p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-primary-light font-display font-bold text-primary">
+                        {s.name?.charAt(0) ?? '؟'}
                       </span>
+                      <div>
+                        <p className="font-semibold">{s.name}</p>
+                        {s.grade ? (
+                          <p className="text-xs text-muted-foreground">صف {s.grade}</p>
+                        ) : null}
+                      </div>
                     </div>
                     <Button
                       size="sm"
-                      variant={reportFor === s.id ? 'default' : 'outline'}
+                      variant={reportFor === s.id ? 'default' : 'secondary'}
                       onClick={() => viewReport(s.id)}
                     >
-                      📊 التقرير
+                      <BarChart3 /> التقرير
                     </Button>
                   </li>
                 ))}
@@ -130,25 +153,21 @@ export default function ParentDashboard() {
           </CardContent>
         </Card>
 
-        {/* تقرير الطالب — student report */}
+        {/* التقرير — student report */}
         {reportFor && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                تقرير {report?.student.name ?? '…'}
-                {report?.student.grade ? ` · صف ${report.student.grade}` : ''}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {report ? (
-                <StatsView stats={report.stats} />
-              ) : (
-                <p className="text-sm text-muted-foreground">جارٍ تحميل التقرير…</p>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-3">
+            <h2 className="font-display text-xl font-semibold">
+              تقرير {report?.student.name ?? '…'}
+              {report?.student.grade ? ` · صف ${report.student.grade}` : ''}
+            </h2>
+            {report ? (
+              <StatsView stats={report.stats} />
+            ) : (
+              <Skeleton className="h-48 rounded-xl" />
+            )}
+          </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -3,12 +3,13 @@
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { CheckCircle2 } from 'lucide-react';
 import { resetPasswordSchema } from '@khatwa/shared';
 import { apiFetch } from '@/lib/api';
+import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -54,12 +55,19 @@ function ResetPasswordForm() {
   }
 
   if (done) {
-    return <p className="text-center text-sm">✅ تم تعيين كلمة السر الجديدة. يتم تحويلك…</p>;
+    return (
+      <div className="space-y-3 text-center">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-success/10 text-success">
+          <CheckCircle2 className="h-7 w-7" />
+        </span>
+        <p className="text-sm">تم تعيين كلمة السر الجديدة. يتم تحويلك…</p>
+      </div>
+    );
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-2">
+      <div>
         <Label htmlFor="newPassword">كلمة السر الجديدة</Label>
         <Input
           id="newPassword"
@@ -68,10 +76,11 @@ function ResetPasswordForm() {
           onChange={(e) => setNewPassword(e.target.value)}
           placeholder="8 أحرف على الأقل"
           autoComplete="new-password"
+          aria-invalid={!!error}
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" size="lg" className="w-full" disabled={loading}>
         {loading ? 'جارٍ الحفظ…' : 'تعيين كلمة السر'}
       </Button>
     </form>
@@ -80,18 +89,10 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>إعادة تعيين كلمة السر</CardTitle>
-          <CardDescription>اختر كلمة سر جديدة لحسابك</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<p className="text-center text-sm">جارٍ التحميل…</p>}>
-            <ResetPasswordForm />
-          </Suspense>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthLayout title="إعادة تعيين كلمة السر" subtitle="اختر كلمة سر جديدة لحسابك">
+      <Suspense fallback={<p className="text-center text-sm">جارٍ التحميل…</p>}>
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthLayout>
   );
 }

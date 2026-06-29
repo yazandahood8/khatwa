@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { User, KeyRound } from 'lucide-react';
 import {
   updateProfileSchema,
   changePasswordSchema,
@@ -10,25 +11,30 @@ import {
 } from '@khatwa/shared';
 import { useAuth } from '@/providers/auth-provider';
 import { apiFetch } from '@/lib/api';
-import { DashboardHeader } from '@/components/dashboard-header';
+import { AppShell } from '@/components/app-shell';
+import { navForRole } from '@/components/nav-items';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/toast';
 
 const GRADES = [7, 8, 9, 10, 11, 12];
+const SELECT_CLASS =
+  'flex h-12 w-full rounded-md border-[1.5px] border-input bg-card px-4 text-base transition-all focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15';
 
 export default function ProfilePage() {
   const { user, refresh } = useAuth();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [grade, setGrade] = useState('');
   const [level, setLevel] = useState('');
-  const [pInfo, setPInfo] = useState<{ ok?: string; err?: string }>({});
+  const [pErr, setPErr] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [pwInfo, setPwInfo] = useState<{ ok?: string; err?: string }>({});
+  const [pwErr, setPwErr] = useState<string | null>(null);
   const [savingPw, setSavingPw] = useState(false);
 
   useEffect(() => {
@@ -43,14 +49,14 @@ export default function ProfilePage() {
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
-    setPInfo({});
+    setPErr(null);
     const parsed = updateProfileSchema.safeParse({
       name,
       ...(isStudent && grade ? { grade } : {}),
       ...(isStudent && level ? { level } : {}),
     });
     if (!parsed.success) {
-      setPInfo({ err: parsed.error.issues[0]?.message ?? 'بيانات غير صالحة' });
+      setPErr(parsed.error.issues[0]?.message ?? 'بيانات غير صالحة');
       return;
     }
     setSavingProfile(true);
@@ -60,9 +66,11 @@ export default function ProfilePage() {
         body: JSON.stringify(parsed.data),
       });
       await refresh();
-      setPInfo({ ok: 'تم حفظ التغييرات ✅' });
+      toast('تم حفظ التغييرات', 'success');
     } catch (err) {
-      setPInfo({ err: err instanceof Error ? err.message : 'فشل الحفظ' });
+      const m = err instanceof Error ? err.message : 'فشل الحفظ';
+      setPErr(m);
+      toast(m, 'error');
     } finally {
       setSavingProfile(false);
     }
@@ -70,10 +78,10 @@ export default function ProfilePage() {
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault();
-    setPwInfo({});
+    setPwErr(null);
     const parsed = changePasswordSchema.safeParse({ currentPassword, newPassword });
     if (!parsed.success) {
-      setPwInfo({ err: parsed.error.issues[0]?.message ?? 'بيانات غير صالحة' });
+      setPwErr(parsed.error.issues[0]?.message ?? 'بيانات غير صالحة');
       return;
     }
     setSavingPw(true);
@@ -84,44 +92,42 @@ export default function ProfilePage() {
       });
       setCurrentPassword('');
       setNewPassword('');
-      setPwInfo({ ok: 'تم تغيير كلمة السر ✅' });
+      toast('تم تغيير كلمة السر', 'success');
     } catch (err) {
-      setPwInfo({ err: err instanceof Error ? err.message : 'فشل التغيير' });
+      const m = err instanceof Error ? err.message : 'فشل التغيير';
+      setPwErr(m);
+      toast(m, 'error');
     } finally {
       setSavingPw(false);
     }
   }
 
   return (
-    <div className="min-h-screen">
-      <DashboardHeader />
-      <main className="mx-auto max-w-2xl space-y-6 p-6">
-        <h1 className="text-2xl font-bold">الملف الشخصي</h1>
+    <AppShell nav={navForRole(user?.role)} title="الملف الشخصي">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <h1 className="font-display text-2xl font-bold">الملف الشخصي</h1>
 
         <Card>
           <CardHeader>
-            <CardTitle>المعلومات الأساسية</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <User className="h-5 w-5 text-primary" /> المعلومات الأساسية
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={saveProfile} className="space-y-4">
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="name">الاسم</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label>البريد الإلكتروني</Label>
                 <Input value={user?.email ?? ''} dir="ltr" disabled />
               </div>
               {isStudent && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="grade">الصف</Label>
-                    <select
-                      id="grade"
-                      value={grade}
-                      onChange={(e) => setGrade(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
+                    <select id="grade" value={grade} onChange={(e) => setGrade(e.target.value)} className={SELECT_CLASS}>
                       <option value="">اختر</option>
                       {GRADES.map((g) => (
                         <option key={g} value={g}>
@@ -130,14 +136,9 @@ export default function ProfilePage() {
                       ))}
                     </select>
                   </div>
-                  <div className="space-y-2">
+                  <div>
                     <Label htmlFor="level">المستوى</Label>
-                    <select
-                      id="level"
-                      value={level}
-                      onChange={(e) => setLevel(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
+                    <select id="level" value={level} onChange={(e) => setLevel(e.target.value)} className={SELECT_CLASS}>
                       <option value="">—</option>
                       {LEVELS.map((l) => (
                         <option key={l} value={l}>
@@ -148,10 +149,9 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
-              {pInfo.err && <p className="text-sm text-destructive">{pInfo.err}</p>}
-              {pInfo.ok && <p className="text-sm text-green-600">{pInfo.ok}</p>}
+              {pErr && <p className="text-sm text-destructive">{pErr}</p>}
               <Button type="submit" disabled={savingProfile}>
-                {savingProfile ? 'جارٍ الحفظ…' : 'حفظ'}
+                {savingProfile ? 'جارٍ الحفظ…' : 'حفظ التغييرات'}
               </Button>
             </form>
           </CardContent>
@@ -159,11 +159,13 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>تغيير كلمة السر</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <KeyRound className="h-5 w-5 text-primary" /> تغيير كلمة السر
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={savePassword} className="space-y-4">
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="currentPassword">كلمة السر الحالية</Label>
                 <Input
                   id="currentPassword"
@@ -173,7 +175,7 @@ export default function ProfilePage() {
                   autoComplete="current-password"
                 />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="newPassword">كلمة السر الجديدة</Label>
                 <Input
                   id="newPassword"
@@ -184,15 +186,14 @@ export default function ProfilePage() {
                   autoComplete="new-password"
                 />
               </div>
-              {pwInfo.err && <p className="text-sm text-destructive">{pwInfo.err}</p>}
-              {pwInfo.ok && <p className="text-sm text-green-600">{pwInfo.ok}</p>}
+              {pwErr && <p className="text-sm text-destructive">{pwErr}</p>}
               <Button type="submit" disabled={savingPw}>
                 {savingPw ? 'جارٍ التغيير…' : 'تغيير كلمة السر'}
               </Button>
             </form>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

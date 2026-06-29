@@ -3,15 +3,35 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { GraduationCap, Users } from 'lucide-react';
 import { registerSchema, UserRole, LEVELS } from '@khatwa/shared';
 import { useAuth } from '@/providers/auth-provider';
 import { dashboardPathForRole } from '@/lib/routes';
+import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 const GRADES = [7, 8, 9, 10, 11, 12];
+const SELECT_CLASS =
+  'flex h-12 w-full rounded-md border-[1.5px] border-input bg-card px-4 text-base transition-all focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15';
+
+function passwordStrength(pw: string) {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw) || /[؀-ۿ]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score; // 0..4
+}
+const STRENGTH = [
+  { label: '', color: '' },
+  { label: 'ضعيفة', color: 'bg-destructive' },
+  { label: 'مقبولة', color: 'bg-warning' },
+  { label: 'جيدة', color: 'bg-gold' },
+  { label: 'قوية', color: 'bg-success' },
+];
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -26,6 +46,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const isStudent = role === UserRole.STUDENT;
+  const strength = passwordStrength(password);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,112 +77,123 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>إنشاء حساب جديد</CardTitle>
-          <CardDescription>ابدأ رحلتك مع خطوة 🚀</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
-            {/* اختيار الدور — role toggle */}
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant={isStudent ? 'default' : 'outline'}
-                onClick={() => setRole(UserRole.STUDENT)}
-              >
-                👨‍🎓 طالب
-              </Button>
-              <Button
-                type="button"
-                variant={!isStudent ? 'default' : 'outline'}
-                onClick={() => setRole(UserRole.PARENT)}
-              >
-                👨‍👩‍👦 ولي أمر
-              </Button>
-            </div>
+    <AuthLayout title="إنشاء حساب جديد" subtitle="ابدأ رحلتك مع خطوة 🚀">
+      <form onSubmit={onSubmit} className="space-y-4">
+        {/* اختيار الدور — role toggle */}
+        <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
+          <RoleTab active={isStudent} onClick={() => setRole(UserRole.STUDENT)} icon={GraduationCap} label="طالب" />
+          <RoleTab active={!isStudent} onClick={() => setRole(UserRole.PARENT)} icon={Users} label="وليّ أمر" />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">الاسم الكامل</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input
-                id="email"
-                type="email"
-                dir="ltr"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة السر</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="8 أحرف على الأقل"
-                autoComplete="new-password"
-              />
-            </div>
-
-            {isStudent && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="grade">الصف</Label>
-                  <select
-                    id="grade"
-                    value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">اختر الصف</option>
-                    {GRADES.map((g) => (
-                      <option key={g} value={g}>
-                        صف {g}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="level">المستوى</Label>
-                  <select
-                    id="level"
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">اختياري</option>
-                    {LEVELS.map((l) => (
-                      <option key={l} value={l}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+        <div>
+          <Label htmlFor="name">الاسم الكامل</Label>
+          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="email">البريد الإلكتروني</Label>
+          <Input
+            id="email"
+            type="email"
+            dir="ltr"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+        </div>
+        <div>
+          <Label htmlFor="password">كلمة السر</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="8 أحرف على الأقل"
+            autoComplete="new-password"
+          />
+          {password && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex flex-1 gap-1">
+                {[1, 2, 3, 4].map((i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      'h-1.5 flex-1 rounded-full transition-colors',
+                      i <= strength ? STRENGTH[strength].color : 'bg-border',
+                    )}
+                  />
+                ))}
               </div>
-            )}
+              <span className="w-12 text-xs text-muted-foreground">{STRENGTH[strength].label}</span>
+            </div>
+          )}
+        </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+        {isStudent && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="grade">الصف</Label>
+              <select id="grade" value={grade} onChange={(e) => setGrade(e.target.value)} className={SELECT_CLASS}>
+                <option value="">اختر الصف</option>
+                {GRADES.map((g) => (
+                  <option key={g} value={g}>
+                    صف {g}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="level">المستوى</Label>
+              <select id="level" value={level} onChange={(e) => setLevel(e.target.value)} className={SELECT_CLASS}>
+                <option value="">اختياري</option>
+                {LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'جارٍ الإنشاء…' : 'إنشاء الحساب'}
-            </Button>
-          </form>
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            عندك حساب؟{' '}
-            <Link href="/login" className="text-primary hover:underline">
-              سجّل الدخول
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          {loading ? 'جارٍ الإنشاء…' : 'إنشاء الحساب'}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        عندك حساب؟{' '}
+        <Link href="/login" className="font-medium text-primary hover:underline">
+          سجّل الدخول
+        </Link>
+      </p>
+    </AuthLayout>
+  );
+}
+
+function RoleTab({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ElementType;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all',
+        active ? 'bg-card text-primary shadow-subtle' : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      <Icon className="h-4 w-4" /> {label}
+    </button>
   );
 }

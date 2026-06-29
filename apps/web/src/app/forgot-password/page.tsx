@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { CheckCircle2 } from 'lucide-react';
 import { forgotPasswordSchema } from '@khatwa/shared';
 import { apiFetch } from '@/lib/api';
+import { AuthLayout } from '@/components/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -31,7 +32,6 @@ export default function ForgotPasswordPage() {
         { method: 'POST', body: JSON.stringify(parsed.data) },
       );
       setSent(true);
-      // في التطوير يرجع الرابط مباشرة (لا يوجد مزود بريد بعد)
       if (res.resetUrl) setDevLink(res.resetUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ');
@@ -41,57 +41,48 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>نسيت كلمة السر</CardTitle>
-          <CardDescription>أدخل بريدك وسنرسل لك رابط إعادة التعيين</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sent ? (
-            <div className="space-y-4 text-center">
-              <p className="text-sm">
-                ✅ إذا كان البريد مسجّلاً، فستصلك رسالة لإعادة تعيين كلمة السر.
-              </p>
-              {devLink && (
-                <div className="rounded-md bg-muted p-3 text-xs break-all">
-                  <p className="mb-1 font-medium">رابط التطوير (البريد غير مفعّل بعد):</p>
-                  <Link href={devLink} className="text-primary hover:underline">
-                    {devLink}
-                  </Link>
-                </div>
-              )}
-              <Link href="/login" className="text-sm text-primary hover:underline">
-                العودة لتسجيل الدخول
+    <AuthLayout title="نسيت كلمة السر" subtitle="أدخل بريدك وسنرسل لك رابط إعادة التعيين">
+      {sent ? (
+        <div className="space-y-4 text-center">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-success/10 text-success">
+            <CheckCircle2 className="h-7 w-7" />
+          </span>
+          <p className="text-sm">إذا كان البريد مسجّلاً، فستصلك رسالة لإعادة تعيين كلمة السر.</p>
+          {devLink && (
+            <div className="break-all rounded-xl bg-muted p-3 text-xs">
+              <p className="mb-1 font-medium">رابط التطوير (البريد غير مفعّل بعد):</p>
+              <Link href={devLink} className="text-primary hover:underline">
+                {devLink}
               </Link>
             </div>
-          ) : (
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  dir="ltr"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-              </div>
-              {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'جارٍ الإرسال…' : 'إرسال الرابط'}
-              </Button>
-              <Link
-                href="/login"
-                className="block text-center text-sm text-primary hover:underline"
-              >
-                العودة لتسجيل الدخول
-              </Link>
-            </form>
           )}
-        </CardContent>
-      </Card>
-    </main>
+          <Link href="/login" className="block text-sm text-primary hover:underline">
+            العودة لتسجيل الدخول
+          </Link>
+        </div>
+      ) : (
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email">البريد الإلكتروني</Label>
+            <Input
+              id="email"
+              type="email"
+              dir="ltr"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              aria-invalid={!!error}
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" size="lg" className="w-full" disabled={loading}>
+            {loading ? 'جارٍ الإرسال…' : 'إرسال الرابط'}
+          </Button>
+          <Link href="/login" className="block text-center text-sm text-primary hover:underline">
+            العودة لتسجيل الدخول
+          </Link>
+        </form>
+      )}
+    </AuthLayout>
   );
 }
