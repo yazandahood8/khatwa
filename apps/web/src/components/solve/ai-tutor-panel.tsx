@@ -1,9 +1,10 @@
 'use client';
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Sparkles, Lightbulb, HelpCircle } from 'lucide-react';
+import { Sparkles, Lightbulb, HelpCircle, Volume2, VolumeX } from 'lucide-react';
 import { streamTutor, getAiQuota, type TutorTurn } from '@/lib/ai-api';
 import { ApiClientError } from '@/lib/api';
+import { speak, stopSpeaking, primeVoices, ttsAvailable } from '@/lib/tts';
 import { Button } from '@/components/ui/button';
 
 export interface AiTutorHandle {
@@ -28,16 +29,33 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   const [remaining, setRemaining] = useState<number | null>(null);
   const [configured, setConfigured] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    primeVoices();
+    const m = typeof localStorage !== 'undefined' && localStorage.getItem('khatwa_tts_muted') === '1';
+    setMuted(m);
+    mutedRef.current = m;
     getAiQuota()
       .then((q) => {
         setRemaining(q.remaining);
         setConfigured(q.configured);
       })
       .catch(() => {});
+    return () => stopSpeaking();
   }, []);
+
+  function toggleMute() {
+    setMuted((prev) => {
+      const next = !prev;
+      mutedRef.current = next;
+      localStorage.setItem('khatwa_tts_muted', next ? '1' : '0');
+      if (next) stopSpeaking();
+      return next;
+    });
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -68,6 +86,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
         },
       );
       if (rem != null) setRemaining(rem);
+      if (!mutedRef.current) speak(acc); // قراءة الرد بالعربي (تتجاهل الوسوم والإيموجي)
       if (/\[SOLVED\]/.test(acc)) onSolved?.(); // المساعد أكّد اكتمال الحل
     } catch (e) {
       const msg = e instanceof ApiClientError ? e.message : 'تعذّر الاتصال بالمساعد';
@@ -102,11 +121,23 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
         <span className="flex items-center gap-2 font-display font-semibold text-primary">
           <Sparkles className="h-[18px] w-[18px]" /> المساعد الذكي
         </span>
-        {configured && remaining != null && (
-          <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-            {remaining < 0 ? 'غير محدود ∞' : `بقي ${remaining} اليوم`}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {configured && remaining != null && (
+            <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              {remaining < 0 ? 'غير محدود ∞' : `بقي ${remaining} اليوم`}
+            </span>
+          )}
+          {ttsAvailable() && (
+            <button
+              onClick={toggleMute}
+              title={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
+              aria-label={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
+              className="grid h-7 w-7 place-items-center rounded-full bg-white text-muted-foreground transition-colors hover:text-primary"
+            >
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* الرسائل — chat */}
