@@ -16,6 +16,7 @@ import { Math } from '@/components/math/math';
 import { MathKeyboard } from '@/components/math/math-keyboard';
 import { ScratchPad } from '@/components/math/scratch-pad';
 import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-panel';
+import { CodeSolve } from '@/components/solve/code-solve';
 import { StepPath } from '@/components/solve/step-path';
 import { Celebration } from '@/components/solve/celebration';
 import { Button } from '@/components/ui/button';
@@ -128,6 +129,11 @@ export default function SolvePage() {
   function goNext() {
     if (next) router.push(`/problems/${next.id}/solve`);
     else router.push('/courses');
+  }
+
+  // مسألة برمجة (علوم الحاسوب) — واجهة كتابة الكود + المصحّح الذكي بدل الخطوات
+  if (problem?.language) {
+    return <CodeSolve problem={problem} sequence={sequence} />;
   }
 
   return (

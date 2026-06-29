@@ -32,6 +32,8 @@ export interface CommonMistake {
 export interface ProblemFull extends ProblemListItem {
   topicId: string;
   code: string | null;
+  language: string | null; // "csharp" = مسألة برمجة يقيّمها AI
+  starterCode: string | null;
   answerTolerance: number;
   allowFreeMethod: boolean;
   methods: SolutionMethod[];
