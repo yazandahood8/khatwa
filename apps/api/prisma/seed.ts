@@ -13,6 +13,7 @@
  */
 import { PrismaClient, Difficulty } from '@prisma/client';
 import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
+import { LESSON_PROBLEMS } from './generators';
 
 const prisma = new PrismaClient();
 
@@ -126,10 +127,11 @@ async function ensureTopic(levelId: string, nameAr: string, orderIndex: number, 
   return prisma.topic.create({ data: { levelId, nameAr, orderIndex, description } });
 }
 
-async function ensureLessons(topicId: string, lessons: TopicPlan['lessons']) {
+async function ensureLessons(gradeNum: number, topicName: string, topicId: string, lessons: TopicPlan['lessons']) {
   const existing = await prisma.lesson.count({ where: { topicId } });
-  if (existing > 0) return { lessons: 0, questions: 0 };
+  if (existing > 0) return { lessons: 0, questions: 0, worked: 0 };
   let questions = 0;
+  let worked = 0;
   for (const l of lessons) {
     const lesson = await prisma.lesson.create({
       data: {
@@ -141,8 +143,35 @@ async function ensureLessons(topicId: string, lessons: TopicPlan['lessons']) {
         isPublished: true,
       },
     });
-    if (l.questions.length > 0) {
-      // مسائل تدريب الدرس — نصّ السؤال فقط (بلا حل)، حل حرّ بمساعدة الذكاء الاصطناعي
+
+    const gen = LESSON_PROBLEMS[`${gradeNum}|${topicName}|${l.order}`];
+    if (gen) {
+      // مسائل كاملة محسوبة: جواب + طريقة بخطوات + أخطاء شائعة
+      for (const [idx, p] of gen().entries()) {
+        await prisma.problem.create({
+          data: {
+            topicId,
+            lessonId: lesson.id,
+            question: p.question,
+            finalAnswer: p.finalAnswer,
+            difficulty: p.difficulty,
+            orderIndex: idx,
+            allowFreeMethod: true,
+            methods: {
+              create: {
+                name: p.method.name,
+                isRecommended: true,
+                isApproved: true,
+                steps: { create: p.method.steps.map((s, i) => ({ stepNumber: i + 1, ...s })) },
+              },
+            },
+            commonMistakes: { create: p.commonMistakes },
+          },
+        });
+        worked++;
+      }
+    } else if (l.questions.length > 0) {
+      // احتياطي: نصّ سؤال الخطة فقط (بلا حل) حتى يُغطّى الدرس بمولّد
       await prisma.problem.createMany({
         data: l.questions.map((q) => ({
           topicId,
@@ -157,7 +186,7 @@ async function ensureLessons(topicId: string, lessons: TopicPlan['lessons']) {
       questions += l.questions.length;
     }
   }
-  return { lessons: lessons.length, questions };
+  return { lessons: lessons.length, questions, worked };
 }
 
 // إعادة توزيع مواضيع المسارات العليا على صفّها الحقيقي حسب المنهج (الخطة تجمعها تحت "10-12").
@@ -214,6 +243,7 @@ async function seedTreeWithLessons(subjectId: string) {
   let topicCount = 0;
   let lessonCount = 0;
   let questionCount = 0;
+  let workedCount = 0;
 
   const nextOrder = (gradeNum: number, level: string) => {
     const okey = `${gradeNum}|${level}`;
@@ -230,9 +260,10 @@ async function seedTreeWithLessons(subjectId: string) {
     const topic = await ensureTopic(level.id, t.name, nextOrder(gradeNum, t.level), t.domain);
     index.set(`${gradeNum}|${t.level}|${t.name}`, topic.id);
     topicCount++;
-    const r = await ensureLessons(topic.id, t.lessons);
+    const r = await ensureLessons(gradeNum, t.name, topic.id, t.lessons);
     lessonCount += r.lessons;
     questionCount += r.questions;
+    workedCount += r.worked;
   }
 
   // مواضيع تمهيد الصف 10 (بلا دروس)
@@ -246,7 +277,7 @@ async function seedTreeWithLessons(subjectId: string) {
     }
   }
 
-  console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons, ${questionCount} lesson questions`);
+  console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons, ${workedCount} worked problems, ${questionCount} text questions`);
   return index;
 }
 
