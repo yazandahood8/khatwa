@@ -5,7 +5,7 @@ import { prisma } from '../services/prisma';
 import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
 import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { recordDiscoveredMethod } from '../services/newMethod';
-import { buildTutorSystemPrompt } from '../utils/aiPrompt';
+import { buildTutorSystemPrompt, buildCodeJudgePrompt } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
 
@@ -18,6 +18,14 @@ const askSchema = z.object({
     .optional(),
   // صورة مسودة الطالب (base64 PNG) — optional handwritten draft image
   image: z.string().max(4_000_000).optional(),
+});
+
+const judgeSchema = z.object({
+  code: z.string().trim().min(1, 'اكتب كودك أولاً').max(10_000),
+  history: z
+    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(4000) }))
+    .max(20)
+    .optional(),
 });
 
 /** GET /api/ai/quota — كم سؤال بقي للطالب اليوم. */
@@ -188,6 +196,130 @@ export async function askTutor(req: Request, res: Response) {
     if (!full) await refundQuota(studentId); // لم يصل أي رد — لا تحتسب السؤال
     if (!res.headersSent) {
       res.status(502).json({ success: false, error: { code: 'AI_ERROR', message: 'تعذّر الاتصال بالمساعد' } });
+    } else {
+      res.end('\n\n(عذراً، صار خطأ. حاول مرة ثانية)');
+    }
+  }
+}
+
+/** POST /api/problems/:id/judge — مصحّح كود علوم الحاسوب (بثّ مباشر). */
+export async function judgeCode(req: Request, res: Response) {
+  if (!isAiConfigured() || !claude) {
+    throw ApiError.internal('المساعد الذكي غير مهيأ بعد (ANTHROPIC_API_KEY مفقود)');
+  }
+  const input = judgeSchema.parse(req.body);
+  const studentId = req.user!.id;
+  const problemId = req.params.id;
+
+  const problem = await prisma.problem.findUnique({
+    where: { id: problemId },
+    include: { topic: { include: { level: { include: { grade: { include: { subject: true } } } } } } },
+  });
+  if (!problem) throw ApiError.notFound('المسألة غير موجودة');
+  if (!problem.language) {
+    throw ApiError.badRequest('هذه ليست مسألة برمجة — استخدم المساعد التعليمي العادي');
+  }
+
+  // تحديد المعدل حسب الباقة — rate limit by plan
+  let quota;
+  try {
+    quota = await consumeQuota(studentId, req.user!.role);
+  } catch (e) {
+    if ((e as { code?: string }).code === 'RATE_LIMITED') {
+      res.status(429).json({
+        success: false,
+        error: { code: 'RATE_LIMITED', message: 'خلصت أسئلتك لليوم. جرّب بكرة أو رقّي باقتك 🙂' },
+      });
+      return;
+    }
+    throw e;
+  }
+
+  const systemPrompt = buildCodeJudgePrompt({
+    subject: problem.topic.level.grade.subject.nameAr,
+    topic: problem.topic.nameAr,
+    question: problem.question,
+    language: problem.language,
+    starterCode: problem.starterCode,
+    referenceSolution: problem.finalAnswer,
+  });
+
+  const messages: Anthropic.MessageParam[] = [
+    ...(input.history ?? []),
+    { role: 'user', content: `كود الطالب:\n\n${input.code}` },
+  ];
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-AI-Remaining', String(quota.remaining));
+  res.flushHeaders?.();
+
+  let full = '';
+  try {
+    const stream = claude.messages.stream({
+      model: CLAUDE_MODEL,
+      max_tokens: 700,
+      system: systemPrompt,
+      messages,
+    });
+    stream.on('text', (t) => {
+      full += t;
+      res.write(t);
+    });
+    const finalMsg = await stream.finalMessage();
+    res.end();
+
+    const verdict = /\[CORRECT\]/.test(full)
+      ? 'correct'
+      : /\[PARTIAL\]/.test(full)
+        ? 'partial'
+        : 'incorrect';
+    const cleanFull = full.replace(/\[(CORRECT|PARTIAL|INCORRECT)\]/g, '').trimEnd();
+
+    const inTok = finalMsg.usage.input_tokens;
+    const outTok = finalMsg.usage.output_tokens;
+    await prisma.aiSession.create({
+      data: {
+        studentId,
+        problemId,
+        messages: [...messages.map((m) => ({ role: m.role, content: String(m.content) })), { role: 'assistant', content: cleanFull }],
+        tokensUsed: inTok + outTok,
+      },
+    });
+
+    // تسجيل المحاولة — record attempt (solved only when fully correct)
+    const existing = await prisma.problemAttempt.findFirst({ where: { studentId, problemId } });
+    if (existing) {
+      await prisma.problemAttempt.update({
+        where: { id: existing.id },
+        data: {
+          attemptsCount: existing.attemptsCount + 1,
+          isCorrect: existing.isCorrect || verdict === 'correct',
+          completedAt: verdict === 'correct' ? (existing.completedAt ?? new Date()) : existing.completedAt,
+          methodUsed: 'AI-judge',
+        },
+      });
+    } else {
+      await prisma.problemAttempt.create({
+        data: {
+          studentId,
+          problemId,
+          attemptsCount: 1,
+          isCorrect: verdict === 'correct',
+          completedAt: verdict === 'correct' ? new Date() : null,
+          methodUsed: 'AI-judge',
+        },
+      });
+    }
+
+    logger.info(
+      `AI judge (${verdict}): ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,
+    );
+  } catch (err) {
+    logger.error('AI judge error', err instanceof Error ? err.message : err);
+    if (!full) await refundQuota(studentId);
+    if (!res.headersSent) {
+      res.status(502).json({ success: false, error: { code: 'AI_ERROR', message: 'تعذّر الاتصال بالمصحّح' } });
     } else {
       res.end('\n\n(عذراً، صار خطأ. حاول مرة ثانية)');
     }
