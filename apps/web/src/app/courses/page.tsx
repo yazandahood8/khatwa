@@ -1,8 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Lock, CheckCircle2, CirclePlay, Clock, Calculator, Rocket } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  Lock,
+  CheckCircle2,
+  CirclePlay,
+  Calculator,
+  Loader2,
+} from 'lucide-react';
 import {
   type Subject,
   type Grade,
@@ -21,248 +29,235 @@ import { getProblems, type ProblemListItem } from '@/lib/problems-api';
 import { getCurrentSubscription } from '@/lib/subscription-api';
 import { AppShell } from '@/components/app-shell';
 import { studentNav } from '@/components/nav-items';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+type ProgressMap = Record<string, ProgressRow>;
+interface Ctx {
+  plan: string;
+  progress: ProgressMap;
+}
 
 export default function CoursesPage() {
-  const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [grades, setGrades] = useState<Grade[]>([]);
-  const [levels, setLevels] = useState<Level[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [topicProblems, setTopicProblems] = useState<ProblemListItem[]>([]);
-  const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
-  const [plan, setPlan] = useState<string>('free');
+  const [plan, setPlan] = useState('free');
+  const [progress, setProgress] = useState<ProgressMap>({});
+  const [loading, setLoading] = useState(true);
 
-  const [subject, setSubject] = useState<Subject | null>(null);
-  const [grade, setGrade] = useState<Grade | null>(null);
-  const [level, setLevel] = useState<Level | null>(null);
-  const [topic, setTopic] = useState<Topic | null>(null);
-
-  const loadProgress = useCallback(() => {
+  useEffect(() => {
+    getSubjects()
+      .then(setSubjects)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+    getCurrentSubscription().then((s) => setPlan(s.plan)).catch(() => {});
     getMyProgress()
       .then((rows) => setProgress(Object.fromEntries(rows.map((r) => [r.lessonId, r]))))
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    getSubjects().then(setSubjects).catch(() => {});
-    getCurrentSubscription().then((s) => setPlan(s.plan)).catch(() => {});
-    loadProgress();
-  }, [loadProgress]);
-  useEffect(() => void (subject && getGrades(subject.id).then(setGrades)), [subject]);
-  useEffect(() => void (grade && getLevels(grade.id).then(setLevels)), [grade]);
-  useEffect(() => void (level && getTopics(level.id).then(setTopics)), [level]);
-  useEffect(() => {
-    if (!topic) return;
-    getPublishedLessons(topic.id).then(setLessons).catch(() => {});
-    getProblems(topic.id).then(setTopicProblems).catch(() => setTopicProblems([]));
-  }, [topic]);
-
-  const crumb = (label: string, onClick?: () => void) => (
-    <button
-      onClick={onClick}
-      disabled={!onClick}
-      className={onClick ? 'text-primary transition-colors hover:underline' : 'font-semibold text-foreground'}
-    >
-      {label}
-    </button>
-  );
+  const ctx: Ctx = { plan, progress };
 
   return (
     <AppShell nav={studentNav} title="الدروس">
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-3xl space-y-4">
         <h1 className="font-display text-2xl font-bold">الدروس</h1>
-
-        {/* مسار التنقّل — breadcrumb */}
-        <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-          {crumb(
-            'المواد',
-            subject
-              ? () => {
-                  setSubject(null);
-                  setGrade(null);
-                  setLevel(null);
-                  setTopic(null);
-                }
-              : undefined,
+        <div className="rounded-2xl border border-border bg-card p-2 shadow-card">
+          {loading ? (
+            <Loading />
+          ) : subjects.length === 0 ? (
+            <Empty text="لا توجد مواد متاحة بعد." />
+          ) : (
+            subjects.map((s) => <SubjectNode key={s.id} subject={s} ctx={ctx} />)
           )}
-          {subject && <ChevronLeft className="h-4 w-4" />}
-          {subject &&
-            crumb(
-              `${subject.icon ?? ''} ${subject.nameAr}`,
-              grade
-                ? () => {
-                    setGrade(null);
-                    setLevel(null);
-                    setTopic(null);
-                  }
-                : undefined,
-            )}
-          {grade && <ChevronLeft className="h-4 w-4" />}
-          {grade &&
-            crumb(
-              `صف ${grade.gradeNumber}`,
-              level
-                ? () => {
-                    setLevel(null);
-                    setTopic(null);
-                  }
-                : undefined,
-            )}
-          {level && <ChevronLeft className="h-4 w-4" />}
-          {level && crumb(level.name, topic ? () => setTopic(null) : undefined)}
-          {topic && <ChevronLeft className="h-4 w-4" />}
-          {topic && crumb(topic.nameAr)}
         </div>
-
-        {/* Subjects */}
-        {!subject && (
-          <TileGrid
-            items={subjects.map((s) => ({
-              key: s.id,
-              icon: s.icon ?? '📘',
-              label: s.nameAr,
-              meta: s._count ? `${s._count.grades} صفوف` : undefined,
-              onClick: () => setSubject(s),
-            }))}
-            empty="لا توجد مواد متاحة بعد."
-          />
-        )}
-
-        {/* Grades */}
-        {subject && !grade && (
-          <TileGrid
-            items={grades.map((g) => ({ key: g.id, icon: '🎓', label: `صف ${g.gradeNumber}`, onClick: () => setGrade(g) }))}
-            empty="لا توجد صفوف بعد."
-          />
-        )}
-
-        {/* Levels */}
-        {grade && !level && (
-          <TileGrid
-            items={levels.map((l) => ({ key: l.id, icon: '📗', label: l.name, onClick: () => setLevel(l) }))}
-            empty="لا توجد مستويات بعد."
-          />
-        )}
-
-        {/* Topics */}
-        {level && !topic && (
-          <div className="grid gap-3">
-            {topics.length === 0 && <Empty text="لا توجد مواضيع بعد." />}
-            {topics.map((t) => (
-              <Card key={t.id} interactive onClick={() => setTopic(t)}>
-                <CardContent className="flex items-center justify-between p-5">
-                  <div className="flex items-center gap-3">
-                    <span className="h-10 w-1 rounded-full bg-primary" />
-                    <span className="font-display font-semibold">{t.nameAr}</span>
-                  </div>
-                  <Badge variant="secondary" size="sm">{t._count?.lessons ?? 0} دروس</Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Solve problems entry */}
-        {topic && topicProblems.length > 0 && (
-          <Card className="border-primary/30 bg-primary-light/50">
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-white">
-                  <Calculator className="h-5 w-5" />
-                </span>
-                <span className="font-display font-semibold">{topicProblems.length} مسألة للتمرّن</span>
-              </div>
-              <Button variant="gradient" onClick={() => router.push(`/problems/${topicProblems[0].id}/solve`)}>
-                <Rocket /> ابدأ التمارين
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Lessons */}
-        {topic && (
-          <div className="grid gap-2.5">
-            {lessons.length === 0 && <Empty text="لا توجد دروس منشورة في هذا الموضوع بعد." />}
-            {lessons.map((le, idx) => {
-              const locked = plan === 'free' && idx > 0;
-              const p = progress[le.id];
-              const done = !!p?.completedAt;
-              return (
-                <Card
-                  key={le.id}
-                  interactive
-                  onClick={() => router.push(locked ? '/pricing' : `/lessons/${le.id}`)}
-                  className={locked ? 'opacity-70' : ''}
-                >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <span
-                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${
-                        locked
-                          ? 'bg-muted text-muted-foreground'
-                          : done
-                            ? 'bg-success/10 text-success'
-                            : 'bg-primary-light text-primary'
-                      }`}
-                    >
-                      {locked ? <Lock className="h-5 w-5" /> : done ? <CheckCircle2 className="h-5 w-5" /> : <CirclePlay className="h-5 w-5" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{le.title}</p>
-                      {le.durationMinutes && !locked && (
-                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" /> {le.durationMinutes} دقيقة
-                        </p>
-                      )}
-                    </div>
-                    {locked ? (
-                      <Badge variant="achievement" size="sm">مدفوع</Badge>
-                    ) : done ? (
-                      <Badge variant="success" size="sm">مكتمل</Badge>
-                    ) : p ? (
-                      <Badge variant="default" size="sm">قيد المتابعة</Badge>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
       </div>
     </AppShell>
   );
 }
 
-function TileGrid({
-  items,
-  empty,
+/* ---------------- generic expandable row ---------------- */
+
+function Row({
+  depth,
+  expandable,
+  expanded,
+  onClick,
+  icon,
+  label,
+  meta,
+  locked,
+  accent,
 }: {
-  items: { key: string; icon: string; label: string; meta?: string; onClick: () => void }[];
-  empty: string;
+  depth: number;
+  expandable?: boolean;
+  expanded?: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  meta?: string;
+  locked?: boolean;
+  accent?: boolean;
 }) {
-  if (items.length === 0) return <Empty text={empty} />;
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {items.map((it) => (
-        <Card key={it.key} interactive onClick={it.onClick} className="group">
-          <CardContent className="flex h-32 flex-col items-center justify-center gap-2 p-4 text-center">
-            <span className="text-3xl transition-transform group-hover:scale-110">{it.icon}</span>
-            <span className="font-display font-semibold">{it.label}</span>
-            {it.meta && <span className="text-xs text-muted-foreground">{it.meta}</span>}
-          </CardContent>
-        </Card>
-      ))}
+    <button
+      onClick={onClick}
+      style={{ paddingInlineStart: depth * 18 + 10 }}
+      className={cn(
+        'flex w-full items-center gap-2 rounded-lg py-2.5 pe-3 text-start transition-colors hover:bg-accent',
+        accent && 'text-primary',
+      )}
+    >
+      {expandable ? (
+        expanded ? (
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+        )
+      ) : (
+        <span className="w-4 shrink-0" />
+      )}
+      <span className="shrink-0">{icon}</span>
+      <span className="flex-1 truncate font-medium">{label}</span>
+      {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+      {meta && <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>}
+    </button>
+  );
+}
+
+function Loading() {
+  return (
+    <div className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
+      <Loader2 className="h-4 w-4 animate-spin" /> جارٍ التحميل…
+    </div>
+  );
+}
+function Empty({ text }: { text: string }) {
+  return <p className="px-3 py-6 text-center text-sm text-muted-foreground">{text}</p>;
+}
+
+/** hook: lazy-load children once on first expand */
+function useLazy<T>(loader: () => Promise<T[]>) {
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<T[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && items === null) {
+      setBusy(true);
+      loader()
+        .then(setItems)
+        .catch(() => setItems([]))
+        .finally(() => setBusy(false));
+    }
+  }
+  return { open, items, busy, toggle };
+}
+
+/* ---------------- nodes ---------------- */
+
+function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
+  const { open, items, busy, toggle } = useLazy<Grade>(() => getGrades(subject.id));
+  return (
+    <div>
+      <Row
+        depth={0}
+        expandable
+        expanded={open}
+        onClick={toggle}
+        icon={<span className="text-lg">{subject.icon ?? '📘'}</span>}
+        label={subject.nameAr}
+        meta={subject._count ? `${subject._count.grades} صفوف` : undefined}
+      />
+      {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا صفوف." /> : items?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />))}
     </div>
   );
 }
 
-function Empty({ text }: { text: string }) {
+function GradeNode({ grade, ctx }: { grade: Grade; ctx: Ctx }) {
+  const { open, items, busy, toggle } = useLazy<Level>(() => getLevels(grade.id));
   return (
-    <div className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-      {text}
+    <div>
+      <Row depth={1} expandable expanded={open} onClick={toggle} icon="🎓" label={`صف ${grade.gradeNumber}`} />
+      {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا مستويات." /> : items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />))}
+    </div>
+  );
+}
+
+function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
+  const { open, items, busy, toggle } = useLazy<Topic>(() => getTopics(level.id));
+  return (
+    <div>
+      <Row depth={2} expandable expanded={open} onClick={toggle} icon="📗" label={level.name} />
+      {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا مواضيع." /> : items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />))}
+    </div>
+  );
+}
+
+function TopicNode({ topic, ctx }: { topic: Topic; ctx: Ctx }) {
+  const router = useRouter();
+  const lessons = useLazy<Lesson>(() => getPublishedLessons(topic.id));
+  const [problems, setProblems] = useState<ProblemListItem[] | null>(null);
+
+  function toggle() {
+    lessons.toggle();
+    if (problems === null) getProblems(topic.id).then(setProblems).catch(() => setProblems([]));
+  }
+
+  return (
+    <div>
+      <Row
+        depth={3}
+        expandable
+        expanded={lessons.open}
+        onClick={toggle}
+        icon={<span className="h-4 w-1 rounded-full bg-primary" />}
+        label={topic.nameAr}
+        meta={topic._count ? `${topic._count.lessons} دروس` : undefined}
+      />
+      {lessons.open && (
+        <>
+          {lessons.busy ? (
+            <Loading />
+          ) : (
+            <>
+              {lessons.items?.length === 0 && <Empty text="لا دروس منشورة بعد." />}
+              {lessons.items?.map((le, idx) => {
+                const locked = ctx.plan === 'free' && idx > 0;
+                const done = !!ctx.progress[le.id]?.completedAt;
+                const started = !done && !!ctx.progress[le.id];
+                return (
+                  <Row
+                    key={le.id}
+                    depth={4}
+                    onClick={() => router.push(locked ? '/pricing' : `/lessons/${le.id}`)}
+                    locked={locked}
+                    icon={
+                      done ? (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      ) : started ? (
+                        <CirclePlay className="h-4 w-4 text-primary" />
+                      ) : (
+                        <CirclePlay className="h-4 w-4 text-muted-foreground" />
+                      )
+                    }
+                    label={le.title}
+                    meta={locked ? 'مدفوع' : le.durationMinutes ? `${le.durationMinutes} د` : undefined}
+                  />
+                );
+              })}
+              {problems && problems.length > 0 && (
+                <Row
+                  depth={4}
+                  accent
+                  onClick={() => router.push(`/problems/${problems[0].id}/solve`)}
+                  icon={<Calculator className="h-4 w-4" />}
+                  label={`المسائل (${problems.length}) — ابدأ التمرين`}
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
