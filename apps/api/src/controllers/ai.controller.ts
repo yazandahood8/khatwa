@@ -109,9 +109,10 @@ export async function askTutor(req: Request, res: Response) {
     const finalMsg = await stream.finalMessage();
     res.end();
 
-    // كشف الطرق الجديدة (الطبقة الثانية) — detect a discovered new method
+    // كشف الطرق الجديدة + اكتمال الحل — detect new method + full solve
     const isNewMethod = /\[NEW_METHOD\]/.test(full);
-    const cleanFull = full.replace(/\[NEW_METHOD\]/g, '').trimEnd();
+    const isSolved = /\[SOLVED\]/.test(full);
+    const cleanFull = full.replace(/\[(NEW_METHOD|SOLVED)\]/g, '').trimEnd();
 
     // حفظ الجلسة + التكلفة — persist session + token usage
     const inTok = finalMsg.usage.input_tokens;
@@ -129,6 +130,32 @@ export async function askTutor(req: Request, res: Response) {
       await recordDiscoveredMethod(studentId, problemId, messages).catch((e) =>
         logger.error('recordDiscoveredMethod failed', e instanceof Error ? e.message : e),
       );
+    }
+
+    if (isSolved) {
+      // المساعد أكّد اكتمال الحل — سجّل المسألة كمحلولة
+      const stepsTaken = messages
+        .filter((m) => m.role === 'user' && m.content.startsWith('خطوتي:'))
+        .map((m) => m.content.replace(/^خطوتي:\s*/, '').trim());
+      const existing = await prisma.problemAttempt.findFirst({ where: { studentId, problemId } });
+      if (existing) {
+        await prisma.problemAttempt.update({
+          where: { id: existing.id },
+          data: { isCorrect: true, completedAt: existing.completedAt ?? new Date() },
+        });
+      } else {
+        await prisma.problemAttempt.create({
+          data: {
+            studentId,
+            problemId,
+            isCorrect: true,
+            attemptsCount: 1,
+            completedAt: new Date(),
+            stepsTaken: stepsTaken.length ? stepsTaken : undefined,
+            methodUsed: 'AI-guided',
+          },
+        });
+      }
     }
     logger.info(
       `AI tutor: ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,

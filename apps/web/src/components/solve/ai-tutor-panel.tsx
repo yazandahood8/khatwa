@@ -13,10 +13,11 @@ export interface AiTutorHandle {
 interface Props {
   problemId: string;
   getState: () => { attemptsCount: number; current: string };
+  onSolved?: () => void;
 }
 
 export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPanel(
-  { problemId, getState },
+  { problemId, getState, onSolved },
   ref,
 ) {
   const [messages, setMessages] = useState<TutorTurn[]>([
@@ -48,11 +49,13 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     setMessages((m) => [...m, { role: 'user', content: userMessage }, { role: 'assistant', content: '' }]);
     setRemaining((r) => (r != null && r > 0 ? r - 1 : r)); // تحديث فوري (إلا غير المحدود)
     setBusy(true);
+    let acc = '';
     try {
       const { remaining: rem } = await streamTutor(
         problemId,
         { message: userMessage, attemptsCount: getState().attemptsCount, history },
         (chunk) => {
+          acc += chunk;
           setMessages((m) => {
             const copy = [...m];
             copy[copy.length - 1] = {
@@ -64,6 +67,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
         },
       );
       if (rem != null) setRemaining(rem);
+      if (/\[SOLVED\]/.test(acc)) onSolved?.(); // المساعد أكّد اكتمال الحل
     } catch (e) {
       const msg = e instanceof ApiClientError ? e.message : 'تعذّر الاتصال بالمساعد';
       setError(msg);
@@ -104,7 +108,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
       {/* الرسائل — chat */}
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 scrollbar-thin">
         {messages.map((m, i) => {
-          const text = m.content.replace(/\s*\[NEW_METHOD\]\s*/g, '');
+          const text = m.content.replace(/\s*\[(NEW_METHOD|SOLVED)\]\s*/g, '');
           const isAssistant = m.role === 'assistant';
           const isEmptyStreaming = isAssistant && !text && busy && i === messages.length - 1;
           return (

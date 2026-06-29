@@ -39,6 +39,7 @@ export default function SolvePage() {
   const [shake, setShake] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const aiRef = useRef<AiTutorHandle>(null);
+  const solvedRef = useRef(false);
 
   const reset = () => {
     setCurrent('');
@@ -46,7 +47,17 @@ export default function SolvePage() {
     setFeedback(null);
     setSolved(false);
     setCelebrate(false);
+    solvedRef.current = false;
   };
+
+  // المساعد الذكي أكّد اكتمال الحل — AI confirmed the full solve
+  const handleAiSolved = useCallback(() => {
+    if (solvedRef.current) return;
+    solvedRef.current = true;
+    setSolved(true);
+    setFeedback({ correct: true, msg: 'حليت المسألة! أحسنت 🎉' });
+    setTimeout(() => setCelebrate(true), 650);
+  }, []);
 
   useEffect(() => {
     reset();
@@ -60,7 +71,10 @@ export default function SolvePage() {
       .then((a) => {
         if (a) {
           setAttempts(a.attemptsCount);
-          if (a.completedAt) setSolved(true);
+          if (a.completedAt) {
+            setSolved(true);
+            solvedRef.current = true;
+          }
         } else setAttempts(0);
       })
       .catch(() => {});
@@ -96,6 +110,7 @@ export default function SolvePage() {
         setSteps((s) => [...s, current.trim()]);
         setCurrent('');
         setSolved(true);
+        solvedRef.current = true;
         setFeedback({ correct: true, msg: 'إجابة صحيحة! أحسنت 🎉' });
         setTimeout(() => setCelebrate(true), 650);
       } else {
@@ -240,7 +255,7 @@ export default function SolvePage() {
 
         {/* المساعد الذكي — AI tutor (desktop side panel) */}
         <aside className="hidden w-[360px] shrink-0 border-r border-border p-4 lg:block">
-          <AiTutorPanel ref={aiRef} problemId={id} getState={() => ({ attemptsCount: attempts, current })} />
+          <AiTutorPanel ref={aiRef} problemId={id} onSolved={handleAiSolved} getState={() => ({ attemptsCount: attempts, current })} />
         </aside>
       </div>
 
@@ -260,7 +275,7 @@ export default function SolvePage() {
           <div className="h-[70vh] rounded-t-2xl bg-card p-4">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-border" />
             <div className="h-[calc(100%-1.5rem)]">
-              <AiTutorPanel ref={aiRef} problemId={id} getState={() => ({ attemptsCount: attempts, current })} />
+              <AiTutorPanel ref={aiRef} problemId={id} onSolved={handleAiSolved} getState={() => ({ attemptsCount: attempts, current })} />
             </div>
           </div>
         </div>
