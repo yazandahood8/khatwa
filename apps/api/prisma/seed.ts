@@ -14,6 +14,8 @@
 import { PrismaClient, Difficulty } from '@prisma/client';
 import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
 import { LESSON_PROBLEMS } from './generators';
+import { CS_PLAN } from './csLessonPlan';
+import { CS_PROBLEMS } from './csGenerators';
 
 const prisma = new PrismaClient();
 
@@ -98,10 +100,10 @@ function linear(m: number, c: number, x: number, i: number): ProblemSeed {
 //  أدوات الزرع — helpers
 // ============================================================
 
-async function ensureSubject(nameAr: string) {
+async function ensureSubject(nameAr: string, icon = '📐', orderIndex = 0) {
   return (
     (await prisma.subject.findFirst({ where: { nameAr } })) ??
-    (await prisma.subject.create({ data: { nameAr, icon: '📐' } }))
+    (await prisma.subject.create({ data: { nameAr, icon, orderIndex } }))
   );
 }
 
@@ -281,6 +283,78 @@ async function seedTreeWithLessons(subjectId: string) {
   return index;
 }
 
+/**
+ * يبني شجرة علوم الحاسوب: مادة ← صف (ثانوي) ← مستوى (3/5 وحدات) ← موضوع ← دروس ← مسائل برمجة.
+ * مسائل البرمجة من نوع code (language='csharp') يقيّمها الذكاء الاصطناعي؛ الحل المرجعي في finalAnswer.
+ */
+async function seedCs(subjectId: string) {
+  const order = new Map<string, number>(); // level → running topic order
+  let topics = 0;
+  let lessons = 0;
+  let coded = 0;
+  let text = 0;
+
+  const grade = await ensureGrade(subjectId, 10); // المرحلة الثانوية (10–12)
+  for (const t of CS_PLAN) {
+    const level = await ensureLevel(grade.id, t.level);
+    const oi = order.get(t.level) ?? 0;
+    order.set(t.level, oi + 1);
+    const topic = await ensureTopic(level.id, t.name, oi, t.unit);
+    topics++;
+
+    if ((await prisma.lesson.count({ where: { topicId: topic.id } })) > 0) continue;
+
+    for (const l of t.lessons) {
+      const lesson = await prisma.lesson.create({
+        data: {
+          topicId: topic.id,
+          title: l.title,
+          description: l.type,
+          durationMinutes: l.durationMinutes,
+          orderIndex: l.order,
+          isPublished: true,
+        },
+      });
+      lessons++;
+
+      const gen = CS_PROBLEMS[`${t.level}|${t.name}|${l.order}`];
+      if (gen) {
+        for (const [idx, p] of gen().entries()) {
+          await prisma.problem.create({
+            data: {
+              topicId: topic.id,
+              lessonId: lesson.id,
+              question: p.question,
+              finalAnswer: p.referenceSolution, // الحل المرجعي لتقييم AI
+              language: 'csharp',
+              starterCode: p.starterCode ?? null,
+              difficulty: p.difficulty,
+              orderIndex: idx,
+              allowFreeMethod: true,
+            },
+          });
+          coded++;
+        }
+      } else if (l.questions.length > 0) {
+        await prisma.problem.createMany({
+          data: l.questions.map((qq) => ({
+            topicId: topic.id,
+            lessonId: lesson.id,
+            question: qq.text,
+            finalAnswer: '',
+            language: 'csharp',
+            difficulty: qq.difficulty as Difficulty,
+            orderIndex: qq.order,
+            allowFreeMethod: true,
+          })),
+        });
+        text += l.questions.length;
+      }
+    }
+  }
+  console.log(`  ↳ CS: ${topics} topics, ${lessons} lessons, ${coded} coded problems, ${text} text questions`);
+}
+
 async function seedProblems(topicId: string, problems: ProblemSeed[]) {
   // نعدّ فقط المسائل الكاملة (غير المرتبطة بدرس) حتى لا تمنع مسائلُ الدروس زرعَها
   const existing = await prisma.problem.count({ where: { topicId, lessonId: null } });
@@ -347,13 +421,18 @@ async function main() {
     ]);
   }
 
-  const [topics, lessons, problems, lessonQ] = await Promise.all([
+  // ---------- علوم الحاسوب (C# — مسائل يقيّمها الذكاء الاصطناعي) ----------
+  const cs = await ensureSubject('علوم الحاسوب', '💻', 1);
+  await seedCs(cs.id);
+
+  const [topics, lessons, problems, lessonQ, codeQ] = await Promise.all([
     prisma.topic.count(),
     prisma.lesson.count(),
     prisma.problem.count(),
     prisma.problem.count({ where: { lessonId: { not: null } } }),
+    prisma.problem.count({ where: { language: 'csharp' } }),
   ]);
-  console.log(`✅ Done. Topics: ${topics}, Lessons: ${lessons}, Problems: ${problems} (lesson questions: ${lessonQ})`);
+  console.log(`✅ Done. Topics: ${topics}, Lessons: ${lessons}, Problems: ${problems} (lesson Q: ${lessonQ}, code Q: ${codeQ})`);
 }
 
 main()
