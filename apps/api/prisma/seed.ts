@@ -3,7 +3,9 @@
  * المصدر: خطة_الدروس_والمسائل_الكاملة.md → prisma/lessonPlan.ts (مُولّد آلياً).
  *
  * يبني: مادة ← صف ← مستوى ← موضوع ← دروس (مع المدة بالدقائق + النوع).
- *   صفوف 7–9: مستوى موحّد.  الصفوف 10–12: ثلاثة مسارات (3/4/5 יח׳) تحت الصف 10.
+ *   صفوف 7–9: مستوى موحّد.
+ *   الصفوف 10–12: مواضيع الخطة موزّعة على الصف الحقيقي حسب المنهج (UPPER_GRADE)؛
+ *   الصف 10 يحصل على مواضيع المراجعة/التمهيد (GRADE10_SCAFFOLD) بلا دروس بعد.
  * ثم يزرع مسائل كاملة (طرق + خطوات + أخطاء) على موضوعَي العرض.
  *
  * Idempotent: المواضيع upsert حسب (المستوى + الاسم)؛ الدروس/المسائل تُتخطّى إذا وُجدت.
@@ -140,9 +142,53 @@ async function ensureLessons(topicId: string, lessons: { order: number; title: s
   return lessons.length;
 }
 
+// إعادة توزيع مواضيع المسارات العليا على صفّها الحقيقي حسب المنهج (الخطة تجمعها تحت "10-12").
+const UPPER_GRADE: Record<string, number> = {
+  // 3 وحدات → الصف 11
+  'الإحصاء التطبيقي': 11,
+  'التوزيع الطبيعي': 11,
+  'الاحتمال التطبيقي': 11,
+  'التخطيط الخطي': 11,
+  // 4 وحدات
+  'الاحتمال الشرطي والانحدار': 11,
+  'المثلثات في المستوى': 11,
+  'الهندسة التحليلية': 11,
+  'المشتقة وتطبيقاتها': 11,
+  'التكامل': 11,
+  'المتتاليات': 12,
+  'المتجهات': 12,
+  'النمو والاضمحلال والدوال الأسية': 12,
+  // 5 وحدات
+  'الاحتمال المتقدم': 11,
+  'الاستقراء الرياضي': 11,
+  'الأعداد المركّبة': 12,
+  'القطوع المخروطية': 12,
+  'المتجهات في الفراغ': 12,
+  'التفاضل والتكامل المتقدم (5 وحدات)': 12,
+};
+
+// مواضيع الصف 10 (مراجعة/تمهيد) من المنهج العام — بلا دروس بعد.
+const GRADE10_SCAFFOLD: { level: string; domain: string; topics: string[] }[] = [
+  {
+    level: '3יח׳',
+    domain: 'المجال الجبري',
+    topics: ['مراجعة وتعميق الجبر الأساسي', 'النموذج الخطي', 'النموذج التربيعي (مقدمة)', 'النسب المئوية والنسب التطبيقية'],
+  },
+  {
+    level: '4יח׳',
+    domain: 'المجال الجبري',
+    topics: ['التقنية الجبرية المتقدمة', 'الدالة وخصائصها', 'المثلثات في المستوى (مقدمة)', 'الإحصاء والاحتمال (4 وحدات)'],
+  },
+  {
+    level: '5יח׳',
+    domain: 'المجال الجبري',
+    topics: ['التقنية الجبرية المتقدمة جداً', 'المثلثات في المستوى', 'الاحتمال المتقدم', 'مقدمة التفاضل والتكامل'],
+  },
+];
+
 /**
  * يبني شجرة المنهج كاملة مع الدروس من خطة الدروس.
- * orderIndex للمواضيع تسلسلي داخل كل مستوى (يحافظ على ترتيب الخطة).
+ * orderIndex للمواضيع تسلسلي داخل كل (صف|مستوى) ويحافظ على ترتيب الخطة.
  */
 async function seedTreeWithLessons(subjectId: string) {
   const index = new Map<string, string>(); // `${grade}|${level}|${name}` → topicId
@@ -150,17 +196,33 @@ async function seedTreeWithLessons(subjectId: string) {
   let topicCount = 0;
   let lessonCount = 0;
 
-  for (const t of LESSON_PLAN) {
-    const grade = await ensureGrade(subjectId, t.grade);
-    const level = await ensureLevel(grade.id, t.level);
-    const okey = `${t.grade}|${t.level}`;
+  const nextOrder = (gradeNum: number, level: string) => {
+    const okey = `${gradeNum}|${level}`;
     const oi = order.get(okey) ?? 0;
     order.set(okey, oi + 1);
+    return oi;
+  };
 
-    const topic = await ensureTopic(level.id, t.name, oi, t.domain);
-    index.set(`${t.grade}|${t.level}|${t.name}`, topic.id);
+  // مواضيع الخطة (مع الدروس) — موزّعة على صفّها الحقيقي
+  for (const t of LESSON_PLAN) {
+    const gradeNum = UPPER_GRADE[t.name] ?? t.grade;
+    const grade = await ensureGrade(subjectId, gradeNum);
+    const level = await ensureLevel(grade.id, t.level);
+    const topic = await ensureTopic(level.id, t.name, nextOrder(gradeNum, t.level), t.domain);
+    index.set(`${gradeNum}|${t.level}|${t.name}`, topic.id);
     topicCount++;
     lessonCount += await ensureLessons(topic.id, t.lessons);
+  }
+
+  // مواضيع تمهيد الصف 10 (بلا دروس)
+  const g10 = await ensureGrade(subjectId, 10);
+  for (const s of GRADE10_SCAFFOLD) {
+    const level = await ensureLevel(g10.id, s.level);
+    for (const name of s.topics) {
+      const topic = await ensureTopic(level.id, name, nextOrder(10, s.level), s.domain);
+      index.set(`10|${s.level}|${name}`, topic.id);
+      topicCount++;
+    }
   }
 
   console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons created`);
