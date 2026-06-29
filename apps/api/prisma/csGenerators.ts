@@ -315,4 +315,448 @@ else Console.WriteLine("ممتاز");`),
 else Console.WriteLine(7);
 // عند x=10 ⇒ 15، وعند x<10 ⇒ 7`),
   ],
+
+  // ---------- ما هي علوم الحاسوب؟ ----------
+  '3 وحدات|ما هي علوم الحاسوب؟|2': () => [
+    q('اكتب خوارزمية نصية (بدون كود) لصنع كوب قهوة.', E,
+      `1) سخّن الماء حتى الغليان.
+2) ضع ملعقة قهوة وسكراً حسب الرغبة في الكوب.
+3) اسكب الماء المغلي في الكوب.
+4) قلّب المزيج.
+5) قدّم القهوة.`),
+    q('اكتب خوارزمية (نصية) لإيجاد أكبر عدد من ثلاثة أعداد a, b, c.', M,
+      `1) افترض أن الأكبر = a.
+2) إذا كان b أكبر من الأكبر، اجعل الأكبر = b.
+3) إذا كان c أكبر من الأكبر، اجعل الأكبر = c.
+4) أعد قيمة الأكبر.`),
+    q('ما الفرق بين الخوارزمية والبرنامج؟ أعطِ مثالاً.', H,
+      `الخوارزمية: سلسلة خطوات منطقية لحل مشكلة، مستقلّة عن لغة البرمجة (مثل: وصفة طبخ).
+البرنامج: تنفيذ الخوارزمية بلغة برمجة محدّدة (مثل C#) ينفّذه الحاسوب.
+مثال: خوارزمية "أوجد الأكبر" يمكن كتابتها بأي لغة؛ البرنامج هو الكود الفعلي بـ C#.`),
+    q('اكتب خوارزمية للبحث عن كلمة في قاموس مرتّب ألفبائياً (بحث ثنائي نصّي).', H,
+      `1) افتح القاموس في المنتصف.
+2) إذا كانت الكلمة في هذه الصفحة، توقّف.
+3) إذا كانت الكلمة تسبق هذه الصفحة ألفبائياً، ابحث في النصف الأول.
+4) وإلا ابحث في النصف الثاني.
+5) كرّر حتى تجدها أو ينتهي النطاق.`),
+  ],
+  '3 وحدات|ما هي علوم الحاسوب؟|5': () => [
+    q('اكتب برنامجاً يطبع اسمك.', E, `Console.WriteLine("أحمد");`),
+    q('اكتب برنامجاً يطبع اسمك في سطر وعمرك في سطر آخر.', M,
+      `Console.WriteLine("أحمد");
+Console.WriteLine(17);`),
+    q('ما الفرق بين Console.Write و Console.WriteLine؟ أعطِ مثالاً.', H,
+      `Write: يطبع دون الانتقال لسطر جديد.
+WriteLine: يطبع ثم ينتقل لسطر جديد.
+مثال:
+Console.Write("A"); Console.Write("B");   // AB في سطر واحد
+Console.WriteLine("A"); Console.WriteLine("B"); // A ثم B في سطرين`),
+    q('اكتب برنامجاً يطبع مثلث نجوم من 5 صفوف (الصف i فيه i نجمة).', H,
+      `for (int i = 1; i <= 5; i++)
+{
+    for (int j = 1; j <= i; j++) Console.Write("*");
+    Console.WriteLine();
+}`),
+  ],
+
+  // ---------- حلقة while ----------
+  '3 وحدات|حلقة while|2': () => [
+    q('اكتب حلقة while تطبع الأعداد من 10 إلى 1 تنازلياً.', E,
+      `int i = 10;
+while (i >= 1)
+{
+    Console.WriteLine(i);
+    i--;
+}`),
+    q('اكتب حلقة while تطبع الأعداد الزوجية بين 1 و100.', M,
+      `int i = 2;
+while (i <= 100)
+{
+    Console.WriteLine(i);
+    i += 2;
+}`),
+    q('اكتب برنامجاً يجد أول عدد أكبر من 1000 يقبل القسمة على 13 و7 معاً.', H,
+      `int n = 1001;
+while (!(n % 13 == 0 && n % 7 == 0)) n++;
+Console.WriteLine(n); // 1001 (لأن 13*7=91 و 91*11=1001)`),
+    q('تتبّع الكود وأعطِ الناتج:\nint x = 1;\nwhile (x < 100) x = x * 2;\nConsole.WriteLine(x);', H,
+      `الناتج: 128
+التتبّع: 1,2,4,8,16,32,64 ثم 128 (يتوقّف لأن 128 ليست < 100)`),
+  ],
+  '3 وحدات|حلقة while|3': () => [
+    q('احسب مجموع الأعداد من 1 إلى n (يُدخله المستخدم).', E,
+      `int n = int.Parse(Console.ReadLine());
+int sum = 0, i = 1;
+while (i <= n) { sum += i; i++; }
+Console.WriteLine(sum);`),
+    q('احسب مضروب العدد n!  (factorial).', M,
+      `int n = int.Parse(Console.ReadLine());
+long fact = 1;
+for (int i = 2; i <= n; i++) fact *= i;
+Console.WriteLine(fact);`),
+    q('اقرأ أعداداً من المستخدم حتى يُدخل -1، ثم اطبع مجموعها ومتوسطها.', H,
+      `int sum = 0, count = 0;
+int x = int.Parse(Console.ReadLine());
+while (x != -1)
+{
+    sum += x; count++;
+    x = int.Parse(Console.ReadLine());
+}
+Console.WriteLine(sum);
+Console.WriteLine(count > 0 ? (double)sum / count : 0);`),
+    q('احسب مجموع أرقام عدد صحيح (مثال: 1234 ⇒ 1+2+3+4 = 10).', H,
+      `int n = int.Parse(Console.ReadLine());
+n = Math.Abs(n);
+int sum = 0;
+while (n > 0) { sum += n % 10; n /= 10; }
+Console.WriteLine(sum);`),
+  ],
+
+  // ---------- حلقة for ----------
+  '3 وحدات|حلقة for|1': () => [
+    q('اكتب حلقة for تطبع الأعداد من 1 إلى 10.', E,
+      `for (int i = 1; i <= 10; i++)
+    Console.WriteLine(i);`),
+    q('اكتب حلقة for تطبع جدول ضرب العدد 7.', M,
+      `for (int i = 1; i <= 10; i++)
+    Console.WriteLine("7 x " + i + " = " + (7 * i));`),
+    q('تتبّع الكود وأعطِ الناتج:\nfor (int i = 1; i <= 4; i++)\n    for (int j = 1; j <= i; j++)\n        Console.Write("*");\nConsole.WriteLine();', H,
+      `الناتج: ********** (عشر نجوم في سطر واحد ثم سطر جديد)
+السبب: غياب الأقواس يجعل WriteLine خارج الحلقتين فينفّذ مرة واحدة؛ عدد النجوم 1+2+3+4 = 10`),
+    q('اكتب برنامجاً يطبع الأعداد الأولية من 1 إلى 100.', H,
+      `for (int n = 2; n <= 100; n++)
+{
+    bool prime = true;
+    for (int d = 2; d * d <= n; d++)
+        if (n % d == 0) { prime = false; break; }
+    if (prime) Console.Write(n + " ");
+}`),
+  ],
+  '3 وحدات|حلقة for|3': () => [
+    q('اطبع مصفوفة نجوم 5×5.', E,
+      `for (int i = 0; i < 5; i++)
+{
+    for (int j = 0; j < 5; j++) Console.Write("*");
+    Console.WriteLine();
+}`),
+    q('اطبع مثلث نجوم متزايداً: صف 1 نجمة، صف 2 نجمتان، ... حتى n.', M,
+      `for (int i = 1; i <= n; i++)
+{
+    for (int j = 1; j <= i; j++) Console.Write("*");
+    Console.WriteLine();
+}`),
+    q('اطبع جدول الضرب الكامل من 1×1 حتى 10×10.', H,
+      `for (int i = 1; i <= 10; i++)
+{
+    for (int j = 1; j <= 10; j++)
+        Console.Write((i * j) + "\\t");
+    Console.WriteLine();
+}`),
+    q('اطبع نمطاً: الصف i يحتوي i نجمة، كل نجمة متبوعة بمسافة.', H,
+      `for (int i = 1; i <= n; i++)
+{
+    for (int j = 1; j <= i; j++) Console.Write("* ");
+    Console.WriteLine();
+}`),
+  ],
+
+  // ---------- المصفوفة أحادية البعد (Array) ----------
+  '3 وحدات|المصفوفة أحادية البعد (Array)|2': () => [
+    q('أعلن مصفوفة تحتوي أيام الأسبوع واطبع اليوم الثالث.', E,
+      `string[] days = { "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت" };
+Console.WriteLine(days[2]); // الثلاثاء`),
+    q('ما ناتج:  int[] a = {2,4,6,8}; Console.WriteLine(a[a.Length-1]);  ؟', M,
+      `الناتج: 8
+السبب: a.Length = 4، والفهرس 3 هو آخر عنصر (8)`),
+    q('اكتب كوداً يعكس ترتيب المصفوفة في مكانها (دون مصفوفة إضافية).', H,
+      `int left = 0, right = arr.Length - 1;
+while (left < right)
+{
+    int temp = arr[left];
+    arr[left] = arr[right];
+    arr[right] = temp;
+    left++; right--;
+}`),
+    q('ما الخطأ في:  int[] arr = new int[5]; arr[5] = 10;  وما الاستثناء الناتج؟', H,
+      `الفهارس الصالحة 0..4 فقط، و arr[5] خارج الحدود.
+الاستثناء: IndexOutOfRangeException`),
+  ],
+  '3 وحدات|المصفوفة أحادية البعد (Array)|5': () => [
+    q('استخدم LinearSearch للبحث عن 7 في {3,7,1,9,4}. ما الموقع المُرجَع؟', E,
+      `الموقع 1 (الفهرس)، لأن 7 يقع في arr[1].`),
+    q('عدّل البحث التسلسلي ليرجع عدد مرات ظهور العنصر (لا أول موقع).', M,
+      `static int CountOccurrences(int[] arr, int target)
+{
+    int count = 0;
+    for (int i = 0; i < arr.Length; i++)
+        if (arr[i] == target) count++;
+    return count;
+}`),
+    q('اكتب دالة bool ContainsDuplicate(int[] arr) ترجع true إذا وُجد عنصر متكرر.', H,
+      `static bool ContainsDuplicate(int[] arr)
+{
+    for (int i = 0; i < arr.Length; i++)
+        for (int j = i + 1; j < arr.Length; j++)
+            if (arr[i] == arr[j]) return true;
+    return false;
+}`),
+    q('اكتب دالة int FindSecondMax(int[] arr) ترجع ثاني أكبر عنصر دون ترتيب.', H,
+      `static int FindSecondMax(int[] arr)
+{
+    int max = int.MinValue, second = int.MinValue;
+    foreach (int x in arr)
+    {
+        if (x > max) { second = max; max = x; }
+        else if (x > second && x < max) second = x;
+    }
+    return second;
+}`),
+  ],
+  '3 وحدات|المصفوفة أحادية البعد (Array)|9': () => [
+    q('تتبّع Bubble Sort على {5,3,8,1,2} — أظهر المصفوفة بعد التمرير الأول.', E,
+      `بعد التمرير الأول: {3, 5, 1, 2, 8}
+(أكبر عنصر 8 "يطفو" إلى النهاية)`),
+    q('كم عدد المقارنات في Bubble Sort لمصفوفة حجمها n؟ وما كفاءتها الزمنية؟', M,
+      `عدد المقارنات = n(n-1)/2 في أسوأ حال.
+الكفاءة: O(n²)`),
+    q('عدّل Bubble Sort ليرتّب تنازلياً.', H,
+      `static void BubbleSortDesc(int[] arr)
+{
+    for (int i = 0; i < arr.Length - 1; i++)
+        for (int j = 0; j < arr.Length - 1 - i; j++)
+            if (arr[j] < arr[j + 1]) // عكس الشرط
+            {
+                int t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t;
+            }
+}`),
+    q('قارن بين Bubble Sort و Selection Sort من حيث الكفاءة وعدد التبديلات.', H,
+      `كلاهما O(n²) في المقارنات.
+Bubble Sort: تبديلات كثيرة، لكن يمكن إيقافه مبكراً (بعلَم flag) إذا كانت المصفوفة مرتّبة.
+Selection Sort: عدد تبديلات أقل (O(n))، لكنه لا يستفيد من الترتيب المسبق.`),
+  ],
+  '3 وحدات|المصفوفة أحادية البعد (Array)|11': () => [
+    q('تتبّع البحث الثنائي عن 7 في {1,3,5,7,9,11,13}. كم خطوة يلزم؟', E,
+      `mid = (0+6)/2 = 3، و arr[3] = 7 ⇒ وُجد في خطوة واحدة عند الفهرس 3.`),
+    q('كم خطوة (أسوأ حال) يحتاج البحث الثنائي لـ1024 عنصراً؟ وما كفاءته؟', M,
+      `log₂(1024) = 10 خطوات كحدٍّ أقصى.
+الكفاءة: O(log n)`),
+    q('لماذا يجب أن تكون المصفوفة مرتّبة قبل البحث الثنائي؟ ماذا يحدث لو لم تكن؟', H,
+      `لأن البحث الثنائي يقرّر اتجاه البحث (يمين/يسار) بناءً على الترتيب.
+لو لم تكن مرتّبة فقد يتجاهل النصف الذي يحوي العنصر ويعطي نتيجة خاطئة (لم يوجد).`),
+    q('اكتب BinarySearchRecursive(int[] arr, int target, int low, int high).', H,
+      `static int BinarySearchRecursive(int[] arr, int target, int low, int high)
+{
+    if (low > high) return -1;
+    int mid = (low + high) / 2;
+    if (arr[mid] == target) return mid;
+    if (arr[mid] < target) return BinarySearchRecursive(arr, target, mid + 1, high);
+    return BinarySearchRecursive(arr, target, low, mid - 1);
+}`),
+  ],
+
+  // ---------- المصفوفة ثنائية البعد (2D Array) ----------
+  '3 وحدات|المصفوفة ثنائية البعد (2D Array)|2': () => [
+    q('اطبع مصفوفة 3×3 أعدادها من 1 إلى 9.', E,
+      `int[,] m = { {1,2,3}, {4,5,6}, {7,8,9} };
+for (int i = 0; i < 3; i++)
+{
+    for (int j = 0; j < 3; j++) Console.Write(m[i, j] + " ");
+    Console.WriteLine();
+}`),
+    q('اكتب دالة تحسب وتطبع مجموع كل صف في مصفوفة n×m.', M,
+      `static void RowSums(int[,] m)
+{
+    for (int i = 0; i < m.GetLength(0); i++)
+    {
+        int sum = 0;
+        for (int j = 0; j < m.GetLength(1); j++) sum += m[i, j];
+        Console.WriteLine("صف " + i + ": " + sum);
+    }
+}`),
+    q('اكتب دالة int MaxIn2D(int[,] m) تجد أكبر عنصر في مصفوفة ثنائية البعد.', H,
+      `static int MaxIn2D(int[,] m)
+{
+    int max = m[0, 0];
+    for (int i = 0; i < m.GetLength(0); i++)
+        for (int j = 0; j < m.GetLength(1); j++)
+            if (m[i, j] > max) max = m[i, j];
+    return max;
+}`),
+    q('اكتب كوداً يطبع منقول المصفوفة (Transpose).', H,
+      `for (int j = 0; j < m.GetLength(1); j++)
+{
+    for (int i = 0; i < m.GetLength(0); i++) Console.Write(m[i, j] + " ");
+    Console.WriteLine();
+}`),
+  ],
+
+  // ---------- الكلاسات والأغراض (Classes & Objects) ----------
+  '3 وحدات|الكلاسات والأغراض (Classes & Objects)|2': () => [
+    q('أضف حقل City إلى الكلاس Student وأنشئ غرضاً منه وعيّن قيمه.', E,
+      `class Student
+{
+    public string Name;
+    public int Age;
+    public double Grade;
+    public string City;
+}
+Student s = new Student();
+s.Name = "أحمد"; s.Age = 17; s.City = "حيفا";`),
+    q('اكتب كلاس Car بحقول: الاسم، سنة الصنع، السعر.', M,
+      `class Car
+{
+    public string Name;
+    public int Year;
+    public double Price;
+}`),
+    q('اكتب كلاس BankAccount بحقول: رقم الحساب، الرصيد، اسم صاحبه.', H,
+      `class BankAccount
+{
+    public int AccountNumber;
+    public double Balance;
+    public string Owner;
+}`),
+    q('لماذا نستخدم private للحقول بدل public؟ ما مبدأ التغليف (Encapsulation)؟', H,
+      `التغليف: إخفاء الحقول الداخلية والتحكّم في الوصول إليها عبر دوال/خصائص.
+نستخدم private لمنع تعديل الحقل مباشرة من الخارج بقيم غير صحيحة،
+ونوفّر get/set للتحقّق من القيم. هذا يحمي تماسك بيانات الغرض.`),
+  ],
+  '3 وحدات|الكلاسات والأغراض (Classes & Objects)|3': () => [
+    q('أضف Constructor للكلاس Car يأخذ الاسم والسنة والسعر.', E,
+      `public Car(string name, int year, double price)
+{
+    Name = name;
+    Year = year;
+    Price = price;
+}`),
+    q('أضف Constructor افتراضياً (بدون معاملات) يضع قيماً افتراضية للكلاس Car.', M,
+      `public Car()
+{
+    Name = "غير معروف";
+    Year = 2020;
+    Price = 0;
+}`),
+    q('اكتب كلاس Rectangle بـ Constructor يأخذ الطول والعرض، ودالتي Area() و Perimeter().', H,
+      `class Rectangle
+{
+    private double width, height;
+    public Rectangle(double w, double h) { width = w; height = h; }
+    public double Area() => width * height;
+    public double Perimeter() => 2 * (width + height);
+}`),
+    q('ما الفرق بين الدالة البانية (Constructor) والدوال الاعتيادية؟ ومتى تُستدعى؟', H,
+      `الدالة البانية: تحمل اسم الكلاس، بلا نوع راجع، وتُستدعى تلقائياً مرّة واحدة عند إنشاء الغرض بـ new لتهيئة حقوله.
+الدوال الاعتيادية: تُستدعى يدوياً متى شئنا، ولها نوع راجع (أو void)، وتنفّذ سلوكاً.`),
+  ],
+  '3 وحدات|الكلاسات والأغراض (Classes & Objects)|7': () => [
+    q('أنشئ مصفوفة من 5 طلاب واطبع أسماءهم (تجاهل العناصر الفارغة).', E,
+      `Student[] students = new Student[5];
+students[0] = new Student("أحمد", 17);
+students[1] = new Student("سارة", 16);
+for (int i = 0; i < students.Length; i++)
+    if (students[i] != null)
+        Console.WriteLine(students[i].Name);`),
+    q('اكتب دالة Student FindBestStudent(Student[] arr) ترجع الطالب ذا أعلى علامة.', M,
+      `static Student FindBestStudent(Student[] arr)
+{
+    Student best = arr[0];
+    for (int i = 1; i < arr.Length; i++)
+        if (arr[i].Grade > best.Grade) best = arr[i];
+    return best;
+}`),
+    q('اكتب دالة void SortByGrade(Student[] arr) ترتّب الطلاب تنازلياً حسب العلامة.', H,
+      `static void SortByGrade(Student[] arr)
+{
+    for (int i = 0; i < arr.Length - 1; i++)
+        for (int j = 0; j < arr.Length - 1 - i; j++)
+            if (arr[j].Grade < arr[j + 1].Grade)
+            {
+                Student t = arr[j]; arr[j] = arr[j + 1]; arr[j + 1] = t;
+            }
+}`),
+    q('اكتب دالة Student[] FilterByCity(Student[] arr, string city) ترجع طلاب مدينة معيّنة.', H,
+      `static Student[] FilterByCity(Student[] arr, string city)
+{
+    int count = 0;
+    foreach (Student s in arr) if (s != null && s.City == city) count++;
+    Student[] result = new Student[count];
+    int k = 0;
+    foreach (Student s in arr) if (s != null && s.City == city) result[k++] = s;
+    return result;
+}`),
+  ],
+
+  // ---------- الوراثة وتعدد الأشكال (Inheritance & Polymorphism) ----------
+  '3 وحدات|الوراثة وتعدد الأشكال (Inheritance & Polymorphism)|2': () => [
+    q('أضف كلاس Cat يرث من Animal ويطبع "مياو" في الدالة Speak.', E,
+      `class Cat : Animal
+{
+    public Cat(string name) : base(name) { }
+    public override void Speak() { Console.WriteLine("مياو"); }
+}`),
+    q('أضف كلاس Person يرث من Animal بحقل إضافي Job.', M,
+      `class Person : Animal
+{
+    public string Job;
+    public Person(string name, string job) : base(name) { Job = job; }
+    public override void Speak() { Console.WriteLine("مرحباً، أنا " + Name); }
+}`),
+    q('اكتب هرمية وراثة: Vehicle أب، و Car و Truck و Motorcycle أبناء، لكلٍّ دالة Info().', H,
+      `class Vehicle
+{
+    public string Name;
+    public Vehicle(string n) { Name = n; }
+    public virtual void Info() => Console.WriteLine("مركبة: " + Name);
+}
+class Car : Vehicle { public Car(string n) : base(n) { } public override void Info() => Console.WriteLine("سيارة: " + Name); }
+class Truck : Vehicle { public Truck(string n) : base(n) { } public override void Info() => Console.WriteLine("شاحنة: " + Name); }
+class Motorcycle : Vehicle { public Motorcycle(string n) : base(n) { } public override void Info() => Console.WriteLine("دراجة: " + Name); }`),
+    q('ما ناتج:  Animal a = new Dog("ريكس"); a.Speak();  ؟ اشرح.', H,
+      `الناتج: هاو هاو!
+السبب (تعدد الأشكال): رغم أن نوع المرجع Animal، يشير الغرض فعلياً إلى Dog،
+فتُستدعى نسخة Dog من الدالة virtual المُتجاوَزة بـ override أثناء التشغيل.`),
+  ],
+  '3 وحدات|الوراثة وتعدد الأشكال (Inheritance & Polymorphism)|5': () => [
+    q('مصفوفة Animal[] فيها Dog و Cat و Animal، ونمرّ عليها بـ foreach نستدعي Speak(). ما الناتج؟', E,
+      `هاو هاو!
+مياو
+صوت عام
+كل غرض يستدعي نسخته الخاصة من Speak (تعدد الأشكال).`),
+    q('لماذا يمكن وضع غرض Dog في مصفوفة من النوع Animal[]؟', M,
+      `لأن Dog يرث من Animal (علاقة is-a)، فكل Dog هو Animal،
+ويُسمح بإسناد الابن إلى مرجع من نوع الأب.`),
+    q('اكتب دالة double TotalArea(Shape[] shapes) حيث Shape كلاس مجرّد بدالة Area().', H,
+      `static double TotalArea(Shape[] shapes)
+{
+    double total = 0;
+    foreach (Shape s in shapes) total += s.Area();
+    return total;
+}`),
+    q('ما الفرق بين override و new عند تجاوز دالة في الكلاس الابن؟', H,
+      `override: تجاوز حقيقي لدالة virtual/abstract؛ يُحسم وقت التشغيل حسب النوع الفعلي للغرض (polymorphism).
+new: إخفاء الدالة فقط؛ يُحسم وقت الترجمة حسب نوع المرجع، فلا يحدث تعدد أشكال.`),
+  ],
+  '3 وحدات|الوراثة وتعدد الأشكال (Inheritance & Polymorphism)|6': () => [
+    q('أضف كلاس Rectangle يرث من الكلاس المجرّد Shape (ينفّذ Area و Perimeter).', E,
+      `class Rectangle : Shape
+{
+    double w, h;
+    public Rectangle(double w, double h) { this.w = w; this.h = h; }
+    public override double Area() => w * h;
+    public override double Perimeter() => 2 * (w + h);
+}`),
+    q('لماذا لا يمكن إنشاء غرض من الكلاس المجرّد Shape مباشرة بـ new Shape()؟', M,
+      `لأن Shape مجرّد (abstract) ويحوي دوالاً مجرّدة بلا تنفيذ،
+فهو قالب فقط؛ يجب أن يرثه كلاس ملموس ينفّذ تلك الدوال ثم نُنشئ منه.`),
+    q('اكتب دالة double TotalArea(Shape[] shapes) تحسب المساحة الكلية لمجموعة أشكال.', H,
+      `static double TotalArea(Shape[] shapes)
+{
+    double total = 0;
+    foreach (Shape s in shapes) total += s.Area();
+    return total;
+}`),
+    q('ما الفرق بين الكلاس المجرّد (abstract class) والواجهة (interface)؟', H,
+      `الكلاس المجرّد: قد يحوي دوالاً منفّذة وحقولاً، والوراثة منه أحادية (كلاس واحد).
+الواجهة: تعرّف توقيعات فقط (تقليدياً بلا تنفيذ ولا حقول)، ويمكن لكلاس تطبيق عدّة واجهات.`),
+  ],
 };
