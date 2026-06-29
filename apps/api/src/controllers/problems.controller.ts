@@ -11,11 +11,15 @@ const fullInclude = {
   commonMistakes: true,
 };
 
-/** GET /api/problems?topicId= — قائمة مسائل الموضوع (مع العدّادات). */
+/** GET /api/problems?topicId=&lessonId= — قائمة مسائل الموضوع/الدرس (مع العدّادات). */
 export async function listProblems(req: Request, res: Response) {
   const topicId = req.query.topicId as string | undefined;
+  const lessonId = req.query.lessonId as string | undefined;
   const problems = await prisma.problem.findMany({
-    where: topicId ? { topicId } : undefined,
+    where: {
+      ...(topicId ? { topicId } : {}),
+      ...(lessonId ? { lessonId } : {}),
+    },
     orderBy: { orderIndex: 'asc' },
     include: { _count: { select: { methods: true, commonMistakes: true } } },
   });

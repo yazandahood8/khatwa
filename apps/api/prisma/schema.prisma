@@ -167,6 +167,7 @@ model Lesson {
 
   topic    Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
   progress LessonProgress[]
+  problems Problem[]
 
   @@index([topicId])
   @@map("lessons")
@@ -183,18 +184,21 @@ model Problem {
   answerTolerance Float      @default(0) @map("answer_tolerance")
   difficulty      Difficulty @default(medium)
   topicId         String     @map("topic_id")
+  lessonId        String?    @map("lesson_id") // مسائل تدريب الدرس (اختياري)
   allowFreeMethod Boolean    @default(true) @map("allow_free_method")
   orderIndex      Int        @default(0) @map("order_index")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
   topic          Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  lesson         Lesson?          @relation(fields: [lessonId], references: [id], onDelete: SetNull)
   methods        SolutionMethod[]
   commonMistakes CommonMistake[]
   attempts       ProblemAttempt[]
   aiSessions     AiSession[]
 
   @@index([topicId])
+  @@index([lessonId])
   @@map("problems")
 }
 

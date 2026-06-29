@@ -12,7 +12,7 @@
  * تشغيل: npm run seed --workspace=apps/api
  */
 import { PrismaClient, Difficulty } from '@prisma/client';
-import { LESSON_PLAN } from './lessonPlan';
+import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
 
 const prisma = new PrismaClient();
 
@@ -126,20 +126,38 @@ async function ensureTopic(levelId: string, nameAr: string, orderIndex: number, 
   return prisma.topic.create({ data: { levelId, nameAr, orderIndex, description } });
 }
 
-async function ensureLessons(topicId: string, lessons: { order: number; title: string; durationMinutes: number; type: string }[]) {
+async function ensureLessons(topicId: string, lessons: TopicPlan['lessons']) {
   const existing = await prisma.lesson.count({ where: { topicId } });
-  if (existing > 0) return 0;
-  await prisma.lesson.createMany({
-    data: lessons.map((l) => ({
-      topicId,
-      title: l.title,
-      description: l.type, // نوع الدرس: تعريفي / مهاري / تطبيقي ...
-      durationMinutes: l.durationMinutes,
-      orderIndex: l.order,
-      isPublished: true,
-    })),
-  });
-  return lessons.length;
+  if (existing > 0) return { lessons: 0, questions: 0 };
+  let questions = 0;
+  for (const l of lessons) {
+    const lesson = await prisma.lesson.create({
+      data: {
+        topicId,
+        title: l.title,
+        description: l.type, // نوع الدرس: تعريفي / مهاري / تطبيقي ...
+        durationMinutes: l.durationMinutes,
+        orderIndex: l.order,
+        isPublished: true,
+      },
+    });
+    if (l.questions.length > 0) {
+      // مسائل تدريب الدرس — نصّ السؤال فقط (بلا حل)، حل حرّ بمساعدة الذكاء الاصطناعي
+      await prisma.problem.createMany({
+        data: l.questions.map((q) => ({
+          topicId,
+          lessonId: lesson.id,
+          question: q.text,
+          finalAnswer: '',
+          difficulty: q.difficulty as Difficulty,
+          orderIndex: q.order,
+          allowFreeMethod: true,
+        })),
+      });
+      questions += l.questions.length;
+    }
+  }
+  return { lessons: lessons.length, questions };
 }
 
 // إعادة توزيع مواضيع المسارات العليا على صفّها الحقيقي حسب المنهج (الخطة تجمعها تحت "10-12").
@@ -195,6 +213,7 @@ async function seedTreeWithLessons(subjectId: string) {
   const order = new Map<string, number>(); // `${grade}|${level}` → running order
   let topicCount = 0;
   let lessonCount = 0;
+  let questionCount = 0;
 
   const nextOrder = (gradeNum: number, level: string) => {
     const okey = `${gradeNum}|${level}`;
@@ -211,7 +230,9 @@ async function seedTreeWithLessons(subjectId: string) {
     const topic = await ensureTopic(level.id, t.name, nextOrder(gradeNum, t.level), t.domain);
     index.set(`${gradeNum}|${t.level}|${t.name}`, topic.id);
     topicCount++;
-    lessonCount += await ensureLessons(topic.id, t.lessons);
+    const r = await ensureLessons(topic.id, t.lessons);
+    lessonCount += r.lessons;
+    questionCount += r.questions;
   }
 
   // مواضيع تمهيد الصف 10 (بلا دروس)
@@ -225,14 +246,15 @@ async function seedTreeWithLessons(subjectId: string) {
     }
   }
 
-  console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons created`);
+  console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons, ${questionCount} lesson questions`);
   return index;
 }
 
 async function seedProblems(topicId: string, problems: ProblemSeed[]) {
-  const existing = await prisma.problem.count({ where: { topicId } });
+  // نعدّ فقط المسائل الكاملة (غير المرتبطة بدرس) حتى لا تمنع مسائلُ الدروس زرعَها
+  const existing = await prisma.problem.count({ where: { topicId, lessonId: null } });
   if (existing > 0) {
-    console.log(`  ↳ topic already has ${existing} problems — skipping`);
+    console.log(`  ↳ topic already has ${existing} full problems — skipping`);
     return;
   }
   for (const [idx, p] of problems.entries()) {
@@ -294,12 +316,13 @@ async function main() {
     ]);
   }
 
-  const [topics, lessons, problems] = await Promise.all([
+  const [topics, lessons, problems, lessonQ] = await Promise.all([
     prisma.topic.count(),
     prisma.lesson.count(),
     prisma.problem.count(),
+    prisma.problem.count({ where: { lessonId: { not: null } } }),
   ]);
-  console.log(`✅ Done. Topics: ${topics}, Lessons: ${lessons}, Problems: ${problems}`);
+  console.log(`✅ Done. Topics: ${topics}, Lessons: ${lessons}, Problems: ${problems} (lesson questions: ${lessonQ})`);
 }
 
 main()
