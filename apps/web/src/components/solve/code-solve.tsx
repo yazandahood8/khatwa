@@ -10,6 +10,7 @@ import { ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Celebration } from '@/components/solve/celebration';
+import { QuestionNav } from '@/components/solve/question-nav';
 import { cn } from '@/lib/utils';
 
 type Verdict = 'correct' | 'partial' | 'incorrect';
@@ -99,10 +100,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
       {/* الرأس — header */}
       <header className="flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
         <div className="flex flex-1 items-center gap-3">
-          <span className="flex items-center gap-1.5 whitespace-nowrap font-display text-sm font-semibold">
-            <Terminal className="h-4 w-4 text-primary" />
-            {total > 0 && index >= 0 ? `المسألة ${index + 1} من ${total}` : 'تمرين برمجة'}
-          </span>
+          <QuestionNav problems={sequence} currentId={id} icon={<Terminal className="h-4 w-4 text-primary" />} />
           <Progress value={progressPct} className="max-w-xs" />
           <span className="hidden text-xs text-muted-foreground sm:inline">المحاولات: {attempts}</span>
         </div>
