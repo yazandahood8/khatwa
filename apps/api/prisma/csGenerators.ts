@@ -759,4 +759,354 @@ new: إخفاء الدالة فقط؛ يُحسم وقت الترجمة حسب ن
       `الكلاس المجرّد: قد يحوي دوالاً منفّذة وحقولاً، والوراثة منه أحادية (كلاس واحد).
 الواجهة: تعرّف توقيعات فقط (تقليدياً بلا تنفيذ ولا حقول)، ويمكن لكلاس تطبيق عدّة واجهات.`),
   ],
+
+  // ============================================================
+  //  5 وحدات — مباني المعطيات
+  // ============================================================
+
+  // ---------- العودية (Recursion) ----------
+  '5 وحدات|العودية (Recursion / רקורסיה)|2': () => [
+    q('تتبّع استدعاء Factorial(4) وأظهر الاستدعاءات وقيمها.', E,
+      `Factorial(4) = 4 * Factorial(3)
+Factorial(3) = 3 * Factorial(2)
+Factorial(2) = 2 * Factorial(1)
+Factorial(1) = 1 * Factorial(0)
+Factorial(0) = 1   (الحالة الأساسية)
+النتيجة: 1*1*2*3*4 = 24`),
+    q('اكتب دالة Power(int b, int exp) بالعودية.', M,
+      `static int Power(int b, int exp)
+{
+    if (exp == 0) return 1;        // الحالة الأساسية
+    return b * Power(b, exp - 1);  // الحالة العودية
+}`),
+    q('اكتب دالة SumDigits(int n) بالعودية (مثال: SumDigits(123) = 6).', H,
+      `static int SumDigits(int n)
+{
+    if (n < 10) return n;
+    return n % 10 + SumDigits(n / 10);
+}`),
+    q('ما مشكلة Fib(50) بالعودية الساذجة؟ كيف تحلّها بالحفظ (Memoization)؟', H,
+      `المشكلة: تكرار هائل لإعادة حساب نفس القيم ⇒ تعقيد أُسّي O(2^n) وبطء شديد.
+الحل بالحفظ:
+static long Fib(int n, long[] memo)
+{
+    if (n <= 1) return n;
+    if (memo[n] != 0) return memo[n];
+    memo[n] = Fib(n - 1, memo) + Fib(n - 2, memo);
+    return memo[n];
+}`),
+  ],
+  '5 وحدات|العودية (Recursion / רקורסיה)|4': () => [
+    q('اكتب دالة MaxArray(int[] arr, int index) ترجع أكبر عنصر بالعودية.', E,
+      `static int MaxArray(int[] arr, int index)
+{
+    if (index == arr.Length - 1) return arr[index];
+    int restMax = MaxArray(arr, index + 1);
+    return arr[index] > restMax ? arr[index] : restMax;
+}`),
+    q('اكتب دالة CountEven(int[] arr, int index) تعدّ الأعداد الزوجية بالعودية.', M,
+      `static int CountEven(int[] arr, int index)
+{
+    if (index == arr.Length) return 0;
+    int rest = CountEven(arr, index + 1);
+    return (arr[index] % 2 == 0) ? rest + 1 : rest;
+}`),
+    q('اكتب دالة ReverseArray(int[] arr, int left, int right) تعكس المصفوفة بالعودية.', H,
+      `static void ReverseArray(int[] arr, int left, int right)
+{
+    if (left >= right) return;
+    int t = arr[left]; arr[left] = arr[right]; arr[right] = t;
+    ReverseArray(arr, left + 1, right - 1);
+}`),
+    q('اكتب BinarySearchRecursive بكفاءة O(log n).', H,
+      `static int BinarySearchRecursive(int[] arr, int target, int low, int high)
+{
+    if (low > high) return -1;
+    int mid = (low + high) / 2;
+    if (arr[mid] == target) return mid;
+    if (arr[mid] < target) return BinarySearchRecursive(arr, target, mid + 1, high);
+    return BinarySearchRecursive(arr, target, low, mid - 1);
+}`),
+  ],
+  '5 وحدات|العودية (Recursion / רקורסיה)|8': () => [
+    q('تتبّع MergeSort على {5,2,8,1,9} — صف التقسيم والدمج باختصار.', E,
+      `التقسيم: {5,2,8,1,9} → {5,2} و{8,1,9}
+{5,2}→{5},{2} ثم دمج → {2,5}
+{8,1,9}→{8} و{1,9}→{1},{9}→{1,9} ثم دمج → {1,8,9}
+الدمج النهائي: {2,5} + {1,8,9} → {1,2,5,8,9}`),
+    q('اكتب دالة Merge الكاملة لدمج جزأين مرتّبين من المصفوفة.', M,
+      `static void Merge(int[] arr, int left, int mid, int right)
+{
+    int[] temp = new int[right - left + 1];
+    int i = left, j = mid + 1, k = 0;
+    while (i <= mid && j <= right)
+        temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+    while (i <= mid) temp[k++] = arr[i++];
+    while (j <= right) temp[k++] = arr[j++];
+    for (int t = 0; t < temp.Length; t++) arr[left + t] = temp[t];
+}`),
+    q('قارن كفاءة MergeSort مع BubbleSort عملياً.', H,
+      `MergeSort: O(n log n) — يقسم المصفوفة نصفين (log n مستويات) ويدمج كلاً بـ O(n).
+BubbleSort: O(n²) — حلقتان متداخلتان.
+لـ n = 1,000,000: MergeSort ≈ 20 مليون عملية، BubbleSort ≈ 10^12 عملية ⇒ MergeSort أسرع بكثير.`),
+    q('كيف تطبّق MergeSort لترتيب حروف سلسلة نصية؟', H,
+      `نحوّل النص إلى مصفوفة حروف ونطبّق نفس الخوارزمية على char[]:
+char[] a = s.ToCharArray();
+MergeSort(a, 0, a.Length - 1); // نفس منطق int مع المقارنة a[i] <= a[j]
+string sorted = new string(a);`),
+  ],
+
+  // ---------- الكفاءة الزمنية (Big-O) ----------
+  '5 وحدات|الكفاءة الزمنية (Big-O Notation)|2': () => [
+    q('ما كفاءة دالة تجمع عناصر مصفوفة حجمها n؟', E,
+      `O(n) — مرور واحد على جميع العناصر، فالزمن يتناسب طردياً مع n.`),
+    q('عند n = 1000، كم عملية تقريباً لكل من O(1), O(log n), O(n), O(n²)؟', M,
+      `O(1) ≈ 1
+O(log n) ≈ 10
+O(n) = 1000
+O(n²) = 1,000,000`),
+    q('ما كفاءة BubbleSort على مصفوفة مرتّبة مسبقاً (باستخدام علَم flag)؟', H,
+      `O(n) — التمرير الأول لا يُجري أي تبديل، فيكتشف العلَم أن المصفوفة مرتّبة ويتوقّف.`),
+    q('اكتب خوارزمية بكفاءة O(n) لإيجاد كل زوج مجموعه k في مصفوفة.', H,
+      `static void FindPairs(int[] arr, int k)
+{
+    HashSet<int> seen = new HashSet<int>();
+    foreach (int x in arr)
+    {
+        if (seen.Contains(k - x))
+            Console.WriteLine((k - x) + " + " + x + " = " + k);
+        seen.Add(x);
+    }
+}`),
+  ],
+
+  // ---------- المكدس (Stack) ----------
+  '5 وحدات|المكدس (Stack)|2': () => [
+    q('تتبّع: Push(3), Push(7), Push(1), Pop(), Peek(). ما قيمتا Pop و Peek وحالة المكدس؟', E,
+      `Pop() ترجع 1 (آخر ما دخل أول ما يخرج — LIFO).
+Peek() ترجع 7 (القمة الحالية).
+المكدس يحوي: [3, 7] والقمة 7.`),
+    q('أضف دالة Size() للمكدس ترجع عدد العناصر.', M,
+      `public int Size()
+{
+    return top + 1; // top يبدأ من -1
+}`),
+    q('استخدم مكدساً لعكس سلسلة نصية.', H,
+      `static string Reverse(string s)
+{
+    Stack<char> st = new Stack<char>();
+    foreach (char c in s) st.Push(c);
+    string result = "";
+    while (st.Count > 0) result += st.Pop();
+    return result;
+}`),
+    q('اكتب bool IsBalanced(string s) تتحقق إن كانت الأقواس متوازنة: {[()]} صحيحة، {[(]} خاطئة.', H,
+      `static bool IsBalanced(string s)
+{
+    Stack<char> st = new Stack<char>();
+    foreach (char c in s)
+    {
+        if (c == '(' || c == '[' || c == '{') st.Push(c);
+        else if (c == ')' || c == ']' || c == '}')
+        {
+            if (st.Count == 0) return false;
+            char open = st.Pop();
+            if ((c == ')' && open != '(') || (c == ']' && open != '[') || (c == '}' && open != '{'))
+                return false;
+        }
+    }
+    return st.Count == 0;
+}`),
+  ],
+
+  // ---------- الطابور (Queue) ----------
+  '5 وحدات|الطابور (Queue)|2': () => [
+    q('تتبّع: Enqueue(A), Enqueue(B), Dequeue(), Enqueue(C), Front(). ما الناتج وحالة الطابور؟', E,
+      `Dequeue() ترجع A (أول من دخل أول من يخرج — FIFO).
+Front() ترجع B.
+الطابور يحوي: [B, C].`),
+    q('ما الفرق بين الطابور والمكدس؟ متى تستخدم كلاً منهما؟', M,
+      `الطابور FIFO (الأول دخولاً أول خروجاً) — يُستخدم في الانتظار/الجدولة و BFS.
+المكدس LIFO (الأخير دخولاً أول خروجاً) — يُستخدم في التراجع (Undo) واستدعاءات الدوال و DFS.`),
+    q('كيف تستخدم طابورين لعكس محتوى طابور أصلي؟', H,
+      `نُفرّغ الطابور الأصلي إلى مكدس ثم نعيده للطابور (أبسط)،
+أو نستخدم العودية: نسحب العنصر الأمامي، نعكس الباقي عودياً، ثم نُضيف العنصر في النهاية.
+الفكرة: عكس FIFO يتطلّب بنية LIFO وسيطة.`),
+    q('نفّذ طابوراً دائرياً (Circular Queue) بمصفوفة.', H,
+      `class CircularQueue
+{
+    private int[] data; private int front, rear, count, size;
+    public CircularQueue(int n) { size = n; data = new int[n]; front = 0; rear = -1; count = 0; }
+    public void Enqueue(int x) { if (count == size) return; rear = (rear + 1) % size; data[rear] = x; count++; }
+    public int Dequeue() { int x = data[front]; front = (front + 1) % size; count--; return x; }
+    public bool IsEmpty() { return count == 0; }
+}`),
+  ],
+
+  // ---------- القوائم المرتبطة (Linked List) ----------
+  '5 وحدات|القوائم المرتبطة (Linked List)|2': () => [
+    q('تتبّع: AddFirst(3), AddFirst(7), AddFirst(1). صف القائمة الناتجة.', E,
+      `القائمة: 1 → 7 → 3 → null
+(كل إضافة في الرأس تضع العنصر الجديد أولاً، فالأحدث يصبح الرأس head).`),
+    q('اكتب دالة Print() لطباعة كل عناصر القائمة المرتبطة.', M,
+      `public void Print()
+{
+    Node curr = head;
+    while (curr != null)
+    {
+        Console.Write(curr.Data + " ");
+        curr = curr.Next;
+    }
+    Console.WriteLine();
+}`),
+    q('اكتب دالة AddLast(int data) للإضافة في نهاية القائمة.', H,
+      `public void AddLast(int data)
+{
+    Node newNode = new Node(data);
+    if (head == null) { head = newNode; return; }
+    Node curr = head;
+    while (curr.Next != null) curr = curr.Next;
+    curr.Next = newNode;
+}`),
+    q('اكتب دالة Reverse() لعكس ترتيب القائمة المرتبطة.', H,
+      `public void Reverse()
+{
+    Node prev = null, curr = head;
+    while (curr != null)
+    {
+        Node next = curr.Next;
+        curr.Next = prev;
+        prev = curr;
+        curr = next;
+    }
+    head = prev;
+}`),
+  ],
+  '5 وحدات|القوائم المرتبطة (Linked List)|4': () => [
+    q('تتبّع حذف 7 من القائمة: 1 → 7 → 3 → 5. ما النتيجة؟', E,
+      `النتيجة: 1 → 3 → 5
+(نجعل Next للعقدة 1 يشير إلى العقدة 3، متجاوزين العقدة 7).`),
+    q('لماذا يُعالَج حذف العنصر الأول (الرأس) بشكل مختلف عن باقي العناصر؟', M,
+      `لأنه لا توجد عقدة سابقة له لتعديل مؤشّرها؛
+فنحرّك head نفسه إلى head.Next بدل تعديل curr.Next.`),
+    q('اكتب دالة RemoveDuplicates() لحذف القيم المكرّرة من القائمة.', H,
+      `public void RemoveDuplicates()
+{
+    Node curr = head;
+    while (curr != null)
+    {
+        Node runner = curr;
+        while (runner.Next != null)
+        {
+            if (runner.Next.Data == curr.Data) runner.Next = runner.Next.Next;
+            else runner = runner.Next;
+        }
+        curr = curr.Next;
+    }
+}`),
+    q('اكتب دالة تدمج قائمتين مرتّبتين في قائمة مرتّبة واحدة.', H,
+      `static Node MergeSorted(Node a, Node b)
+{
+    Node dummy = new Node(0), tail = dummy;
+    while (a != null && b != null)
+    {
+        if (a.Data <= b.Data) { tail.Next = a; a = a.Next; }
+        else { tail.Next = b; b = b.Next; }
+        tail = tail.Next;
+    }
+    tail.Next = (a != null) ? a : b;
+    return dummy.Next;
+}`),
+  ],
+
+  // ---------- الأشجار الثنائية (Binary Trees) ----------
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|2': () => [
+    q('صف شجرة جذرها 5، ابنها الأيسر 3، وابنها الأيمن 7.', E,
+      `العقدة الجذر تحمل 5، ولها:
+Left → عقدة قيمتها 3
+Right → عقدة قيمتها 7
+(كلاهما ورقة بلا أبناء).`),
+    q('اكتب كوداً ينشئ الشجرة: جذر 5، يسار 3، يمين 7.', M,
+      `BinNode root = new BinNode(5);
+root.Left = new BinNode(3);
+root.Right = new BinNode(7);`),
+    q('اكتب دالة CountNodes(BinNode root) تعدّ عقد الشجرة بالعودية.', H,
+      `static int CountNodes(BinNode root)
+{
+    if (root == null) return 0;
+    return 1 + CountNodes(root.Left) + CountNodes(root.Right);
+}`),
+    q('اكتب دالة IsSymmetric(BinNode root) تتحقق إن كانت الشجرة متماثلة حول محورها.', H,
+      `static bool IsSymmetric(BinNode root)
+{
+    if (root == null) return true;
+    return Mirror(root.Left, root.Right);
+}
+static bool Mirror(BinNode a, BinNode b)
+{
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    return a.Data == b.Data && Mirror(a.Left, b.Right) && Mirror(a.Right, b.Left);
+}`),
+  ],
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|3': () => [
+    q('للشجرة: جذر=1، يسار=2، يمين=3، وابنا 2 هما 4 (يسار) و5 (يمين). أعطِ Preorder و Inorder و Postorder.', E,
+      `Preorder (جذر-يسار-يمين): 1 2 4 5 3
+Inorder (يسار-جذر-يمين): 4 2 5 1 3
+Postorder (يسار-يمين-جذر): 4 5 2 3 1`),
+    q('لماذا يعطي مسح Inorder على شجرة بحث ثنائية (BST) العناصر مرتّبة تصاعدياً؟', M,
+      `لأن في BST كل ما في الشجرة الفرعية اليسرى أصغر من الجذر، وكل ما في اليمنى أكبر.
+وInorder يزور (يسار ثم الجذر ثم يمين)، فيخرج العناصر من الأصغر إلى الأكبر.`),
+    q('اكتب دالة MaxValue(BinNode root) ترجع أكبر قيمة في الشجرة بالعودية.', H,
+      `static int MaxValue(BinNode root)
+{
+    int max = root.Data;
+    if (root.Left != null) max = Math.Max(max, MaxValue(root.Left));
+    if (root.Right != null) max = Math.Max(max, MaxValue(root.Right));
+    return max;
+}`),
+    q('اكتب دالة LCA(BinNode root, int a, int b) لإيجاد أقرب سلف مشترك في BST.', H,
+      `static BinNode LCA(BinNode root, int a, int b)
+{
+    if (root == null) return null;
+    if (a < root.Data && b < root.Data) return LCA(root.Left, a, b);
+    if (a > root.Data && b > root.Data) return LCA(root.Right, a, b);
+    return root; // تفرّق المساران هنا
+}`),
+  ],
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|7': () => [
+    q('أدرج {5, 3, 7, 1, 4} في شجرة بحث ثنائية (BST). صف الشجرة الناتجة.', E,
+      `الجذر 5.
+3 < 5 ⇒ يسار 5.
+7 > 5 ⇒ يمين 5.
+1 < 5 و1 < 3 ⇒ يسار 3.
+4 < 5 و4 > 3 ⇒ يمين 3.`),
+    q('اكتب دالة Search(BinNode root, int val) للبحث في BST.', M,
+      `static bool Search(BinNode root, int val)
+{
+    if (root == null) return false;
+    if (root.Data == val) return true;
+    return val < root.Data ? Search(root.Left, val) : Search(root.Right, val);
+}`),
+    q('لماذا يعطي Inorder على BST المُدرَج فيها {5,3,7,1,4} الترتيب {1,3,4,5,7}؟', H,
+      `لأن Inorder يزور اليسار (الأصغر) ثم الجذر ثم اليمين (الأكبر)،
+وخاصية BST تضمن أن هذا الترتيب يساوي ترتيب القيم تصاعدياً.`),
+    q('اكتب دالة Delete(BinNode root, int val) لحذف عقدة من BST (الحالات الثلاث).', H,
+      `static BinNode Delete(BinNode root, int val)
+{
+    if (root == null) return null;
+    if (val < root.Data) root.Left = Delete(root.Left, val);
+    else if (val > root.Data) root.Right = Delete(root.Right, val);
+    else
+    {
+        if (root.Left == null) return root.Right;   // بلا ابن أيسر
+        if (root.Right == null) return root.Left;    // بلا ابن أيمن
+        BinNode min = root.Right;                    // عقدتان: أصغر اليمين
+        while (min.Left != null) min = min.Left;
+        root.Data = min.Data;
+        root.Right = Delete(root.Right, min.Data);
+    }
+    return root;
+}`),
+  ],
 };
