@@ -1,273 +1,18 @@
 /**
- * Seed — شجرة منهج الرياضيات الإسرائيلي الكامل (صفوف 7–12) + مسائل تجريبية كاملة.
- * المصدر: منهج_الرياضيات_الكامل_اسرائيل.md (التכنית החדשה / תשפ"ו).
+ * Seed — شجرة منهج الرياضيات + الدروس الكاملة (260 درساً) + مسائل تجريبية.
+ * المصدر: خطة_الدروس_والمسائل_الكاملة.md → prisma/lessonPlan.ts (مُولّد آلياً).
  *
- * يبني الشجرة: مادة ← صف ← مستوى ← موضوع (مع ترتيب + المجال في الوصف).
- *   صفوف 7–9: مستوى موحّد لجميع الطلاب.
- *   صفوف 10–12: ثلاثة مستويات (3/4/5 יח׳).
- * ثم يزرع مسائل كاملة (طرق + خطوات + أخطاء) على موضوعَين.
+ * يبني: مادة ← صف ← مستوى ← موضوع ← دروس (مع المدة بالدقائق + النوع).
+ *   صفوف 7–9: مستوى موحّد.  الصفوف 10–12: ثلاثة مسارات (3/4/5 יח׳) تحت الصف 10.
+ * ثم يزرع مسائل كاملة (طرق + خطوات + أخطاء) على موضوعَي العرض.
  *
- * Idempotent: المواضيع upsert حسب (المستوى + الاسم)؛ المسائل تُتخطّى إذا كان الموضوع يحتويها.
+ * Idempotent: المواضيع upsert حسب (المستوى + الاسم)؛ الدروس/المسائل تُتخطّى إذا وُجدت.
  * تشغيل: npm run seed --workspace=apps/api
  */
 import { PrismaClient, Difficulty } from '@prisma/client';
+import { LESSON_PLAN } from './lessonPlan';
 
 const prisma = new PrismaClient();
-
-// ============================================================
-//  شجرة المنهج — Curriculum tree
-// ============================================================
-
-const UNIFIED = 'موحّد';
-const L3 = '3יח׳';
-const L4 = '4יח׳';
-const L5 = '5יח׳';
-
-const ALGEBRA = 'المجال الجبري';
-const GEOMETRY = 'المجال الهندسي';
-const NUMERIC = 'المجال العددي';
-const UNCERTAINTY = 'عدم اليقين (إحصاء واحتمال)';
-
-type LevelSeed = { name: string; domains: { domain: string; topics: string[] }[] };
-type GradeSeed = { grade: number; levels: LevelSeed[] };
-
-const CURRICULUM: GradeSeed[] = [
-  {
-    grade: 7,
-    levels: [
-      {
-        name: UNIFIED,
-        domains: [
-          {
-            domain: ALGEBRA,
-            topics: [
-              'المتغيرات والتعابير الجبرية',
-              'الانتظام والأنماط (חוקיות)',
-              'المعادلات الخطية',
-              'التمثيل البياني الأساسي',
-            ],
-          },
-          {
-            domain: GEOMETRY,
-            topics: [
-              'الزوايا والمستقيمات',
-              'المثلثات والمضلعات',
-              'الدائرة',
-              'الأجسام الهندسية (ثلاثية الأبعاد)',
-            ],
-          },
-          {
-            domain: NUMERIC,
-            topics: [
-              'قوانين العمليات الحسابية',
-              'القوى والجذور التربيعية',
-              'الأعداد الموجّهة (سالبة وموجبة)',
-              'جملة المحاور',
-            ],
-          },
-          { domain: UNCERTAINTY, topics: ['جمع وتنظيم المعطيات'] },
-        ],
-      },
-    ],
-  },
-  {
-    grade: 8,
-    levels: [
-      {
-        name: UNIFIED,
-        domains: [
-          {
-            domain: ALGEBRA,
-            topics: [
-              'النسبة والتناسب',
-              'الدالة وتمثيلاتها',
-              'المعادلة الخطية والمستقيم',
-              'جملة معادلتين بمجهولين',
-              'المتباينات',
-            ],
-          },
-          {
-            domain: GEOMETRY,
-            topics: [
-              'نظرية فيثاغورس',
-              'التحويلات الهندسية',
-              'تطابق المثلثات',
-              'تشابه المثلثات (مقدمة)',
-              'الأسطوانة والمخروط',
-            ],
-          },
-          { domain: NUMERIC, topics: ['الأعداد الحقيقية'] },
-          { domain: UNCERTAINTY, topics: ['الإحصاء المتوسط', 'الاحتمال - مقدمة'] },
-        ],
-      },
-    ],
-  },
-  {
-    grade: 9,
-    levels: [
-      {
-        name: UNIFIED,
-        domains: [
-          {
-            domain: ALGEBRA,
-            topics: [
-              'التقنية الجبرية المتقدمة',
-              'الدالة التربيعية',
-              'المعادلة التربيعية',
-              'المتباينات التربيعية',
-            ],
-          },
-          {
-            domain: GEOMETRY,
-            topics: [
-              'تشابه المثلثات (متقدم)',
-              'نظريات المثلث المتساوي الساقين',
-              'المثلث القائم بزوايا 30°-60°-90°',
-              'متوازي الأضلاع والأشكال الخاصة',
-              'الإثبات الهندسي',
-            ],
-          },
-          { domain: UNCERTAINTY, topics: ['الإحصاء والاحتمال المتقدم'] },
-        ],
-      },
-    ],
-  },
-  {
-    grade: 10,
-    levels: [
-      {
-        name: L3,
-        domains: [
-          {
-            domain: ALGEBRA,
-            topics: [
-              'مراجعة وتعميق الجبر الأساسي',
-              'النموذج الخطي',
-              'النموذج التربيعي (مقدمة)',
-              'النسب المئوية والنسب التطبيقية',
-            ],
-          },
-        ],
-      },
-      {
-        name: L4,
-        domains: [
-          {
-            domain: ALGEBRA,
-            topics: ['التقنية الجبرية المتقدمة', 'الدالة وخصائصها'],
-          },
-          { domain: GEOMETRY, topics: ['المثلثات في المستوى (مقدمة)'] },
-          { domain: UNCERTAINTY, topics: ['الإحصاء والاحتمال (4 وحدات)'] },
-        ],
-      },
-      {
-        name: L5,
-        domains: [
-          { domain: ALGEBRA, topics: ['التقنية الجبرية المتقدمة جداً'] },
-          { domain: GEOMETRY, topics: ['المثلثات في المستوى'] },
-          { domain: UNCERTAINTY, topics: ['الاحتمال المتقدم'] },
-          { domain: ALGEBRA, topics: ['مقدمة التفاضل والتكامل'] },
-        ],
-      },
-    ],
-  },
-  {
-    grade: 11,
-    levels: [
-      {
-        name: L3,
-        domains: [
-          {
-            domain: UNCERTAINTY,
-            topics: ['الإحصاء', 'التوزيع الطبيعي', 'الاحتمال التطبيقي'],
-          },
-          {
-            domain: GEOMETRY,
-            topics: ['المحيطات والمساحات', 'الأجسام في الفراغ'],
-          },
-          {
-            domain: ALGEBRA,
-            topics: ['الرياضيات المالية', 'النموذج الخطي التطبيقي', 'التخطيط الخطي'],
-          },
-        ],
-      },
-      {
-        name: L4,
-        domains: [
-          { domain: UNCERTAINTY, topics: ['الاحتمال المتقدم', 'الانحدار الخطي'] },
-          { domain: GEOMETRY, topics: ['المثلثات في المستوى', 'الهندسة التحليلية'] },
-          {
-            domain: ALGEBRA,
-            topics: ['المشتقة', 'تطبيقات المشتقة', 'التكامل'],
-          },
-        ],
-      },
-      {
-        name: L5,
-        domains: [
-          {
-            domain: UNCERTAINTY,
-            topics: ['الاحتمال المتقدم جداً'],
-          },
-          {
-            domain: ALGEBRA,
-            topics: ['المتتاليات', 'الاستقراء الرياضي'],
-          },
-          {
-            domain: GEOMETRY,
-            topics: ['المثلثات المتقدمة', 'الهندسة التحليلية المتقدمة'],
-          },
-          {
-            domain: ALGEBRA,
-            topics: ['اشتقاق الدوال الخاصة', 'التكامل المتقدم (حدوديات)'],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    grade: 12,
-    levels: [
-      {
-        name: L3,
-        domains: [
-          { domain: GEOMETRY, topics: ['الهندسة التحليلية التطبيقية', 'الأجسام في الفراغ'] },
-          { domain: UNCERTAINTY, topics: ['التوزيع الطبيعي (تطبيقي)'] },
-          { domain: ALGEBRA, topics: ['النموذج التربيعي التطبيقي'] },
-        ],
-      },
-      {
-        name: L4,
-        domains: [
-          {
-            domain: ALGEBRA,
-            topics: [
-              'المتتاليات',
-              'المتجهات',
-              'النمو والاضمحلال',
-              'التفاضل والتكامل الأسي واللوغاريتمي',
-            ],
-          },
-          { domain: UNCERTAINTY, topics: ['الإحصاء المتقدم (فحص الفرضيات)'] },
-        ],
-      },
-      {
-        name: L5,
-        domains: [
-          { domain: GEOMETRY, topics: ['الهندسة التحليلية المتقدمة'] },
-          {
-            domain: ALGEBRA,
-            topics: [
-              'المتجهات في الفراغ ثلاثي الأبعاد',
-              'الأعداد المركّبة',
-              'التفاضل والتكامل المتقدم (5 وحدات)',
-            ],
-          },
-        ],
-      },
-    ],
-  },
-];
 
 // ============================================================
 //  مسائل تجريبية كاملة — fully-worked demo problems
@@ -379,28 +124,46 @@ async function ensureTopic(levelId: string, nameAr: string, orderIndex: number, 
   return prisma.topic.create({ data: { levelId, nameAr, orderIndex, description } });
 }
 
-/** يبني شجرة المنهج كاملة ويعيد دليلاً للوصول السريع لموضوع معيّن. */
-async function seedCurriculumTree(subjectId: string) {
-  // key: `${grade}|${level}|${topicName}` → topicId
-  const index = new Map<string, string>();
-  let topicCount = 0;
+async function ensureLessons(topicId: string, lessons: { order: number; title: string; durationMinutes: number; type: string }[]) {
+  const existing = await prisma.lesson.count({ where: { topicId } });
+  if (existing > 0) return 0;
+  await prisma.lesson.createMany({
+    data: lessons.map((l) => ({
+      topicId,
+      title: l.title,
+      description: l.type, // نوع الدرس: تعريفي / مهاري / تطبيقي ...
+      durationMinutes: l.durationMinutes,
+      orderIndex: l.order,
+      isPublished: true,
+    })),
+  });
+  return lessons.length;
+}
 
-  for (const g of CURRICULUM) {
-    const grade = await ensureGrade(subjectId, g.grade);
-    for (const lvl of g.levels) {
-      const level = await ensureLevel(grade.id, lvl.name);
-      let order = 0;
-      for (const d of lvl.domains) {
-        for (const topicName of d.topics) {
-          const topic = await ensureTopic(level.id, topicName, order++, d.domain);
-          index.set(`${g.grade}|${lvl.name}|${topicName}`, topic.id);
-          topicCount++;
-        }
-      }
-    }
+/**
+ * يبني شجرة المنهج كاملة مع الدروس من خطة الدروس.
+ * orderIndex للمواضيع تسلسلي داخل كل مستوى (يحافظ على ترتيب الخطة).
+ */
+async function seedTreeWithLessons(subjectId: string) {
+  const index = new Map<string, string>(); // `${grade}|${level}|${name}` → topicId
+  const order = new Map<string, number>(); // `${grade}|${level}` → running order
+  let topicCount = 0;
+  let lessonCount = 0;
+
+  for (const t of LESSON_PLAN) {
+    const grade = await ensureGrade(subjectId, t.grade);
+    const level = await ensureLevel(grade.id, t.level);
+    const okey = `${t.grade}|${t.level}`;
+    const oi = order.get(okey) ?? 0;
+    order.set(okey, oi + 1);
+
+    const topic = await ensureTopic(level.id, t.name, oi, t.domain);
+    index.set(`${t.grade}|${t.level}|${t.name}`, topic.id);
+    topicCount++;
+    lessonCount += await ensureLessons(topic.id, t.lessons);
   }
 
-  console.log(`  ↳ curriculum tree: ${CURRICULUM.length} grades, ${topicCount} topics`);
+  console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons created`);
   return index;
 }
 
@@ -435,13 +198,13 @@ async function seedProblems(topicId: string, problems: ProblemSeed[]) {
 }
 
 async function main() {
-  console.log('Seeding curriculum tree + demo problems…');
+  console.log('Seeding curriculum tree + lessons + demo problems…');
 
   const subject = await ensureSubject('رياضيات');
-  const topicIndex = await seedCurriculumTree(subject.id);
+  const topicIndex = await seedTreeWithLessons(subject.id);
 
   // مسائل خطية — صف 7 موحّد
-  const linId = topicIndex.get(`7|${UNIFIED}|المعادلات الخطية`);
+  const linId = topicIndex.get('7|موحّد|المعادلات الخطية');
   if (linId) {
     await seedProblems(linId, [
       linear(2, 3, 4, 1),
@@ -455,7 +218,7 @@ async function main() {
   }
 
   // مسائل تربيعية — صف 9 موحّد
-  const eq2Id = topicIndex.get(`9|${UNIFIED}|المعادلة التربيعية`);
+  const eq2Id = topicIndex.get('9|موحّد|المعادلة التربيعية');
   if (eq2Id) {
     await seedProblems(eq2Id, [
       quadratic(2, 3, 1),
@@ -469,8 +232,12 @@ async function main() {
     ]);
   }
 
-  const [topics, problems] = await Promise.all([prisma.topic.count(), prisma.problem.count()]);
-  console.log(`✅ Done. Topics: ${topics}, Problems: ${problems}`);
+  const [topics, lessons, problems] = await Promise.all([
+    prisma.topic.count(),
+    prisma.lesson.count(),
+    prisma.problem.count(),
+  ]);
+  console.log(`✅ Done. Topics: ${topics}, Lessons: ${lessons}, Problems: ${problems}`);
 }
 
 main()
