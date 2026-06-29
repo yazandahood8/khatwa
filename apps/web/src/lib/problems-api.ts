@@ -73,3 +73,12 @@ export interface AttemptInfo {
 }
 export const getAttempt = (problemId: string) =>
   apiFetch<AttemptInfo | null>(`/api/problems/${problemId}/attempt`);
+
+export interface TopicProgressItem {
+  problemId: string;
+  isCorrect: boolean;
+  completedAt: string | null;
+  attemptsCount: number;
+}
+export const getTopicProgress = (topicId: string) =>
+  apiFetch<TopicProgressItem[]>(`/api/topics/${topicId}/progress`);

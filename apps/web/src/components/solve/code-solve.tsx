@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal } from 'lucide-react';
 import { streamJudge } from '@/lib/ai-api';
-import { getAttempt, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
+import { getAttempt, getTopicProgress, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
 import { ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -30,6 +30,8 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
   const [solved, setSolved] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
+  const [attemptedIds, setAttemptedIds] = useState<Set<string>>(new Set());
   const rawRef = useRef('');
 
   useEffect(() => {
@@ -43,7 +45,13 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
         if (a?.completedAt) setSolved(true);
       })
       .catch(() => {});
-  }, [id, problem.starterCode]);
+    getTopicProgress(problem.topicId)
+      .then((items) => {
+        setSolvedIds(new Set(items.filter((it) => it.completedAt).map((it) => it.problemId)));
+        setAttemptedIds(new Set(items.filter((it) => !it.completedAt).map((it) => it.problemId)));
+      })
+      .catch(() => {});
+  }, [id, problem.starterCode, problem.topicId]);
 
   const index = sequence.findIndex((p) => p.id === id);
   const total = sequence.length;
@@ -100,7 +108,13 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
       {/* الرأس — header */}
       <header className="flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
         <div className="flex flex-1 items-center gap-3">
-          <QuestionNav problems={sequence} currentId={id} icon={<Terminal className="h-4 w-4 text-primary" />} />
+          <QuestionNav
+            problems={sequence}
+            currentId={id}
+            icon={<Terminal className="h-4 w-4 text-primary" />}
+            solvedIds={solved ? new Set(solvedIds).add(id) : solvedIds}
+            attemptedIds={attemptedIds}
+          />
           <Progress value={progressPct} className="max-w-xs" />
           <span className="hidden text-xs text-muted-foreground sm:inline">المحاولات: {attempts}</span>
         </div>

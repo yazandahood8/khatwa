@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ListChecks, ChevronDown } from 'lucide-react';
+import { ListChecks, ChevronDown, Check } from 'lucide-react';
 import type { ProblemListItem } from '@/lib/problems-api';
 import { cn } from '@/lib/utils';
 
@@ -20,14 +20,19 @@ export function QuestionNav({
   problems,
   currentId,
   icon,
+  solvedIds,
+  attemptedIds,
 }: {
   problems: ProblemListItem[];
   currentId: string;
   icon?: React.ReactNode;
+  solvedIds?: Set<string>;
+  attemptedIds?: Set<string>;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const index = problems.findIndex((p) => p.id === currentId);
+  const solvedCount = solvedIds ? problems.filter((p) => solvedIds.has(p.id)).length : 0;
 
   if (problems.length === 0) {
     return (
@@ -58,9 +63,18 @@ export function QuestionNav({
             className="absolute right-0 z-40 mt-2 max-h-[70vh] w-[min(22rem,90vw)] overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-float scrollbar-thin"
             role="listbox"
           >
-            <p className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">أسئلة الدرس</p>
+            <p className="flex items-center justify-between px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+              <span>أسئلة الدرس</span>
+              {solvedIds && (
+                <span className="text-success">
+                  {solvedCount}/{problems.length} ✓
+                </span>
+              )}
+            </p>
             {problems.map((p, i) => {
               const isCurrent = p.id === currentId;
+              const isSolved = solvedIds?.has(p.id) ?? false;
+              const isAttempted = !isSolved && (attemptedIds?.has(p.id) ?? false);
               const d = DIFF[p.difficulty];
               return (
                 <button
@@ -80,10 +94,16 @@ export function QuestionNav({
                   <span
                     className={cn(
                       'mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold',
-                      isCurrent ? 'gradient-primary text-white' : 'bg-muted text-muted-foreground',
+                      isSolved
+                        ? 'bg-success text-white'
+                        : isCurrent
+                          ? 'gradient-primary text-white'
+                          : isAttempted
+                            ? 'bg-warning/20 text-warning ring-1 ring-warning/40'
+                            : 'bg-muted text-muted-foreground',
                     )}
                   >
-                    {i + 1}
+                    {isSolved ? <Check className="h-3.5 w-3.5" /> : i + 1}
                   </span>
                   <span className="line-clamp-2 flex-1 text-sm leading-snug" dir="auto">
                     {p.question}

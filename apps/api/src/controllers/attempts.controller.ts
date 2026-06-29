@@ -58,3 +58,12 @@ export async function getAttempt(req: Request, res: Response) {
   });
   ok(res, attempt);
 }
+
+/** GET /api/topics/:topicId/progress — حالة إنجاز الطالب لكل مسائل الموضوع (للتنقل). */
+export async function getTopicProgress(req: Request, res: Response) {
+  const attempts = await prisma.problemAttempt.findMany({
+    where: { studentId: req.user!.id, problem: { topicId: req.params.topicId } },
+    select: { problemId: true, isCorrect: true, completedAt: true, attemptsCount: true },
+  });
+  ok(res, attempts);
+}

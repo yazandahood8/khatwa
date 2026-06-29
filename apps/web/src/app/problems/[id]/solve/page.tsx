@@ -9,6 +9,7 @@ import {
   getProblems,
   checkAnswer,
   getAttempt,
+  getTopicProgress,
   type ProblemFull,
   type ProblemListItem,
 } from '@/lib/problems-api';
@@ -37,6 +38,8 @@ export default function SolvePage() {
   const [solved, setSolved] = useState(false);
   const [showPad, setShowPad] = useState(false);
   const [showChat, setShowChat] = useState(false); // mobile chat sheet
+  const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
+  const [attemptedIds, setAttemptedIds] = useState<Set<string>>(new Set());
   const [checking, setChecking] = useState(false);
   const [shake, setShake] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
@@ -67,6 +70,12 @@ export default function SolvePage() {
       .then((p) => {
         setProblem(p);
         getProblems(p.topicId).then(setSequence).catch(() => {});
+        getTopicProgress(p.topicId)
+          .then((items) => {
+            setSolvedIds(new Set(items.filter((it) => it.completedAt).map((it) => it.problemId)));
+            setAttemptedIds(new Set(items.filter((it) => !it.completedAt).map((it) => it.problemId)));
+          })
+          .catch(() => {});
       })
       .catch(() => {});
     getAttempt(id)
@@ -142,7 +151,12 @@ export default function SolvePage() {
       {/* الرأس — header with progress */}
       <header className="flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
         <div className="flex flex-1 items-center gap-3">
-          <QuestionNav problems={sequence} currentId={id} />
+          <QuestionNav
+            problems={sequence}
+            currentId={id}
+            solvedIds={solved ? new Set(solvedIds).add(id) : solvedIds}
+            attemptedIds={attemptedIds}
+          />
           <Progress value={progressPct} className="max-w-xs" />
           <span className="hidden text-xs text-muted-foreground sm:inline">
             المحاولات: {attempts}
