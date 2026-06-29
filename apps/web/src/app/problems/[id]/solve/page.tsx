@@ -222,7 +222,7 @@ export default function SolvePage() {
             {showPad && (
               <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
                 <p className="mb-2 font-display text-sm font-semibold text-muted-foreground">مسودة حرة</p>
-                <ScratchPad />
+                <ScratchPad onAnalyze={(img) => aiRef.current?.sendDraft(img)} />
               </div>
             )}
           </div>

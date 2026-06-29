@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 
 export interface AiTutorHandle {
   sendStep: (stepText: string) => void;
+  sendDraft: (imageBase64: string) => void;
 }
 
 interface Props {
@@ -42,7 +43,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  async function send(userMessage: string) {
+  async function send(userMessage: string, image?: string) {
     if (busy) return;
     setError(null);
     const history = messages.filter((m) => m.content.trim()).slice(-10);
@@ -53,7 +54,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     try {
       const { remaining: rem } = await streamTutor(
         problemId,
-        { message: userMessage, attemptsCount: getState().attemptsCount, history },
+        { message: userMessage, attemptsCount: getState().attemptsCount, history, image },
         (chunk) => {
           acc += chunk;
           setMessages((m) => {
@@ -80,6 +81,9 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   useImperativeHandle(ref, () => ({
     sendStep: (stepText: string) => {
       if (stepText.trim()) void send(`خطوتي: ${stepText}`);
+    },
+    sendDraft: (imageBase64: string) => {
+      void send('📝 هاي مسودتي المكتوبة بخط يدي، راجعها وساعدني', imageBase64);
     },
   }));
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -8,7 +9,7 @@ const COLORS = ['#1e293b', '#2563eb', '#dc2626'];
 const SIZES = { small: 2, medium: 4, large: 7 } as const;
 
 /** مسودة حرة بالإصبع/الماوس — free-draw scratch pad (Canvas). */
-export function ScratchPad() {
+export function ScratchPad({ onAnalyze }: { onAnalyze?: (base64Png: string) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [color, setColor] = useState(COLORS[0]);
@@ -59,6 +60,31 @@ export function ScratchPad() {
     canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  /** يصدّر المسودة على خلفية بيضاء ويرسلها للمساعد — export on white bg + send. */
+  function analyze() {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext('2d')!;
+    // تأكّد أن فيها رسم — skip blank canvas
+    const px = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let hasInk = false;
+    for (let i = 3; i < px.length; i += 4) {
+      if (px[i] !== 0) {
+        hasInk = true;
+        break;
+      }
+    }
+    if (!hasInk) return;
+
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width;
+    tmp.height = canvas.height;
+    const tctx = tmp.getContext('2d')!;
+    tctx.fillStyle = '#ffffff';
+    tctx.fillRect(0, 0, tmp.width, tmp.height);
+    tctx.drawImage(canvas, 0, 0);
+    onAnalyze?.(tmp.toDataURL('image/png').split(',')[1]);
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -92,6 +118,11 @@ export function ScratchPad() {
         <Button size="sm" variant="ghost" onClick={clear}>
           مسح الكل
         </Button>
+        {onAnalyze && (
+          <Button size="sm" variant="gradient" className="ms-auto" onClick={analyze}>
+            <Sparkles className="h-4 w-4" /> اعرض مسودتي للمساعد
+          </Button>
+        )}
       </div>
       <canvas
         ref={canvasRef}

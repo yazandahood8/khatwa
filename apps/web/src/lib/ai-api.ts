@@ -25,7 +25,7 @@ export interface TutorTurn {
  */
 export async function streamTutor(
   problemId: string,
-  body: { message: string; attemptsCount: number; history: TutorTurn[] },
+  body: { message: string; attemptsCount: number; history: TutorTurn[]; image?: string },
   onToken: (chunk: string) => void,
 ): Promise<{ remaining: number | null }> {
   const token = getToken();

@@ -27,7 +27,7 @@ export function createApp() {
       exposedHeaders: ['X-AI-Remaining'], // ليقرأها المتصفح من ردّ الـ AI
     }),
   );
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '3mb' })); // يتّسع لصورة المسودة (base64)
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(isProduction ? 'combined' : 'dev'));
 

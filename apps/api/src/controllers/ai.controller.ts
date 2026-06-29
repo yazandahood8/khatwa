@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { prisma } from '../services/prisma';
 import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
@@ -15,6 +16,8 @@ const askSchema = z.object({
     .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) }))
     .max(20)
     .optional(),
+  // صورة مسودة الطالب (base64 PNG) — optional handwritten draft image
+  image: z.string().max(4_000_000).optional(),
 });
 
 /** GET /api/ai/quota — كم سؤال بقي للطالب اليوم. */
@@ -83,9 +86,20 @@ export async function askTutor(req: Request, res: Response) {
     attemptsCount: input.attemptsCount,
   });
 
-  const messages = [
+  // الدور الحالي: نص فقط أو نص + صورة المسودة — current turn: text, or image + text
+  const currentContent = input.image
+    ? [
+        {
+          type: 'image' as const,
+          source: { type: 'base64' as const, media_type: 'image/png' as const, data: input.image },
+        },
+        { type: 'text' as const, text: input.message },
+      ]
+    : input.message;
+
+  const messages: Anthropic.MessageParam[] = [
     ...(input.history ?? []),
-    { role: 'user' as const, content: input.message },
+    { role: 'user', content: currentContent },
   ];
 
   // بثّ الرد — stream the response as plain text chunks
@@ -117,17 +131,23 @@ export async function askTutor(req: Request, res: Response) {
     // حفظ الجلسة + التكلفة — persist session + token usage
     const inTok = finalMsg.usage.input_tokens;
     const outTok = finalMsg.usage.output_tokens;
+    // لا نخزّن الصورة في قاعدة البيانات — keep base64 out of the DB
+    const savedMessages = [
+      ...messages.map((m) => ({
+        role: m.role,
+        content: typeof m.content === 'string' ? m.content : `[مسودة مرفقة] ${input.message}`,
+      })),
+      { role: 'assistant', content: cleanFull },
+    ];
     await prisma.aiSession.create({
-      data: {
-        studentId,
-        problemId,
-        messages: [...messages, { role: 'assistant', content: cleanFull }],
-        tokensUsed: inTok + outTok,
-      },
+      data: { studentId, problemId, messages: savedMessages, tokensUsed: inTok + outTok },
     });
 
     if (isNewMethod) {
-      await recordDiscoveredMethod(studentId, problemId, messages).catch((e) =>
+      const textTurns = messages
+        .filter((m): m is { role: 'user' | 'assistant'; content: string } => typeof m.content === 'string')
+        .map((m) => ({ role: m.role, content: m.content }));
+      await recordDiscoveredMethod(studentId, problemId, textTurns).catch((e) =>
         logger.error('recordDiscoveredMethod failed', e instanceof Error ? e.message : e),
       );
     }
@@ -135,7 +155,10 @@ export async function askTutor(req: Request, res: Response) {
     if (isSolved) {
       // المساعد أكّد اكتمال الحل — سجّل المسألة كمحلولة
       const stepsTaken = messages
-        .filter((m) => m.role === 'user' && m.content.startsWith('خطوتي:'))
+        .filter(
+          (m): m is { role: 'user'; content: string } =>
+            m.role === 'user' && typeof m.content === 'string' && m.content.startsWith('خطوتي:'),
+        )
         .map((m) => m.content.replace(/^خطوتي:\s*/, '').trim());
       const existing = await prisma.problemAttempt.findFirst({ where: { studentId, problemId } });
       if (existing) {
