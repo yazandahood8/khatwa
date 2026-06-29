@@ -42,5 +42,5 @@ export enum AdminNotificationType {
 export const AI_DAILY_LIMITS: Record<SubscriptionPlan, number> = {
   [SubscriptionPlan.FREE]: 10,
   [SubscriptionPlan.BASIC]: 50,
-  [SubscriptionPlan.PREMIUM]: 150,
+  [SubscriptionPlan.PREMIUM]: 80,
 };
