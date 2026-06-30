@@ -142,8 +142,20 @@ export default function SolvePage() {
     else router.push('/courses');
   }
 
+  // أثناء التحميل: شاشة محايدة بدل وميض واجهة الرياضيات قبل معرفة نوع المسألة
+  if (!problem) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="h-9 w-9 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span className="text-sm">جارٍ تحميل المسألة…</span>
+        </div>
+      </div>
+    );
+  }
+
   // مسألة برمجة (علوم الحاسوب) — واجهة كتابة الكود + المصحّح الذكي بدل الخطوات
-  if (problem?.language) {
+  if (problem.language) {
     return <CodeSolve problem={problem} sequence={sequence} />;
   }
 
