@@ -45,6 +45,13 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().optional(), // مثال: "خطوة <no-reply@khatwa.app>"
 
+  // الدفع — PayPlus (optional; falls back to mock upgrade when unset)
+  PAYPLUS_BASE_URL: z.string().url().default('https://restapi.payplus.co.il'), // staging: restapidev.payplus.co.il
+  PAYPLUS_API_KEY: z.string().optional(),
+  PAYPLUS_SECRET_KEY: z.string().optional(),
+  PAYPLUS_PAYMENT_PAGE_UID: z.string().optional(),
+  API_PUBLIC_URL: z.string().url().optional(), // الرابط العام للـ API لاستقبال الـ IPN
+
   // تخزين الفيديوهات — Object storage (Cloudflare R2, S3-compatible)
   S3_REGION: z.string().default('auto'),
   S3_ACCESS_KEY_ID: z.string().optional(),

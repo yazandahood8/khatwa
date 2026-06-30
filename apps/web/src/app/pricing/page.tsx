@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, Check, Crown } from 'lucide-react';
 import { useAuth } from '@/providers/auth-provider';
-import { upgradePlan } from '@/lib/subscription-api';
+import { checkoutPlan } from '@/lib/subscription-api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -59,8 +59,12 @@ export default function PricingPage() {
     }
     setBusy(plan);
     try {
-      await upgradePlan(plan);
-      router.push('/settings/subscription');
+      const res = await checkoutPlan(plan);
+      if (res.url) {
+        window.location.href = res.url; // توجيه لصفحة دفع PayPlus
+        return;
+      }
+      router.push('/settings/subscription'); // المسار التجريبي (PayPlus غير مهيأ بعد)
     } catch {
       setBusy(null);
     }

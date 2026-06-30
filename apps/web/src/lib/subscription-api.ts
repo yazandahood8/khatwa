@@ -14,6 +14,12 @@ export const upgradePlan = (plan: 'basic' | 'premium') =>
     method: 'POST',
     body: JSON.stringify({ plan }),
   });
+/** يبدأ الدفع: يعيد { url } لتوجيه الطالب لـ PayPlus، أو { mock } إن لم يُضبط الدفع بعد. */
+export const checkoutPlan = (plan: 'basic' | 'premium') =>
+  apiFetch<{ url?: string; mock?: boolean; plan?: string }>('/api/subscriptions/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ plan }),
+  });
 export const cancelSubscription = () =>
   apiFetch('/api/subscriptions/cancel', { method: 'POST' });
 
