@@ -94,7 +94,11 @@ export function CodeEditor({
   }
 
   return (
-    <div className={'flex font-mono text-[13px] leading-5 ' + (className ?? '')}>
+    <div
+      className={'flex font-mono text-[13px] leading-5 ' + (className ?? '')}
+      // عطّل روابط الخط (ligatures) كي تظهر >= و <= و != كحروفها لا كرموز رياضية
+      style={{ fontVariantLigatures: 'none', fontFeatureSettings: '"liga" 0, "calt" 0' }}
+    >
       <div
         ref={gutterRef}
         aria-hidden
