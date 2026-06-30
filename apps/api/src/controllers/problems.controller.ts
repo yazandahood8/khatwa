@@ -23,17 +23,34 @@ export async function listProblems(req: Request, res: Response) {
     orderBy: { orderIndex: 'asc' },
     include: { _count: { select: { methods: true, commonMistakes: true } } },
   });
-  ok(res, problems);
+  // الأدمن يرى الجواب؛ الطالب لا — never ship final answers to students.
+  if (req.user?.role === 'admin') {
+    ok(res, problems);
+    return;
+  }
+  ok(res, problems.map(({ finalAnswer: _omit, ...rest }) => rest));
 }
 
-/** GET /api/problems/:id — مسألة كاملة بكل الطرق والخطوات والأخطاء. */
+/**
+ * GET /api/problems/:id — تفاصيل المسألة.
+ * الأدمن: المسألة كاملة (الجواب + الطرق بخطواتها + الأخطاء) للتحرير.
+ * الطالب: بدون الجواب النهائي ولا خطوات الحل ولا الأخطاء — حتى لا يُكشف الحلّ (المساعد السقراطي يوجّه فقط).
+ */
 export async function getProblem(req: Request, res: Response) {
+  const isAdmin = req.user?.role === 'admin';
   const problem = await prisma.problem.findUnique({
     where: { id: req.params.id },
-    include: fullInclude,
+    // للطالب: أسماء الطرق فقط (لتسمية المحاولة) دون الخطوات السرّية.
+    include: isAdmin ? fullInclude : { methods: { select: { name: true, isRecommended: true } } },
   });
   if (!problem) throw ApiError.notFound('المسألة غير موجودة');
-  ok(res, problem);
+  if (isAdmin) {
+    ok(res, problem);
+    return;
+  }
+  // إزالة الجواب النهائي من الحمولة — التحقق يتم في الخادم عبر /check.
+  const { finalAnswer: _omit, ...safe } = problem;
+  ok(res, safe);
 }
 
 /** POST /api/problems — إنشاء مسألة كاملة (admin). */
