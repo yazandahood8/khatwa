@@ -10,6 +10,25 @@ import {
 } from '@/lib/content-api';
 import { Button } from '@/components/ui/button';
 
+/** يقرأ مدة الفيديو بالدقائق من الملف محلياً — read the file's duration (minutes) before upload. */
+function readDurationMinutes(file: File): Promise<number | undefined> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    const done = (mins?: number) => {
+      URL.revokeObjectURL(url);
+      resolve(mins);
+    };
+    v.onloadedmetadata = () => {
+      const sec = v.duration;
+      done(Number.isFinite(sec) && sec > 0 ? Math.max(1, Math.round(sec / 60)) : undefined);
+    };
+    v.onerror = () => done(undefined);
+    v.src = url;
+  });
+}
+
 export function LessonVideoUpload({
   lesson,
   onChange,
@@ -34,7 +53,8 @@ export function LessonVideoUpload({
       setProgress(0);
       const { uploadUrl, key } = await getLessonUploadUrl(lesson.id, file.type, file.name);
       await uploadToUrl(uploadUrl, file, setProgress);
-      await attachLessonVideo(lesson.id, key);
+      const durationMinutes = await readDurationMinutes(file); // مدة تلقائية من الملف
+      await attachLessonVideo(lesson.id, key, durationMinutes);
       setProgress(null);
       onChange();
     } catch (err) {

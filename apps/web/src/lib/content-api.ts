@@ -134,10 +134,10 @@ export const getLessonUploadUrl = (id: string, contentType: string, filename: st
     body: JSON.stringify({ contentType, filename }),
   });
 
-export const attachLessonVideo = (id: string, key: string) =>
+export const attachLessonVideo = (id: string, key: string, durationMinutes?: number) =>
   apiFetch<Lesson>(`/api/lessons/${id}/attach-video`, {
     method: 'POST',
-    body: JSON.stringify({ key }),
+    body: JSON.stringify({ key, durationMinutes }),
   });
 
 export const getLessonPlayback = (id: string) =>
