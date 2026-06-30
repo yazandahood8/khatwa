@@ -28,7 +28,14 @@ const envSchema = z.object({
   // الذكاء الاصطناعي — Claude (Sprint 7)
   ANTHROPIC_API_KEY: z.string().optional(),
   CLAUDE_MODEL: z.string().default('claude-sonnet-4-6'),
+  // باقة الطالب الافتراضية عند غياب اشتراك فعّال — keep "free" so AI cost is bounded.
   AI_DEFAULT_PLAN: z.enum(['free', 'basic', 'premium']).default('free'),
+
+  // البيتا المغلقة — منح بريميوم تلقائياً عند تسجيل الطالب. اضبط "true" للتفعيل أثناء البيتا.
+  BETA_AUTO_PREMIUM: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
 
   // البريد — Transactional email over SMTP (provider-agnostic; optional).
   // عند غياب الإعداد يُسجَّل البريد في اللوج بدل إرساله (تطوير).

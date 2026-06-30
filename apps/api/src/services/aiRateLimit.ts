@@ -5,7 +5,8 @@ import { env } from '../utils/env';
 
 /**
  * تحديد باقة الطالب — resolve the student's plan.
- * يبحث عن اشتراك فعّال؛ وإلا يعتمد AI_DEFAULT_PLAN (premium أثناء البيتا قبل تفعيل الدفع).
+ * يبحث عن اشتراك فعّال؛ وإلا يعتمد AI_DEFAULT_PLAN (الافتراضي free لضبط تكلفة الـ AI).
+ * بريميوم البيتا يُمنح كاشتراك فعّال عند التسجيل عبر BETA_AUTO_PREMIUM — لا عبر هذا الافتراضي.
  */
 export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
   const sub = await prisma.subscription.findFirst({

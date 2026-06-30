@@ -5,6 +5,15 @@ import { hashPassword, verifyPassword } from '../utils/password';
 import { signToken } from '../utils/jwt';
 import { toPublicUser } from '../services/userMapper';
 import { ApiError } from '../utils/ApiError';
+import { env } from '../utils/env';
+
+/** اشتراك الطالب الافتراضي عند التسجيل — free, أو premium لشهر أثناء البيتا المغلقة. */
+function defaultStudentSubscription() {
+  if (!env.BETA_AUTO_PREMIUM) return { plan: 'free' as const, status: 'active' as const };
+  const endsAt = new Date();
+  endsAt.setMonth(endsAt.getMonth() + 1); // شهر بريميوم مجاني للبيتا
+  return { plan: 'premium' as const, status: 'active' as const, endsAt };
+}
 
 /** POST /api/auth/register — إنشاء حساب جديد (طالب أو ولي أمر). */
 export async function register(req: Request, res: Response<{ success: true; data: AuthResponse }>) {
@@ -23,9 +32,9 @@ export async function register(req: Request, res: Response<{ success: true; data
       role: input.role,
       grade: input.role === UserRole.STUDENT ? (input.grade ?? null) : null,
       level: input.role === UserRole.STUDENT ? (input.level ?? null) : null,
-      // اشتراك مجاني افتراضي للطالب — default free subscription for students
+      // اشتراك الطالب الافتراضي — free (أو premium للبيتا عبر BETA_AUTO_PREMIUM)
       ...(input.role === UserRole.STUDENT
-        ? { subscriptions: { create: { plan: 'free', status: 'active' } } }
+        ? { subscriptions: { create: defaultStudentSubscription() } }
         : {}),
     },
   });
