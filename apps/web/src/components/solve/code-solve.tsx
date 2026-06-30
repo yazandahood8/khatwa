@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Celebration } from '@/components/solve/celebration';
 import { QuestionNav } from '@/components/solve/question-nav';
 import { ReferenceButton } from '@/components/solve/reference-button';
+import { CodeEditor } from '@/components/solve/code-editor';
 import { cn } from '@/lib/utils';
 
 type Verdict = 'correct' | 'partial' | 'incorrect';
@@ -175,13 +176,10 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
                 <RotateCcw className="h-3 w-3" /> إعادة تعيين
               </button>
             </div>
-            <textarea
+            <CodeEditor
               value={code}
-              onChange={(e) => setCode(e.target.value)}
-              dir="ltr"
-              spellCheck={false}
+              onChange={setCode}
               placeholder="// اكتب كودك هنا… (أو الناتج المتوقّع لأسئلة التتبّع)"
-              className="h-72 w-full resize-y bg-transparent p-4 font-mono text-sm leading-relaxed text-[#d4d4e8] outline-none placeholder:text-white/30"
             />
           </div>
 
