@@ -30,6 +30,14 @@ const envSchema = z.object({
   CLAUDE_MODEL: z.string().default('claude-sonnet-4-6'),
   AI_DEFAULT_PLAN: z.enum(['free', 'basic', 'premium']).default('free'),
 
+  // البريد — Transactional email over SMTP (provider-agnostic; optional).
+  // عند غياب الإعداد يُسجَّل البريد في اللوج بدل إرساله (تطوير).
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  MAIL_FROM: z.string().optional(), // مثال: "خطوة <no-reply@khatwa.app>"
+
   // تخزين الفيديوهات — Object storage (Cloudflare R2, S3-compatible)
   S3_REGION: z.string().default('auto'),
   S3_ACCESS_KEY_ID: z.string().optional(),
