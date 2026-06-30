@@ -17,7 +17,8 @@ export async function getUserPlan(userId: string): Promise<SubscriptionPlan> {
 }
 
 function dayKey(userId: string): string {
-  const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+  // تاريخ اليوم بتوقيت إسرائيل — reset the daily quota at local (Asia/Jerusalem) midnight, not UTC.
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date()); // YYYY-MM-DD
   return `ai:quota:${userId}:${date}`;
 }
 
