@@ -3,7 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronRight, Lock, CheckCircle2, Rocket, Clock, PlayCircle } from 'lucide-react';
+import {
+  ChevronRight,
+  Lock,
+  CheckCircle2,
+  Rocket,
+  Clock,
+  PlayCircle,
+  RotateCcw,
+  RotateCw,
+  Gauge,
+} from 'lucide-react';
 import {
   getLessonById,
   getLessonPlayback,
@@ -19,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 export default function LessonPage() {
   const id = useParams().id as string;
@@ -34,6 +45,7 @@ export default function LessonPage() {
   const [completed, setCompleted] = useState(false);
   const [locked, setLocked] = useState(false);
   const [firstProblemId, setFirstProblemId] = useState<string | null>(null);
+  const [rate, setRate] = useState(1);
 
   useEffect(() => {
     let active = true;
@@ -83,7 +95,9 @@ export default function LessonPage() {
 
   function onLoadedMetadata() {
     const v = videoRef.current;
-    if (v && resumeAt.current > 0 && resumeAt.current < v.duration) {
+    if (!v) return;
+    v.playbackRate = rate;
+    if (resumeAt.current > 0 && resumeAt.current < v.duration) {
       v.currentTime = resumeAt.current;
     }
   }
@@ -105,6 +119,39 @@ export default function LessonPage() {
     const v = videoRef.current;
     persist(v?.duration ?? 0, true);
   }
+
+  function skip(delta: number) {
+    const v = videoRef.current;
+    if (!v) return;
+    const max = v.duration || Number.POSITIVE_INFINITY;
+    v.currentTime = Math.max(0, Math.min(max, v.currentTime + delta));
+  }
+
+  function changeRate(r: number) {
+    setRate(r);
+    if (videoRef.current) videoRef.current.playbackRate = r;
+  }
+
+  // اختصارات لوحة المفاتيح — keyboard shortcuts (space/k = play-pause, ←/→ = ∓10s)
+  useEffect(() => {
+    if (!videoUrl) return;
+    function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const v = videoRef.current;
+      if (!v) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const max = v.duration || Number.POSITIVE_INFINITY;
+        v.currentTime = Math.max(0, Math.min(max, v.currentTime + (e.key === 'ArrowRight' ? 10 : -10)));
+      } else if (e.key === ' ' || e.key === 'k') {
+        e.preventDefault();
+        if (v.paused) void v.play();
+        else v.pause();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [videoUrl]);
 
   if (error) {
     return (
@@ -167,6 +214,34 @@ export default function LessonPage() {
           </Card>
         ) : (
           <div className="aspect-video w-full animate-pulse rounded-2xl bg-muted" />
+        )}
+
+        {/* أدوات التحكم — speed + skip (native controls cover play/scrub/fullscreen/volume) */}
+        {videoUrl && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" size="sm" onClick={() => skip(-10)} aria-label="رجوع 10 ثوانٍ">
+              <RotateCcw className="h-4 w-4" /> 10
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => skip(10)} aria-label="تقديم 10 ثوانٍ">
+              <RotateCw className="h-4 w-4" /> 10
+            </Button>
+            <span className="mx-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <Gauge className="h-3.5 w-3.5" /> السرعة
+            </span>
+            {[0.75, 1, 1.25, 1.5, 2].map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => changeRate(r)}
+                className={cn(
+                  'rounded-md px-2 py-1 text-xs font-medium transition-colors',
+                  rate === r ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-accent',
+                )}
+              >
+                {r}×
+              </button>
+            ))}
+          </div>
         )}
 
         {/* شريط التقدّم — watch progress */}
