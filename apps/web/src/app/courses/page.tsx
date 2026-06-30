@@ -225,6 +225,7 @@ function TopicNode({ topic, ctx }: { topic: Topic; ctx: Ctx }) {
                 const locked = ctx.plan === 'free' && idx > 0;
                 const done = !!ctx.progress[le.id]?.completedAt;
                 const started = !done && !!ctx.progress[le.id];
+                const noVideo = !le.videoUrl; // الدرس بلا فيديو بعد — مُعلَّم "قريباً"
                 return (
                   <Row
                     key={le.id}
@@ -237,11 +238,19 @@ function TopicNode({ topic, ctx }: { topic: Topic; ctx: Ctx }) {
                       ) : started ? (
                         <CirclePlay className="h-4 w-4 text-primary" />
                       ) : (
-                        <CirclePlay className="h-4 w-4 text-muted-foreground" />
+                        <CirclePlay className={cn('h-4 w-4', noVideo ? 'text-muted-foreground/50' : 'text-muted-foreground')} />
                       )
                     }
                     label={le.title}
-                    meta={locked ? 'مدفوع' : le.durationMinutes ? `${le.durationMinutes} د` : undefined}
+                    meta={
+                      locked
+                        ? 'مدفوع'
+                        : noVideo
+                          ? 'قريباً'
+                          : le.durationMinutes
+                            ? `${le.durationMinutes} د`
+                            : undefined
+                    }
                   />
                 );
               })}
