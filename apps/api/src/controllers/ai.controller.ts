@@ -5,6 +5,7 @@ import { prisma } from '../services/prisma';
 import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../services/claude';
 import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { recordDiscoveredMethod } from '../services/newMethod';
+import { matchStep } from '../services/stepMatch';
 import { buildTutorSystemPrompt, buildCodeJudgePrompt, buildCodeHintPrompt } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
@@ -54,6 +55,45 @@ export async function askTutor(req: Request, res: Response) {
     },
   });
   if (!problem) throw ApiError.notFound('المسألة غير موجودة');
+
+  // الطبقة الأولى الحتمية — deterministic fast-path: exact match against stored steps/mistakes
+  // يرد فوراً بلا Claude وبلا احتساب من الحصة (لمسائل الرياضيات وخطوات الطالب فقط).
+  if (!problem.language && !input.image && input.message.startsWith('خطوتي:')) {
+    const det = matchStep(
+      input.message.replace(/^خطوتي:\s*/, ''),
+      problem.methods
+        .filter((m) => m.isApproved)
+        .map((m) => ({
+          name: m.name,
+          steps: m.steps.map((s) => ({ stepNumber: s.stepNumber, expression: s.expression, hint: s.hint })),
+        })),
+      problem.commonMistakes.map((c) => ({ wrongExample: c.wrongExample, correction: c.correction })),
+    );
+    if (det) {
+      const q = await getQuota(studentId, req.user!.role);
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-AI-Remaining', String(q.remaining));
+      res.flushHeaders?.();
+      res.end(det.reply);
+      await prisma.aiSession
+        .create({
+          data: {
+            studentId,
+            problemId,
+            messages: [
+              ...(input.history ?? []),
+              { role: 'user', content: input.message },
+              { role: 'assistant', content: det.reply },
+            ],
+            tokensUsed: 0,
+          },
+        })
+        .catch((e) => logger.error('aiSession persist failed', e instanceof Error ? e.message : e));
+      logger.info(`AI tutor: deterministic ${det.kind} match (0 tok, no Claude)`);
+      return;
+    }
+  }
 
   // تحديد المعدل حسب الباقة — rate limit by plan (throws RATE_LIMITED)
   let quota;
