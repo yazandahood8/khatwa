@@ -12,11 +12,20 @@ import { sendEmail, isMailConfigured } from '../services/mailer';
 const RESET_TTL_SECONDS = 60 * 60; // ساعة واحدة
 const redisKey = (token: string) => `pwreset:${token}`;
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+
 /** قالب بريد إعادة التعيين (RTL) — reset-password email template. */
 function resetEmail(resetUrl: string, name: string) {
   const html = `<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:480px;margin:auto;padding:24px;color:#1f2937;line-height:1.7">
   <h2 style="color:#6c63ff;margin:0 0 12px">منصّة خطوة</h2>
-  <p>مرحباً ${name},</p>
+  <p>مرحباً ${escapeHtml(name)},</p>
   <p>وصلنا طلب لإعادة تعيين كلمة السر لحسابك. اضغط الزر أدناه لتعيين كلمة سر جديدة:</p>
   <p style="text-align:center;margin:24px 0">
     <a href="${resetUrl}" style="background:#6c63ff;color:#fff;text-decoration:none;padding:12px 28px;border-radius:12px;display:inline-block">إعادة تعيين كلمة السر</a>
