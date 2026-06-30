@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Celebration } from '@/components/solve/celebration';
 import { QuestionNav } from '@/components/solve/question-nav';
+import { ReferenceButton } from '@/components/solve/reference-button';
 import { cn } from '@/lib/utils';
 
 type Verdict = 'correct' | 'partial' | 'incorrect';
@@ -144,6 +145,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
           <Progress value={progressPct} className="max-w-xs" />
           <span className="hidden text-xs text-muted-foreground sm:inline">المحاولات: {attempts}</span>
         </div>
+        <ReferenceButton subject="csharp" />
         <Link href="/courses">
           <Button variant="secondary" size="sm">
             <X className="h-4 w-4" /> إنهاء

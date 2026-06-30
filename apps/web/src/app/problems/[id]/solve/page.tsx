@@ -19,6 +19,7 @@ import { ScratchPad } from '@/components/math/scratch-pad';
 import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-panel';
 import { CodeSolve } from '@/components/solve/code-solve';
 import { QuestionNav } from '@/components/solve/question-nav';
+import { ReferenceButton } from '@/components/solve/reference-button';
 import { StepPath } from '@/components/solve/step-path';
 import { Celebration } from '@/components/solve/celebration';
 import { Button } from '@/components/ui/button';
@@ -162,6 +163,7 @@ export default function SolvePage() {
             المحاولات: {attempts}
           </span>
         </div>
+        <ReferenceButton subject="math" />
         <Link href="/courses">
           <Button variant="secondary" size="sm">
             <X className="h-4 w-4" /> إنهاء
