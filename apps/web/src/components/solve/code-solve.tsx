@@ -187,7 +187,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
 
           <div className="flex flex-wrap gap-2">
             <Button variant="gradient" onClick={judge} disabled={busy || !code.trim()} className="flex-1 sm:flex-none">
-              <Play /> {busy && panelMode === 'judge' ? 'جارٍ التصحيح…' : 'صحّح كودي'}
+              <Play /> {busy && panelMode === 'judge' ? 'جارٍ الفحص…' : 'افحص كودي'}
             </Button>
             <Button variant="secondary" onClick={hint} disabled={busy}>
               <Lightbulb /> {busy && panelMode === 'hint' ? 'جارٍ التلميح…' : 'تلميح'}
