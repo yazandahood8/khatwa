@@ -17,6 +17,7 @@
     "build:web": "npm run build --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
     "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "prisma:generate": "npm run prisma:generate --workspace=apps/api",
     "prisma:migrate": "npm run prisma:migrate --workspace=apps/api"
