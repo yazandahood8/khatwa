@@ -5,6 +5,12 @@
 export function toLatex(expr: string): string {
   let s = expr;
 
+  // الأقواس المعقّفة الحرفية — escape user-typed braces before we generate grouping braces below.
+  s = s.replace(/\{/g, '\\lbrace ').replace(/\}/g, '\\rbrace ');
+
+  // الدوال المثلثية — trig functions (tokens entered as "sin(", "cos(", "tan(")
+  s = s.replace(/\bsin\b/g, '\\sin ').replace(/\bcos\b/g, '\\cos ').replace(/\btan\b/g, '\\tan ');
+
   // الجذور — roots: √(...) و √n
   s = s.replace(/√\(([^)]*)\)/g, '\\sqrt{$1}');
   s = s.replace(/√(\d+(?:\.\d+)?|[a-zA-Zπ])/g, '\\sqrt{$1}');

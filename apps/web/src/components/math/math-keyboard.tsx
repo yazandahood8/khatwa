@@ -8,10 +8,18 @@ const ROWS: string[][] = [
   ['4', '5', '6', '+', '-', '×'],
   ['1', '2', '3', '÷', '=', '√'],
   ['0', '.', 'x', 'y', 'z', '^'],
-  ['²', '³', 'π', ',', '/', 'C'],
+  ['²', '³', 'π', '|', ',', '/'],
+  ['sin', 'cos', 'tan', 'e', '[', ']'],
+  ['{', '}', '≤', '≥', '±', 'C'],
 ];
 
-const OPERATORS = ['+', '-', '×', '÷', '=', '√', '^', '(', ')', '/'];
+// رموز تُدرَج بصيغة مختلفة عن النص الظاهر — keys whose inserted token differs from the label.
+const INSERT: Record<string, string> = { sin: 'sin(', cos: 'cos(', tan: 'tan(' };
+
+const OPERATORS = [
+  '+', '-', '×', '÷', '=', '√', '^', '(', ')', '/',
+  '|', '[', ']', '{', '}', '≤', '≥', '±', 'sin', 'cos', 'tan',
+];
 
 /** لوحة المفاتيح الرياضية — math input keyboard. */
 export function MathKeyboard({
@@ -26,7 +34,7 @@ export function MathKeyboard({
   function press(key: string) {
     if (key === '←') return onBackspace();
     if (key === 'C') return onClear();
-    onInput(key);
+    onInput(INSERT[key] ?? key);
   }
 
   return (
