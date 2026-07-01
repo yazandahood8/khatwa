@@ -6,6 +6,7 @@ import contentRoute from './content.route';
 import progressRoute from './progress.route';
 import problemsRoute from './problems.route';
 import subscriptionRoute from './subscription.route';
+import ttsRoute from './tts.route';
 
 /**
  * مُجمِّع مسارات /api — API router aggregator.
@@ -20,5 +21,6 @@ router.use('/', contentRoute);
 router.use('/', progressRoute);
 router.use('/', problemsRoute);
 router.use('/', subscriptionRoute);
+router.use('/', ttsRoute);
 
 export default router;

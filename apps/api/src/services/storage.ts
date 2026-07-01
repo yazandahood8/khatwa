@@ -57,3 +57,24 @@ export function presignDownload(key: string): Promise<string> {
 export async function deleteObject(key: string): Promise<void> {
   await client().send(new DeleteObjectCommand({ Bucket: env.S3_BUCKET!, Key: key }));
 }
+
+/** يجلب بايتات كائن — fetch object bytes, or null if it doesn't exist. */
+export async function getObjectBytes(key: string): Promise<Buffer | null> {
+  try {
+    const out = await client().send(new GetObjectCommand({ Bucket: env.S3_BUCKET!, Key: key }));
+    if (!out.Body) return null;
+    const bytes = await out.Body.transformToByteArray();
+    return Buffer.from(bytes);
+  } catch (e) {
+    const status = (e as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+    if ((e as { name?: string }).name === 'NoSuchKey' || status === 404) return null;
+    throw e;
+  }
+}
+
+/** يرفع بايتات كائن من الخادم — upload object bytes directly (server-side). */
+export async function putObjectBytes(key: string, body: Buffer, contentType: string): Promise<void> {
+  await client().send(
+    new PutObjectCommand({ Bucket: env.S3_BUCKET!, Key: key, Body: body, ContentType: contentType }),
+  );
+}

@@ -52,6 +52,11 @@ const envSchema = z.object({
   PAYPLUS_PAYMENT_PAGE_UID: z.string().optional(),
   API_PUBLIC_URL: z.string().url().optional(), // الرابط العام للـ API لاستقبال الـ IPN
 
+  // تحويل النص إلى كلام — Azure Neural TTS (Speech service). optional; feature off until set.
+  AZURE_SPEECH_KEY: z.string().optional(),
+  AZURE_SPEECH_REGION: z.string().optional(), // مثال: westeurope
+  AZURE_TTS_VOICE: z.string().default('ar-SA-ZariyahNeural'), // صوت فصحى واضح
+
   // تخزين الفيديوهات — Object storage (Cloudflare R2, S3-compatible)
   S3_REGION: z.string().default('auto'),
   S3_ACCESS_KEY_ID: z.string().optional(),
