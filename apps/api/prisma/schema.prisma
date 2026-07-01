@@ -187,6 +187,7 @@ model Lesson {
   title           String
   description     String?
   durationMinutes Int?     @map("duration_minutes")
+  durationSeconds Int?     @map("duration_seconds") // مدة دقيقة (mm:ss)؛ تُستخدم للعرض والتجميع
   videoUrl        String?  @map("video_url") // AWS S3 / CloudFront
   thumbnailUrl    String?  @map("thumbnail_url")
   topicId         String   @map("topic_id")
