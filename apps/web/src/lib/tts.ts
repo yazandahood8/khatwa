@@ -1,17 +1,17 @@
 /**
  * تحويل النص إلى كلام بالعربي — Arabic text-to-speech.
- * يستدعي خادم Khatwa (Azure Neural TTS، صوت فصحى واضح) ويشغّل الـ MP3 الناتج.
- * عند تعذّر الخادم يرجع تلقائياً لصوت المتصفح (Web Speech API) كحل بديل.
+ * يستدعي خادم Khatwa (Azure Neural TTS، صوت فصحى واضح مع الحركات) ويشغّل الـ MP3.
+ *
+ * البثّ المتزامن: بدل انتظار اكتمال الرد، يقطّع النص المتدفّق إلى جُمل وينطق كل جملة
+ * فور اكتمالها، فيسير الصوت مع ظهور النص جملةً جملة. عند تعذّر الخادم يرجع لصوت المتصفح.
  */
 import { getToken } from './auth-cookies';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-let current: HTMLAudioElement | null = null;
-let currentUrl: string | null = null;
-let seq = 0; // لتجاهل الطلبات القديمة عند تتابع النداءات
+let activeStop: (() => void) | null = null; // يوقف المتحدّث الحالي
 
-/** الصوت مدعوم دائماً في المتصفح (تشغيل MP3) — audio playback is available. */
+/** تشغيل الصوت مدعوم دائماً في المتصفح — audio playback is available. */
 export function ttsAvailable(): boolean {
   return typeof window !== 'undefined' && typeof Audio !== 'undefined';
 }
@@ -21,8 +21,8 @@ export function primeVoices(): void {
   /* الأصوات الآن على الخادم — nothing to warm up client-side. */
 }
 
-/** ينظّف النص للقراءة — strip tags, emojis, and markdown before speaking. */
-function cleanForSpeech(text: string): string {
+/** ينظّف النص للقراءة — strip tags, emojis, and markdown (الحركات تبقى للنطق). */
+function stripForSpeech(text: string): string {
   return text
     .replace(/\[(SOLVED|NEW_METHOD|CORRECT|PARTIAL|INCORRECT)\]/g, '')
     .replace(/\p{Extended_Pictographic}/gu, '') // إزالة الإيموجي
@@ -31,69 +31,135 @@ function cleanForSpeech(text: string): string {
     .trim();
 }
 
-export function stopSpeaking(): void {
-  seq++; // يُبطل أي طلب قيد التنفيذ
-  if (current) {
-    current.pause();
-    current.src = '';
-    current = null;
-  }
-  if (currentUrl) {
-    URL.revokeObjectURL(currentUrl);
-    currentUrl = null;
-  }
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
-}
-
-/** حل بديل بصوت المتصفح عند تعذّر الخادم — browser-voice fallback. */
-function fallbackSpeak(text: string): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'ar-SA';
-  const arVoice = window.speechSynthesis.getVoices().find((v) => v.lang?.toLowerCase().startsWith('ar'));
-  if (arVoice) u.voice = arVoice;
-  window.speechSynthesis.speak(u);
-}
-
-/** ينطق النص بالعربي — speak Arabic text (cancels any current speech first). */
-export function speak(text: string): void {
-  if (!ttsAvailable()) return;
-  const clean = cleanForSpeech(text);
-  if (!clean) return;
-
-  stopSpeaking();
-  const mySeq = ++seq;
-
+async function fetchMp3(text: string): Promise<Blob> {
   const token = getToken();
-  void fetch(`${API_URL}/api/tts`, {
+  const res = await fetch(`${API_URL}/api/tts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ text: clean }),
-  })
-    .then(async (res) => {
-      if (!res.ok) throw new Error(`TTS ${res.status}`);
-      const blob = await res.blob();
-      if (mySeq !== seq) return; // طلب أحدث ألغى هذا — a newer speak() superseded us
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) throw new Error(`TTS ${res.status}`);
+  return res.blob();
+}
+
+/** صوت المتصفح كحل بديل — browser-voice fallback (queues, does not cancel). */
+function fallbackSpeak(text: string): void {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ar-SA';
+  const v = window.speechSynthesis.getVoices().find((x) => x.lang?.toLowerCase().startsWith('ar'));
+  if (v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+
+export function stopSpeaking(): void {
+  activeStop?.();
+  activeStop = null;
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+/** متحدّث بثّي — feed streamed text, it speaks each sentence as it completes. */
+export interface Speaker {
+  feed(chunk: string): void; // ادفع قطعة نص متدفّقة
+  finish(): void; // انتهى التدفّق — انطق ما تبقّى
+  stop(): void; // ألغِ كل شيء
+}
+
+// حدود الجُمل — flush audio at sentence-ending punctuation (not commas: too small).
+const BOUNDARY = /[.!?؟؛\n]/;
+
+const NOOP_SPEAKER: Speaker = { feed() {}, finish() {}, stop() {} };
+
+/**
+ * ينشئ متحدّثاً بثّياً — creates a streaming speaker. يلغي أي نطق جارٍ.
+ * الجمل تُجلب بالتوازي وتُشغَّل بالترتيب، فيبدأ الصوت فور اكتمال أول جملة.
+ */
+export function createSpeaker(): Speaker {
+  if (!ttsAvailable()) return NOOP_SPEAKER;
+  stopSpeaking(); // ألغِ المتحدّث السابق
+
+  let buffer = '';
+  let stopped = false;
+  let chain: Promise<void> = Promise.resolve(); // تشغيل متسلسل بالترتيب
+  const audios = new Set<HTMLAudioElement>();
+
+  const stop = () => {
+    stopped = true;
+    for (const a of audios) {
+      a.pause();
+      a.src = '';
+    }
+    audios.clear();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  };
+  activeStop = stop;
+
+  function playBlob(blob: Blob): Promise<void> {
+    return new Promise((resolve) => {
+      if (stopped) return resolve();
       const url = URL.createObjectURL(blob);
-      currentUrl = url;
       const audio = new Audio(url);
-      current = audio;
-      audio.onended = () => {
-        if (currentUrl === url) {
-          URL.revokeObjectURL(url);
-          currentUrl = null;
-        }
-        if (current === audio) current = null;
+      audios.add(audio);
+      const done = () => {
+        URL.revokeObjectURL(url);
+        audios.delete(audio);
+        resolve();
       };
-      await audio.play();
-    })
-    .catch(() => {
-      if (mySeq === seq) fallbackSpeak(clean); // الخادم غير متاح — استعمل صوت المتصفح
+      audio.onended = done;
+      audio.onerror = done;
+      audio.play().catch(done);
     });
+  }
+
+  function enqueue(rawSentence: string) {
+    const clean = stripForSpeech(rawSentence);
+    if (!clean) return;
+    const audioP = fetchMp3(clean).catch(() => null); // ابدأ الجلب فوراً (بالتوازي)
+    chain = chain.then(async () => {
+      if (stopped) return;
+      const blob = await audioP;
+      if (stopped) return;
+      if (blob) await playBlob(blob);
+      else fallbackSpeak(clean); // الخادم غير متاح — صوت المتصفح (مصفوف في الطابور)
+    });
+  }
+
+  function drain(flushAll: boolean) {
+    if (stopped) return;
+    let idx: number;
+    while ((idx = buffer.search(BOUNDARY)) !== -1) {
+      enqueue(buffer.slice(0, idx + 1));
+      buffer = buffer.slice(idx + 1);
+    }
+    if (flushAll && buffer.trim()) {
+      enqueue(buffer);
+      buffer = '';
+    }
+  }
+
+  return {
+    feed(chunk: string) {
+      if (stopped) return;
+      buffer += chunk;
+      drain(false);
+    },
+    finish() {
+      drain(true);
+    },
+    stop,
+  };
+}
+
+/** ينطق نصاً كاملاً دفعة واحدة — one-shot speak (kept for compatibility). */
+export function speak(text: string): void {
+  const s = createSpeaker();
+  s.feed(text);
+  s.finish();
 }

@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { Sparkles, Lightbulb, HelpCircle, Volume2, VolumeX } from 'lucide-react';
 import { streamTutor, getAiQuota, type TutorTurn } from '@/lib/ai-api';
 import { ApiClientError } from '@/lib/api';
-import { speak, stopSpeaking, primeVoices, ttsAvailable } from '@/lib/tts';
+import { createSpeaker, stopSpeaking, primeVoices, ttsAvailable, type Speaker } from '@/lib/tts';
 import { Button } from '@/components/ui/button';
 
 export interface AiTutorHandle {
@@ -31,6 +31,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const mutedRef = useRef(false);
+  const speakerRef = useRef<Speaker | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -68,6 +69,9 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     setMessages((m) => [...m, { role: 'user', content: userMessage }, { role: 'assistant', content: '' }]);
     setRemaining((r) => (r != null && r > 0 ? r - 1 : r)); // تحديث فوري (إلا غير المحدود)
     setBusy(true);
+    // متحدّث بثّي ينطق الرد جملةً جملة مع تدفّق النص — speaks each sentence as it streams
+    const speaker = mutedRef.current ? null : createSpeaker();
+    speakerRef.current = speaker;
     let acc = '';
     try {
       const { remaining: rem } = await streamTutor(
@@ -75,6 +79,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
         { message: userMessage, attemptsCount: getState().attemptsCount, history, image },
         (chunk) => {
           acc += chunk;
+          speaker?.feed(chunk); // ينطق فور اكتمال كل جملة
           setMessages((m) => {
             const copy = [...m];
             copy[copy.length - 1] = {
@@ -86,9 +91,10 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
         },
       );
       if (rem != null) setRemaining(rem);
-      if (!mutedRef.current) speak(acc); // قراءة الرد بالعربي (تتجاهل الوسوم والإيموجي)
+      speaker?.finish(); // انطق ما تبقّى من نص بعد آخر علامة وقف
       if (/\[SOLVED\]/.test(acc)) onSolved?.(); // المساعد أكّد اكتمال الحل
     } catch (e) {
+      speaker?.stop();
       const msg = e instanceof ApiClientError ? e.message : 'تعذّر الاتصال بالمساعد';
       setError(msg);
       setMessages((m) => m.slice(0, -1)); // أزل فقاعة الرد الفارغة
@@ -143,7 +149,10 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
       {/* الرسائل — chat */}
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 scrollbar-thin">
         {messages.map((m, i) => {
-          const text = m.content.replace(/\s*\[(NEW_METHOD|SOLVED)\]\s*/g, '');
+          // أزل الوسوم والحركات من العرض — strip tags + harakat (kept only for speech)
+          const text = m.content
+            .replace(/\s*\[(NEW_METHOD|SOLVED)\]\s*/g, '')
+            .replace(/[ؐ-ًؚ-ٰٟـ]/g, '');
           const isAssistant = m.role === 'assistant';
           const isEmptyStreaming = isAssistant && !text && busy && i === messages.length - 1;
           return (
