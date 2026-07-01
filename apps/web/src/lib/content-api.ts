@@ -136,7 +136,7 @@ export const createLevel = (body: CreateLevelInput) =>
   apiFetch<Level>('/api/levels', { method: 'POST', body: JSON.stringify(body) });
 export const deleteLevel = (id: string) => apiFetch(`/api/levels/${id}`, { method: 'DELETE' });
 
-// ---- questionnaires (שאלון, 10-12) ----
+// ---- questionnaires (نموذج, 10-12) ----
 export const createQuestionnaire = (body: CreateQuestionnaireInput) =>
   apiFetch<Questionnaire>('/api/questionnaires', { method: 'POST', body: JSON.stringify(body) });
 export const deleteQuestionnaire = (id: string) =>

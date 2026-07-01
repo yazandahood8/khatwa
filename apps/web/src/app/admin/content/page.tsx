@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { LessonVideoUpload } from '@/components/admin/lesson-video-upload';
 
-// الصفوف 7-9 فقط في الشجرة؛ 10-12 تُدار عبر مسارات الوحدات (وحدات → שאלון).
+// الصفوف 7-9 فقط في الشجرة؛ 10-12 تُدار عبر مسارات الوحدات (وحدات → نموذج).
 const ALL_GRADES = [7, 8, 9];
 const UNIT_LEVELS = [3, 4, 5];
 
@@ -150,7 +150,7 @@ export default function ContentPage() {
         {track && <span>›</span>}
         {track && crumb(`${track.unitLevel} وحدات`, questionnaire ? goQuestionnaires : undefined)}
         {questionnaire && <span>›</span>}
-        {questionnaire && crumb(`שאלון ${questionnaire.number}`, topic ? goTopics : undefined)}
+        {questionnaire && crumb(`نموذج ${questionnaire.number}`, topic ? goTopics : undefined)}
         {/* الموضوع */}
         {topic && <span>›</span>}
         {topic && crumb(topic.nameAr)}
@@ -207,31 +207,31 @@ export default function ContentPage() {
               setErr('الوحدات يجب أن تكون 3 أو 4 أو 5');
               return;
             }
-            run(createLevel({ subjectId: subject.id, unitLevel: n, name: `${n}יח׳` }), reloadTracks);
+            run(createLevel({ subjectId: subject.id, unitLevel: n, name: `${n} وحدات` }), reloadTracks);
           }}
           items={tracks.map((l) => ({
             id: l.id,
             label: `${l.unitLevel ?? '؟'} وحدات`,
-            meta: `${l._count?.questionnaires ?? 0} شالونات`,
+            meta: `${l._count?.questionnaires ?? 0} نماذج`,
             onOpen: () => setTrack(l),
             onDelete: () => run(deleteLevel(l.id), reloadTracks),
           }))}
         />
       )}
 
-      {/* ---------------- Questionnaires (שאلون) ---------------- */}
+      {/* ---------------- Questionnaires (نموذج) ---------------- */}
       {track && !questionnaire && (
         <Section
-          title={`שאלونات مسار ${track.unitLevel} وحدات`}
-          addLabel="إضافة شالون"
+          title={`نماذج مسار ${track.unitLevel} وحدات`}
+          addLabel="إضافة نموذج"
           fields={[
-            { name: 'number', placeholder: 'رقم الشالون (381)', className: 'w-40' },
+            { name: 'number', placeholder: 'رقم النموذج (381)', className: 'w-40' },
             { name: 'title', placeholder: 'عنوان (اختياري)' },
           ]}
           onAdd={(v) => {
             const n = Number(v.number);
             if (!n) {
-              setErr('رقم الشالون مطلوب');
+              setErr('رقم النموذج مطلوب');
               return;
             }
             run(
@@ -241,7 +241,7 @@ export default function ContentPage() {
           }}
           items={questionnaires.map((q) => ({
             id: q.id,
-            label: `שאלون ${q.number}${q.title ? ` — ${q.title}` : ''}`,
+            label: `نموذج ${q.number}${q.title ? ` — ${q.title}` : ''}`,
             meta: `${q.topicCount} مواضيع${q.isPublished ? '' : ' · ⚪ مسودة'}`,
             onOpen: () => setQuestionnaire(q),
             onDelete: () => run(deleteQuestionnaire(q.id), reloadQuestionnaires),
@@ -254,7 +254,7 @@ export default function ContentPage() {
         <Section
           title={`مستويات صف ${grade.gradeNumber}`}
           addLabel="إضافة مستوى"
-          fields={[{ name: 'name', placeholder: 'اسم المستوى (مثال: 4יח׳)' }]}
+          fields={[{ name: 'name', placeholder: 'اسم المستوى (مثال: موحّد)' }]}
           onAdd={(v) =>
             run(createLevel({ gradeId: grade.id, name: v.name }), () =>
               getLevels(grade.id).then(setLevels),
@@ -270,7 +270,7 @@ export default function ContentPage() {
         />
       )}
 
-      {/* ---------------- Topics (أب: مستوى 7-9 أو שאلون 10-12) ---------------- */}
+      {/* ---------------- Topics (أب: مستوى 7-9 أو نموذج 10-12) ---------------- */}
       {(level || questionnaire) && !topic && (
         <Section
           title="المواضيع"

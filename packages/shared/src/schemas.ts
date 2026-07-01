@@ -7,7 +7,7 @@ import { UserRole } from './enums';
  */
 
 // المستويات المسموحة — allowed unit levels
-export const LEVELS = ['3יח׳', '4יח׳', '5יח׳'] as const;
+export const LEVELS = ['3 وحدات', '4 وحدات', '5 وحدات'] as const;
 
 const emailField = z.string().trim().toLowerCase().email('بريد إلكتروني غير صالح');
 const passwordField = z

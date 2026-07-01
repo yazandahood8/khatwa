@@ -117,7 +117,7 @@ export async function deleteLevel(req: Request, res: Response) {
   ok(res, { deleted: true });
 }
 
-// ----------------------- Questionnaires (שאלון, 10-12) -----------------------
+// ----------------------- Questionnaires (نموذج, 10-12) -----------------------
 
 export async function listQuestionnaires(req: Request, res: Response) {
   const levelId = req.query.levelId as string | undefined;
@@ -172,7 +172,7 @@ export async function createQuestionnaire(req: Request, res: Response) {
   const exists = await prisma.questionnaire.findUnique({
     where: { levelId_number: { levelId: input.levelId, number: input.number } },
   });
-  if (exists) throw ApiError.badRequest('هذا الشالون موجود بالفعل لهذا المسار');
+  if (exists) throw ApiError.badRequest('هذا النموذج موجود بالفعل لهذا المسار');
   const q = await prisma.questionnaire.create({ data: input });
   ok(res, q, 201);
 }
