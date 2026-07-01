@@ -105,6 +105,7 @@ model Subject {
   createdAt  DateTime @default(now()) @map("created_at")
 
   grades Grade[]
+  levels Level[] // مسارات الوحدات (10-12) — grade-independent unit tracks
 
   @@map("subjects")
 }
@@ -123,31 +124,60 @@ model Grade {
 }
 
 /// المستويات (יחידות) — levels (3/4/5 units)
+/// 7-9: مرتبط بالصف (gradeId). 10-12: مسار وحدات مرتبط بالمادة مباشرةً (subjectId, gradeId=null).
 model Level {
-  id      String @id @default(cuid())
-  name    String // "3יח׳" / "4יח׳" / "5יח׳"
-  gradeId String @map("grade_id")
+  id        String @id @default(cuid())
+  name      String // "موحّد" (7-9) / "3יח׳" / "4יח׳" / "5יח׳"
+  gradeId   String? @map("grade_id") // 7-9 فقط
+  subjectId String? @map("subject_id") // 10-12: مسار وحدات مستقل عن الصف
+  unitLevel Int?    @map("unit_level") // 3 / 4 / 5 (null لِـ"موحّد")
 
-  grade  Grade   @relation(fields: [gradeId], references: [id], onDelete: Cascade)
-  topics Topic[]
+  grade          Grade?          @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  subject        Subject?        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics         Topic[]
+  questionnaires Questionnaire[]
 
+  @@index([gradeId])
+  @@index([subjectId, unitLevel])
   @@map("levels")
 }
 
-/// المواضيع — topics
-model Topic {
+/// שאלון — exam-questionnaire course (grades 10-12)
+model Questionnaire {
   id          String   @id @default(cuid())
-  nameAr      String   @map("name_ar")
-  description String?
-  levelId     String   @map("level_id")
+  number      Int // 381, 382, 182, 481, 482, 581, 582 …
+  title       String? // بديل العرض، وإلا "שאלון {number}"
+  levelId     String   @map("level_id") // مسار الوحدات الأب (Level)
   orderIndex  Int      @default(0) @map("order_index")
+  isPublished Boolean  @default(true) @map("is_published")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  level    Level     @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  lessons  Lesson[]
-  problems Problem[]
+  level  Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  topics Topic[]
+
+  @@unique([levelId, number])
+  @@index([levelId])
+  @@map("questionnaires")
+}
+
+/// المواضيع — topics
+/// أب واحد فقط: levelId (7-9) أو questionnaireId (10-12).
+model Topic {
+  id              String   @id @default(cuid())
+  nameAr          String   @map("name_ar")
+  description     String?
+  levelId         String?  @map("level_id") // 7-9
+  questionnaireId String?  @map("questionnaire_id") // 10-12
+  orderIndex      Int      @default(0) @map("order_index")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  level         Level?         @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  questionnaire Questionnaire? @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  lessons       Lesson[]
+  problems      Problem[]
 
   @@index([levelId])
+  @@index([questionnaireId])
   @@map("topics")
 }
 

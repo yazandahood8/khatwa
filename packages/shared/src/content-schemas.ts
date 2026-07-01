@@ -25,19 +25,48 @@ export const createGradeSchema = z.object({
 });
 
 // المستويات (יחידות) — levels
-export const createLevelSchema = z.object({
-  gradeId: z.string().min(1),
-  name: z.string().trim().min(1, 'اسم المستوى مطلوب').max(40),
+// أب واحد فقط: gradeId (7-9) أو subjectId (مسار وحدات 10-12).
+export const createLevelSchema = z
+  .object({
+    gradeId: z.string().min(1).optional(),
+    subjectId: z.string().min(1).optional(),
+    unitLevel: z.coerce.number().int().min(3).max(5).optional(),
+    name: z.string().trim().min(1, 'اسم المستوى مطلوب').max(40),
+  })
+  .refine((d) => (d.gradeId ? 1 : 0) + (d.subjectId ? 1 : 0) === 1, {
+    message: 'حدّد الصف (gradeId) أو المادة (subjectId) — واحد فقط',
+    path: ['gradeId'],
+  });
+
+// שאלון — questionnaires (courses under a unit track, 10-12)
+export const createQuestionnaireSchema = z.object({
+  levelId: z.string().min(1),
+  number: z.coerce.number().int().min(1, 'رقم الشالون مطلوب'),
+  title: z.string().trim().max(100).optional(),
+  orderIndex: orderIndex.optional(),
+  isPublished: z.boolean().optional(),
 });
+export const updateQuestionnaireSchema = createQuestionnaireSchema.partial().omit({ levelId: true });
 
 // المواضيع — topics
-export const createTopicSchema = z.object({
-  levelId: z.string().min(1),
-  nameAr,
+// أب واحد فقط: levelId (7-9) أو questionnaireId (10-12).
+export const createTopicSchema = z
+  .object({
+    levelId: z.string().min(1).optional(),
+    questionnaireId: z.string().min(1).optional(),
+    nameAr,
+    description: z.string().trim().max(500).optional(),
+    orderIndex: orderIndex.optional(),
+  })
+  .refine((d) => (d.levelId ? 1 : 0) + (d.questionnaireId ? 1 : 0) === 1, {
+    message: 'حدّد المستوى (levelId) أو الشالون (questionnaireId) — واحد فقط',
+    path: ['levelId'],
+  });
+export const updateTopicSchema = z.object({
+  nameAr: nameAr.optional(),
   description: z.string().trim().max(500).optional(),
   orderIndex: orderIndex.optional(),
 });
-export const updateTopicSchema = createTopicSchema.partial().omit({ levelId: true });
 
 // الدروس — lessons (metadata; video handled separately)
 export const createLessonSchema = z.object({
@@ -56,6 +85,8 @@ export type CreateSubjectInput = z.infer<typeof createSubjectSchema>;
 export type UpdateSubjectInput = z.infer<typeof updateSubjectSchema>;
 export type CreateGradeInput = z.infer<typeof createGradeSchema>;
 export type CreateLevelInput = z.infer<typeof createLevelSchema>;
+export type CreateQuestionnaireInput = z.infer<typeof createQuestionnaireSchema>;
+export type UpdateQuestionnaireInput = z.infer<typeof updateQuestionnaireSchema>;
 export type CreateTopicInput = z.infer<typeof createTopicSchema>;
 export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;
 // تقدّم المشاهدة — lesson watch progress

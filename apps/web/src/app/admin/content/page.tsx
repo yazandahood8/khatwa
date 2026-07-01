@@ -6,12 +6,16 @@ import {
   type Subject,
   type Grade,
   type Level,
+  type Questionnaire,
   type Topic,
   type Lesson,
   getSubjects,
   getGrades,
   getLevels,
+  getUnitTracks,
+  getQuestionnaires,
   getTopics,
+  getQuestionnaireTopics,
   getLessons,
   createSubject,
   deleteSubject,
@@ -19,6 +23,8 @@ import {
   deleteGrade,
   createLevel,
   deleteLevel,
+  createQuestionnaire,
+  deleteQuestionnaire,
   createTopic,
   deleteTopic,
   createLesson,
@@ -30,18 +36,24 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { LessonVideoUpload } from '@/components/admin/lesson-video-upload';
 
-const ALL_GRADES = [7, 8, 9, 10, 11, 12];
+// الصفوف 7-9 فقط في الشجرة؛ 10-12 تُدار عبر مسارات الوحدات (وحدات → שאלון).
+const ALL_GRADES = [7, 8, 9];
+const UNIT_LEVELS = [3, 4, 5];
 
 export default function ContentPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
+  const [tracks, setTracks] = useState<Level[]>([]);
+  const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [grade, setGrade] = useState<Grade | null>(null);
   const [level, setLevel] = useState<Level | null>(null);
+  const [track, setTrack] = useState<Level | null>(null);
+  const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -49,10 +61,25 @@ export default function ContentPage() {
     p.then(after).catch((e) => setErr(e instanceof Error ? e.message : 'حدث خطأ'));
 
   const reloadSubjects = useCallback(() => void getSubjects().then(setSubjects).catch(() => {}), []);
+  const reloadTracks = useCallback(
+    () => void (subject && getUnitTracks(subject.id).then(setTracks)),
+    [subject],
+  );
+  const reloadQuestionnaires = useCallback(
+    () => void (track && getQuestionnaires(track.id, false).then(setQuestionnaires)),
+    [track],
+  );
+  const reloadTopics = useCallback(() => {
+    if (questionnaire) getQuestionnaireTopics(questionnaire.id).then(setTopics);
+    else if (level) getTopics(level.id).then(setTopics);
+  }, [level, questionnaire]);
+
   useEffect(() => reloadSubjects(), [reloadSubjects]);
   useEffect(() => void (subject && getGrades(subject.id).then(setGrades)), [subject]);
+  useEffect(() => reloadTracks(), [reloadTracks]);
   useEffect(() => void (grade && getLevels(grade.id).then(setLevels)), [grade]);
-  useEffect(() => void (level && getTopics(level.id).then(setTopics)), [level]);
+  useEffect(() => reloadQuestionnaires(), [reloadQuestionnaires]);
+  useEffect(() => void (!topic && reloadTopics()), [level, questionnaire, topic, reloadTopics]);
   useEffect(() => void (topic && getLessons(topic.id).then(setLessons)), [topic]);
 
   // التنقل لأعلى — navigate up by clicking a breadcrumb
@@ -60,6 +87,8 @@ export default function ContentPage() {
     setSubject(null);
     setGrade(null);
     setLevel(null);
+    setTrack(null);
+    setQuestionnaire(null);
     setTopic(null);
   };
   const goGrades = () => {
@@ -71,7 +100,23 @@ export default function ContentPage() {
     setLevel(null);
     setTopic(null);
   };
+  const goTracks = () => {
+    setTrack(null);
+    setQuestionnaire(null);
+    setTopic(null);
+  };
+  const goQuestionnaires = () => {
+    setQuestionnaire(null);
+    setTopic(null);
+  };
   const goTopics = () => setTopic(null);
+  const goSubjectRoot = () => {
+    setGrade(null);
+    setLevel(null);
+    setTrack(null);
+    setQuestionnaire(null);
+    setTopic(null);
+  };
 
   const crumb = (label: string, onClick?: () => void) => (
     <button
@@ -91,11 +136,22 @@ export default function ContentPage() {
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         {crumb('المواد', subject ? goSubjects : undefined)}
         {subject && <span>›</span>}
-        {subject && crumb(`${subject.icon ?? ''} ${subject.nameAr}`, grade ? goGrades : undefined)}
+        {subject &&
+          crumb(
+            `${subject.icon ?? ''} ${subject.nameAr}`,
+            grade || track ? goSubjectRoot : undefined,
+          )}
+        {/* مسار الصفوف 7-9 */}
         {grade && <span>›</span>}
         {grade && crumb(`صف ${grade.gradeNumber}`, level ? goLevels : undefined)}
         {level && <span>›</span>}
         {level && crumb(level.name, topic ? goTopics : undefined)}
+        {/* مسار الوحدات 10-12 */}
+        {track && <span>›</span>}
+        {track && crumb(`${track.unitLevel} وحدات`, questionnaire ? goQuestionnaires : undefined)}
+        {questionnaire && <span>›</span>}
+        {questionnaire && crumb(`שאלון ${questionnaire.number}`, topic ? goTopics : undefined)}
+        {/* الموضوع */}
         {topic && <span>›</span>}
         {topic && crumb(topic.nameAr)}
       </div>
@@ -124,10 +180,10 @@ export default function ContentPage() {
         />
       )}
 
-      {/* ---------------- Grades ---------------- */}
-      {subject && !grade && (
+      {/* ---------------- Grades (7-9) ---------------- */}
+      {subject && !grade && !track && (
         <GradeSection
-          existing={grades}
+          existing={grades.filter((g) => g.gradeNumber <= 9)}
           onAdd={(gradeNumber) =>
             run(createGrade({ subjectId: subject.id, gradeNumber }), () =>
               getGrades(subject.id).then(setGrades),
@@ -135,6 +191,61 @@ export default function ContentPage() {
           }
           onOpen={setGrade}
           onDelete={(id) => run(deleteGrade(id), () => getGrades(subject.id).then(setGrades))}
+        />
+      )}
+
+      {/* ---------------- Unit tracks (10-12) ---------------- */}
+      {subject && !grade && !track && (
+        <Section
+          title="مسارات الوحدات (ثانوي 10-12)"
+          addLabel="إضافة مسار"
+          fields={[{ name: 'unitLevel', placeholder: 'الوحدات (3/4/5)', className: 'w-40' }]}
+          note="الصفوف 10-12 تُنظَّم حسب الوحدات (3/4/5) لا حسب الصف."
+          onAdd={(v) => {
+            const n = Number(v.unitLevel);
+            if (!UNIT_LEVELS.includes(n)) {
+              setErr('الوحدات يجب أن تكون 3 أو 4 أو 5');
+              return;
+            }
+            run(createLevel({ subjectId: subject.id, unitLevel: n, name: `${n}יח׳` }), reloadTracks);
+          }}
+          items={tracks.map((l) => ({
+            id: l.id,
+            label: `${l.unitLevel ?? '؟'} وحدات`,
+            meta: `${l._count?.questionnaires ?? 0} شالونات`,
+            onOpen: () => setTrack(l),
+            onDelete: () => run(deleteLevel(l.id), reloadTracks),
+          }))}
+        />
+      )}
+
+      {/* ---------------- Questionnaires (שאلون) ---------------- */}
+      {track && !questionnaire && (
+        <Section
+          title={`שאלونات مسار ${track.unitLevel} وحدات`}
+          addLabel="إضافة شالون"
+          fields={[
+            { name: 'number', placeholder: 'رقم الشالون (381)', className: 'w-40' },
+            { name: 'title', placeholder: 'عنوان (اختياري)' },
+          ]}
+          onAdd={(v) => {
+            const n = Number(v.number);
+            if (!n) {
+              setErr('رقم الشالون مطلوب');
+              return;
+            }
+            run(
+              createQuestionnaire({ levelId: track.id, number: n, title: v.title || undefined }),
+              reloadQuestionnaires,
+            );
+          }}
+          items={questionnaires.map((q) => ({
+            id: q.id,
+            label: `שאלون ${q.number}${q.title ? ` — ${q.title}` : ''}`,
+            meta: `${q.topicCount} مواضيع${q.isPublished ? '' : ' · ⚪ مسودة'}`,
+            onOpen: () => setQuestionnaire(q),
+            onDelete: () => run(deleteQuestionnaire(q.id), reloadQuestionnaires),
+          }))}
         />
       )}
 
@@ -159,8 +270,8 @@ export default function ContentPage() {
         />
       )}
 
-      {/* ---------------- Topics ---------------- */}
-      {level && !topic && (
+      {/* ---------------- Topics (أب: مستوى 7-9 أو שאلون 10-12) ---------------- */}
+      {(level || questionnaire) && !topic && (
         <Section
           title="المواضيع"
           addLabel="إضافة موضوع"
@@ -171,11 +282,11 @@ export default function ContentPage() {
           onAdd={(v) =>
             run(
               createTopic({
-                levelId: level.id,
+                ...(questionnaire ? { questionnaireId: questionnaire.id } : { levelId: level!.id }),
                 nameAr: v.nameAr,
                 description: v.description || undefined,
               }),
-              () => getTopics(level.id).then(setTopics),
+              reloadTopics,
             )
           }
           items={topics.map((t) => ({
@@ -183,7 +294,7 @@ export default function ContentPage() {
             label: t.nameAr,
             meta: `${t._count?.lessons ?? 0} دروس · ${t._count?.problems ?? 0} مسائل`,
             onOpen: () => setTopic(t),
-            onDelete: () => run(deleteTopic(t.id), () => getTopics(level.id).then(setTopics)),
+            onDelete: () => run(deleteTopic(t.id), reloadTopics),
           }))}
         />
       )}

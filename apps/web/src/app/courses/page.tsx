@@ -1,41 +1,31 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  ChevronDown,
-  ChevronLeft,
-  Lock,
-  CheckCircle2,
-  CirclePlay,
-  Calculator,
-  Loader2,
-} from 'lucide-react';
 import {
   type Subject,
   type Grade,
   type Level,
   type Topic,
-  type Lesson,
   type ProgressRow,
   getSubjects,
   getGrades,
   getLevels,
   getTopics,
-  getPublishedLessons,
   getMyProgress,
 } from '@/lib/content-api';
-import { getProblems, type ProblemListItem } from '@/lib/problems-api';
 import { getCurrentSubscription } from '@/lib/subscription-api';
 import { AppShell } from '@/components/app-shell';
 import { studentNav } from '@/components/nav-items';
-import { cn } from '@/lib/utils';
-
-type ProgressMap = Record<string, ProgressRow>;
-interface Ctx {
-  plan: string;
-  progress: ProgressMap;
-}
+import {
+  Row,
+  Loading,
+  Empty,
+  useLazy,
+  TopicNode,
+  type Ctx,
+  type ProgressMap,
+} from '@/components/courses/tree';
+import { HighSchoolTracks } from '@/components/courses/high-school-tracks';
 
 export default function CoursesPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -74,89 +64,12 @@ export default function CoursesPage() {
   );
 }
 
-/* ---------------- generic expandable row ---------------- */
-
-function Row({
-  depth,
-  expandable,
-  expanded,
-  onClick,
-  icon,
-  label,
-  meta,
-  locked,
-  accent,
-}: {
-  depth: number;
-  expandable?: boolean;
-  expanded?: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  meta?: string;
-  locked?: boolean;
-  accent?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{ paddingInlineStart: depth * 18 + 10 }}
-      className={cn(
-        'flex w-full items-center gap-2 rounded-lg py-2.5 pe-3 text-start transition-colors hover:bg-accent',
-        accent && 'text-primary',
-      )}
-    >
-      {expandable ? (
-        expanded ? (
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-        ) : (
-          <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
-        )
-      ) : (
-        <span className="w-4 shrink-0" />
-      )}
-      <span className="shrink-0">{icon}</span>
-      <span className="flex-1 truncate font-medium">{label}</span>
-      {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-      {meta && <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>}
-    </button>
-  );
-}
-
-function Loading() {
-  return (
-    <div className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
-      <Loader2 className="h-4 w-4 animate-spin" /> جارٍ التحميل…
-    </div>
-  );
-}
-function Empty({ text }: { text: string }) {
-  return <p className="px-3 py-6 text-center text-sm text-muted-foreground">{text}</p>;
-}
-
-/** hook: lazy-load children once on first expand */
-function useLazy<T>(loader: () => Promise<T[]>) {
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<T[] | null>(null);
-  const [busy, setBusy] = useState(false);
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && items === null) {
-      setBusy(true);
-      loader()
-        .then(setItems)
-        .catch(() => setItems([]))
-        .finally(() => setBusy(false));
-    }
-  }
-  return { open, items, busy, toggle };
-}
-
 /* ---------------- nodes ---------------- */
 
 function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
   const { open, items, busy, toggle } = useLazy<Grade>(() => getGrades(subject.id));
+  // 7-9 فقط في الشجرة؛ المرحلة الثانوية (10-12) تُعرض حسب مسارات الوحدات.
+  const middleGrades = items?.filter((g) => g.gradeNumber <= 9);
   return (
     <div>
       <Row
@@ -166,9 +79,16 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
         onClick={toggle}
         icon={<span className="text-lg">{subject.icon ?? '📘'}</span>}
         label={subject.nameAr}
-        meta={subject._count ? `${subject._count.grades} صفوف` : undefined}
       />
-      {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا صفوف." /> : items?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />))}
+      {open &&
+        (busy ? (
+          <Loading />
+        ) : (
+          <>
+            {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
+            <HighSchoolTracks subjectId={subject.id} />
+          </>
+        ))}
     </div>
   );
 }
@@ -189,84 +109,6 @@ function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
     <div>
       <Row depth={2} expandable expanded={open} onClick={toggle} icon="📗" label={level.name} />
       {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا مواضيع." /> : items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />))}
-    </div>
-  );
-}
-
-function TopicNode({ topic, ctx }: { topic: Topic; ctx: Ctx }) {
-  const router = useRouter();
-  const lessons = useLazy<Lesson>(() => getPublishedLessons(topic.id));
-  const [problems, setProblems] = useState<ProblemListItem[] | null>(null);
-
-  function toggle() {
-    lessons.toggle();
-    if (problems === null) getProblems(topic.id).then(setProblems).catch(() => setProblems([]));
-  }
-
-  return (
-    <div>
-      <Row
-        depth={3}
-        expandable
-        expanded={lessons.open}
-        onClick={toggle}
-        icon={<span className="h-4 w-1 rounded-full bg-primary" />}
-        label={topic.nameAr}
-        meta={topic._count ? `${topic._count.lessons} دروس` : undefined}
-      />
-      {lessons.open && (
-        <>
-          {lessons.busy ? (
-            <Loading />
-          ) : (
-            <>
-              {lessons.items?.length === 0 && <Empty text="لا دروس منشورة بعد." />}
-              {lessons.items?.map((le, idx) => {
-                const locked = ctx.plan === 'free' && idx > 0;
-                const done = !!ctx.progress[le.id]?.completedAt;
-                const started = !done && !!ctx.progress[le.id];
-                const noVideo = !le.videoUrl; // الدرس بلا فيديو بعد — مُعلَّم "قريباً"
-                return (
-                  <Row
-                    key={le.id}
-                    depth={4}
-                    onClick={() => router.push(locked ? '/pricing' : `/lessons/${le.id}`)}
-                    locked={locked}
-                    icon={
-                      done ? (
-                        <CheckCircle2 className="h-4 w-4 text-success" />
-                      ) : started ? (
-                        <CirclePlay className="h-4 w-4 text-primary" />
-                      ) : (
-                        <CirclePlay className={cn('h-4 w-4', noVideo ? 'text-muted-foreground/50' : 'text-muted-foreground')} />
-                      )
-                    }
-                    label={le.title}
-                    meta={
-                      locked
-                        ? 'مدفوع'
-                        : noVideo
-                          ? 'قريباً'
-                          : le.durationMinutes
-                            ? `${le.durationMinutes} د`
-                            : undefined
-                    }
-                  />
-                );
-              })}
-              {problems && problems.length > 0 && (
-                <Row
-                  depth={4}
-                  accent
-                  onClick={() => router.push(`/problems/${problems[0].id}/solve`)}
-                  icon={<Calculator className="h-4 w-4" />}
-                  label={`المسائل (${problems.length}) — ابدأ التمرين`}
-                />
-              )}
-            </>
-          )}
-        </>
-      )}
     </div>
   );
 }

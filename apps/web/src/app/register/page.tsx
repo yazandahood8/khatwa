@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-const GRADES = [7, 8, 9, 10, 11, 12];
+const GRADES = [7, 8, 9]; // 10-12 يُختار عبر الوحدات (ثانوي)
+const HIGH_SCHOOL = 'hs'; // قيمة خاصة لخيار "المرحلة الثانوية"
 const SELECT_CLASS =
   'flex h-12 w-full rounded-md border-[1.5px] border-input bg-card px-4 text-base transition-all focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15';
 
@@ -46,6 +47,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const isStudent = role === UserRole.STUDENT;
+  const isHighSchool = grade === HIGH_SCHOOL;
   const strength = passwordStrength(password);
 
   async function onSubmit(e: React.FormEvent) {
@@ -57,8 +59,9 @@ export default function RegisterPage() {
       email,
       password,
       role,
-      ...(isStudent && grade ? { grade } : {}),
-      ...(isStudent && level ? { level } : {}),
+      // 7-9: صف. ثانوي (10-12): وحدات (level) بلا صف.
+      ...(isStudent && !isHighSchool && grade ? { grade } : {}),
+      ...(isStudent && isHighSchool && level ? { level } : {}),
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'بيانات غير صالحة');
@@ -132,27 +135,38 @@ export default function RegisterPage() {
         {isStudent && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="grade">الصف</Label>
-              <select id="grade" value={grade} onChange={(e) => setGrade(e.target.value)} className={SELECT_CLASS}>
+              <Label htmlFor="grade">الصف / المرحلة</Label>
+              <select
+                id="grade"
+                value={grade}
+                onChange={(e) => {
+                  setGrade(e.target.value);
+                  if (e.target.value !== HIGH_SCHOOL) setLevel('');
+                }}
+                className={SELECT_CLASS}
+              >
                 <option value="">اختر الصف</option>
                 {GRADES.map((g) => (
                   <option key={g} value={g}>
                     صف {g}
                   </option>
                 ))}
+                <option value={HIGH_SCHOOL}>المرحلة الثانوية (10-12)</option>
               </select>
             </div>
-            <div>
-              <Label htmlFor="level">المستوى</Label>
-              <select id="level" value={level} onChange={(e) => setLevel(e.target.value)} className={SELECT_CLASS}>
-                <option value="">اختياري</option>
-                {LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {isHighSchool && (
+              <div>
+                <Label htmlFor="level">الوحدات</Label>
+                <select id="level" value={level} onChange={(e) => setLevel(e.target.value)} className={SELECT_CLASS}>
+                  <option value="">اختر الوحدات</option>
+                  {LEVELS.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
 

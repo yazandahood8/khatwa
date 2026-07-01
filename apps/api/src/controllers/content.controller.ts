@@ -4,6 +4,8 @@ import {
   updateSubjectSchema,
   createGradeSchema,
   createLevelSchema,
+  createQuestionnaireSchema,
+  updateQuestionnaireSchema,
   createTopicSchema,
   updateTopicSchema,
   createLessonSchema,
@@ -94,9 +96,12 @@ export async function deleteGrade(req: Request, res: Response) {
 
 export async function listLevels(req: Request, res: Response) {
   const gradeId = req.query.gradeId as string | undefined;
+  const subjectId = req.query.subjectId as string | undefined;
+  // subjectId ⇒ مسارات الوحدات المستقلة عن الصف (10-12)؛ gradeId ⇒ مستويات الصف (7-9).
   const levels = await prisma.level.findMany({
-    where: gradeId ? { gradeId } : undefined,
-    include: { _count: { select: { topics: true } } },
+    where: gradeId ? { gradeId } : subjectId ? { subjectId } : undefined,
+    orderBy: subjectId ? { unitLevel: 'asc' } : undefined,
+    include: { _count: { select: { topics: true, questionnaires: true } } },
   });
   ok(res, levels);
 }
@@ -112,12 +117,75 @@ export async function deleteLevel(req: Request, res: Response) {
   ok(res, { deleted: true });
 }
 
+// ----------------------- Questionnaires (שאלון, 10-12) -----------------------
+
+export async function listQuestionnaires(req: Request, res: Response) {
+  const levelId = req.query.levelId as string | undefined;
+  const publishedOnly = req.query.published === 'true';
+  const rows = await prisma.questionnaire.findMany({
+    where: { ...(levelId ? { levelId } : {}), ...(publishedOnly ? { isPublished: true } : {}) },
+    orderBy: { orderIndex: 'asc' },
+    include: {
+      topics: {
+        select: { lessons: { where: { isPublished: true }, select: { durationMinutes: true } } },
+      },
+    },
+  });
+  // بطاقات الدورة: مدة مجمّعة + عدد الدروس + عدد الطلاب المتفاعلين (distinct progress).
+  const data = await Promise.all(
+    rows.map(async (q) => {
+      const lessons = q.topics.flatMap((t) => t.lessons);
+      const durationMinutes = lessons.reduce((s, l) => s + (l.durationMinutes ?? 0), 0);
+      const studentRows = await prisma.lessonProgress.findMany({
+        where: { lesson: { isPublished: true, topic: { questionnaireId: q.id } } },
+        distinct: ['studentId'],
+        select: { studentId: true },
+      });
+      return {
+        id: q.id,
+        number: q.number,
+        title: q.title,
+        levelId: q.levelId,
+        orderIndex: q.orderIndex,
+        isPublished: q.isPublished,
+        topicCount: q.topics.length,
+        lessonCount: lessons.length,
+        durationMinutes,
+        studentCount: studentRows.length,
+      };
+    }),
+  );
+  ok(res, data);
+}
+
+export async function createQuestionnaire(req: Request, res: Response) {
+  const input = createQuestionnaireSchema.parse(req.body);
+  const exists = await prisma.questionnaire.findUnique({
+    where: { levelId_number: { levelId: input.levelId, number: input.number } },
+  });
+  if (exists) throw ApiError.badRequest('هذا الشالون موجود بالفعل لهذا المسار');
+  const q = await prisma.questionnaire.create({ data: input });
+  ok(res, q, 201);
+}
+
+export async function updateQuestionnaire(req: Request, res: Response) {
+  const input = updateQuestionnaireSchema.parse(req.body);
+  const q = await prisma.questionnaire.update({ where: { id: req.params.id }, data: input });
+  ok(res, q);
+}
+
+export async function deleteQuestionnaire(req: Request, res: Response) {
+  await prisma.questionnaire.delete({ where: { id: req.params.id } });
+  ok(res, { deleted: true });
+}
+
 // ----------------------- Topics -----------------------
 
 export async function listTopics(req: Request, res: Response) {
   const levelId = req.query.levelId as string | undefined;
+  const questionnaireId = req.query.questionnaireId as string | undefined;
   const topics = await prisma.topic.findMany({
-    where: levelId ? { levelId } : undefined,
+    where: levelId ? { levelId } : questionnaireId ? { questionnaireId } : undefined,
     orderBy: { orderIndex: 'asc' },
     include: { _count: { select: { lessons: true, problems: true } } },
   });
@@ -246,7 +314,7 @@ export async function searchContent(req: Request, res: Response) {
     }),
     prisma.topic.findMany({
       where: { nameAr: { contains: q, mode: 'insensitive' } },
-      select: { id: true, nameAr: true, levelId: true },
+      select: { id: true, nameAr: true, levelId: true, questionnaireId: true },
       take: 10,
     }),
   ]);

@@ -3,6 +3,7 @@ import type {
   CreateSubjectInput,
   CreateGradeInput,
   CreateLevelInput,
+  CreateQuestionnaireInput,
   CreateTopicInput,
   CreateLessonInput,
   UpdateLessonInput,
@@ -26,14 +27,29 @@ export interface Grade {
 export interface Level {
   id: string;
   name: string;
-  gradeId: string;
-  _count?: { topics: number };
+  gradeId?: string | null;
+  subjectId?: string | null;
+  unitLevel?: number | null;
+  _count?: { topics: number; questionnaires?: number };
+}
+export interface Questionnaire {
+  id: string;
+  number: number;
+  title?: string | null;
+  levelId: string;
+  orderIndex: number;
+  isPublished: boolean;
+  topicCount: number;
+  lessonCount: number;
+  durationMinutes: number;
+  studentCount: number;
 }
 export interface Topic {
   id: string;
   nameAr: string;
   description?: string | null;
-  levelId: string;
+  levelId?: string | null;
+  questionnaireId?: string | null;
   orderIndex: number;
   _count?: { lessons: number; problems: number };
 }
@@ -54,7 +70,16 @@ export const getSubjects = () => apiFetch<Subject[]>('/api/subjects');
 export const getGrades = (subjectId: string) =>
   apiFetch<Grade[]>(`/api/grades?subjectId=${subjectId}`);
 export const getLevels = (gradeId: string) => apiFetch<Level[]>(`/api/levels?gradeId=${gradeId}`);
+// مسارات الوحدات المستقلة عن الصف (10-12) لمادة
+export const getUnitTracks = (subjectId: string) =>
+  apiFetch<Level[]>(`/api/levels?subjectId=${subjectId}`);
+export const getQuestionnaires = (levelId: string, publishedOnly = true) =>
+  apiFetch<Questionnaire[]>(
+    `/api/questionnaires?levelId=${levelId}${publishedOnly ? '&published=true' : ''}`,
+  );
 export const getTopics = (levelId: string) => apiFetch<Topic[]>(`/api/topics?levelId=${levelId}`);
+export const getQuestionnaireTopics = (questionnaireId: string) =>
+  apiFetch<Topic[]>(`/api/topics?questionnaireId=${questionnaireId}`);
 export const getLessons = (topicId: string) =>
   apiFetch<Lesson[]>(`/api/lessons?topicId=${topicId}`);
 export const getPublishedLessons = (topicId: string) =>
@@ -109,6 +134,12 @@ export const deleteGrade = (id: string) => apiFetch(`/api/grades/${id}`, { metho
 export const createLevel = (body: CreateLevelInput) =>
   apiFetch<Level>('/api/levels', { method: 'POST', body: JSON.stringify(body) });
 export const deleteLevel = (id: string) => apiFetch(`/api/levels/${id}`, { method: 'DELETE' });
+
+// ---- questionnaires (שאלון, 10-12) ----
+export const createQuestionnaire = (body: CreateQuestionnaireInput) =>
+  apiFetch<Questionnaire>('/api/questionnaires', { method: 'POST', body: JSON.stringify(body) });
+export const deleteQuestionnaire = (id: string) =>
+  apiFetch(`/api/questionnaires/${id}`, { method: 'DELETE' });
 
 // ---- topics ----
 export const createTopic = (body: CreateTopicInput) =>

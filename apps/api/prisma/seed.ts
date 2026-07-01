@@ -121,6 +121,24 @@ async function ensureLevel(gradeId: string, name: string) {
   );
 }
 
+// مسار وحدات مستقل عن الصف (10-12) — مرتبط بالمادة مباشرةً.
+async function ensureTrackLevel(subjectId: string, unitLevel: number) {
+  const name = `${unitLevel}יח׳`;
+  return (
+    (await prisma.level.findFirst({ where: { subjectId, unitLevel } })) ??
+    (await prisma.level.create({ data: { subjectId, unitLevel, name } }))
+  );
+}
+
+// שאלון — دورة داخل مسار الوحدات (upsert حسب المستوى+الرقم).
+async function ensureQuestionnaire(levelId: string, number: number, orderIndex: number) {
+  return prisma.questionnaire.upsert({
+    where: { levelId_number: { levelId, number } },
+    update: { orderIndex },
+    create: { levelId, number, orderIndex },
+  });
+}
+
 async function ensureTopic(levelId: string, nameAr: string, orderIndex: number, description: string) {
   const existing = await prisma.topic.findFirst({ where: { levelId, nameAr } });
   if (existing) {
@@ -191,52 +209,16 @@ async function ensureLessons(gradeNum: number, topicName: string, topicId: strin
   return { lessons: lessons.length, questions, worked };
 }
 
-// إعادة توزيع مواضيع المسارات العليا على صفّها الحقيقي حسب المنهج (الخطة تجمعها تحت "10-12").
-const UPPER_GRADE: Record<string, number> = {
-  // 3 وحدات → الصف 11
-  'الإحصاء التطبيقي': 11,
-  'التوزيع الطبيعي': 11,
-  'الاحتمال التطبيقي': 11,
-  'التخطيط الخطي': 11,
-  // 4 وحدات
-  'الاحتمال الشرطي والانحدار': 11,
-  'المثلثات في المستوى': 11,
-  'الهندسة التحليلية': 11,
-  'المشتقة وتطبيقاتها': 11,
-  'التكامل': 11,
-  'المتتاليات': 12,
-  'المتجهات': 12,
-  'النمو والاضمحلال والدوال الأسية': 12,
-  // 5 وحدات
-  'الاحتمال المتقدم': 11,
-  'الاستقراء الرياضي': 11,
-  'الأعداد المركّبة': 12,
-  'القطوع المخروطية': 12,
-  'المتجهات في الفراغ': 12,
-  'التفاضل والتكامل المتقدم (5 وحدات)': 12,
+// שאלונים لكل مسار وحدات (رياضيات) — حسب الشاشات المرجعية. المواضيع تُضاف لاحقاً من المستخدم.
+const MATH_QUESTIONNAIRES: Record<number, number[]> = {
+  3: [182, 381, 382],
+  4: [481, 482],
+  5: [581, 582],
 };
 
-// مواضيع الصف 10 (مراجعة/تمهيد) من المنهج العام — بلا دروس بعد.
-const GRADE10_SCAFFOLD: { level: string; domain: string; topics: string[] }[] = [
-  {
-    level: '3יח׳',
-    domain: 'المجال الجبري',
-    topics: ['مراجعة وتعميق الجبر الأساسي', 'النموذج الخطي', 'النموذج التربيعي (مقدمة)', 'النسب المئوية والنسب التطبيقية'],
-  },
-  {
-    level: '4יח׳',
-    domain: 'المجال الجبري',
-    topics: ['التقنية الجبرية المتقدمة', 'الدالة وخصائصها', 'المثلثات في المستوى (مقدمة)', 'الإحصاء والاحتمال (4 وحدات)'],
-  },
-  {
-    level: '5יח׳',
-    domain: 'المجال الجبري',
-    topics: ['التقنية الجبرية المتقدمة جداً', 'المثلثات في المستوى', 'الاحتمال المتقدم', 'مقدمة التفاضل والتكامل'],
-  },
-];
-
 /**
- * يبني شجرة المنهج كاملة مع الدروس من خطة الدروس.
+ * يبني شجرة المنهج للصفوف 7-9 مع الدروس من خطة الدروس (بلا تغيير).
+ * تُتخطّى مواضيع 10-12 هنا — تُبنى تحت مسارات الوحدات/الشالونات لاحقاً.
  * orderIndex للمواضيع تسلسلي داخل كل (صف|مستوى) ويحافظ على ترتيب الخطة.
  */
 async function seedTreeWithLessons(subjectId: string) {
@@ -254,33 +236,42 @@ async function seedTreeWithLessons(subjectId: string) {
     return oi;
   };
 
-  // مواضيع الخطة (مع الدروس) — موزّعة على صفّها الحقيقي
+  // مواضيع الخطة (مع الدروس) — الصفوف 7-9 فقط
   for (const t of LESSON_PLAN) {
-    const gradeNum = UPPER_GRADE[t.name] ?? t.grade;
-    const grade = await ensureGrade(subjectId, gradeNum);
+    if (t.grade >= 10) continue; // 10-12 تُبنى بمسارات الوحدات + الشالونات
+    const grade = await ensureGrade(subjectId, t.grade);
     const level = await ensureLevel(grade.id, t.level);
-    const topic = await ensureTopic(level.id, t.name, nextOrder(gradeNum, t.level), t.domain);
-    index.set(`${gradeNum}|${t.level}|${t.name}`, topic.id);
+    const topic = await ensureTopic(level.id, t.name, nextOrder(t.grade, t.level), t.domain);
+    index.set(`${t.grade}|${t.level}|${t.name}`, topic.id);
     topicCount++;
-    const r = await ensureLessons(gradeNum, t.name, topic.id, t.lessons);
+    const r = await ensureLessons(t.grade, t.name, topic.id, t.lessons);
     lessonCount += r.lessons;
     questionCount += r.questions;
     workedCount += r.worked;
   }
 
-  // مواضيع تمهيد الصف 10 (بلا دروس)
-  const g10 = await ensureGrade(subjectId, 10);
-  for (const s of GRADE10_SCAFFOLD) {
-    const level = await ensureLevel(g10.id, s.level);
-    for (const name of s.topics) {
-      const topic = await ensureTopic(level.id, name, nextOrder(10, s.level), s.domain);
-      index.set(`10|${s.level}|${name}`, topic.id);
-      topicCount++;
+  console.log(`  ↳ tree (7-9): ${topicCount} topics, ${lessonCount} lessons, ${workedCount} worked problems, ${questionCount} text questions`);
+  return index;
+}
+
+/**
+ * يبني مسارات الوحدات المستقلة عن الصف (10-12): مادة ← مستوى(3/4/5) ← שאלון.
+ * المواضيع/الدروس داخل كل שאלון تُضاف لاحقاً من المستخدم.
+ */
+async function seedUnitTracks(subjectId: string) {
+  let tracks = 0;
+  let questionnaires = 0;
+  for (const [unitStr, numbers] of Object.entries(MATH_QUESTIONNAIRES)) {
+    const unit = Number(unitStr);
+    const level = await ensureTrackLevel(subjectId, unit);
+    tracks++;
+    let oi = 0;
+    for (const number of numbers) {
+      await ensureQuestionnaire(level.id, number, oi++);
+      questionnaires++;
     }
   }
-
-  console.log(`  ↳ tree: ${topicCount} topics, ${lessonCount} lessons, ${workedCount} worked problems, ${questionCount} text questions`);
-  return index;
+  console.log(`  ↳ unit tracks (10-12): ${tracks} tracks, ${questionnaires} questionnaires`);
 }
 
 /**
@@ -391,6 +382,7 @@ async function main() {
 
   const subject = await ensureSubject('رياضيات');
   const topicIndex = await seedTreeWithLessons(subject.id);
+  await seedUnitTracks(subject.id); // مسارات 10-12 (شالونات فارغة حتى يزوّدنا المستخدم بالمواضيع)
 
   // مسائل خطية — صف 7 موحّد
   const linId = topicIndex.get('7|موحّد|المعادلات الخطية');
