@@ -27,10 +27,11 @@ export const registerSchema = z
     grade: gradeField.optional(),
     level: z.enum(LEVELS).optional(),
   })
-  .refine((d) => (d.role === UserRole.STUDENT ? d.grade !== undefined : true), {
-    message: 'الصف مطلوب للطالب',
-    path: ['grade'],
-  });
+  // الطالب: صف (7-9) أو وحدات ثانوية (10-12 → level).
+  .refine(
+    (d) => (d.role === UserRole.STUDENT ? d.grade !== undefined || d.level !== undefined : true),
+    { message: 'اختر الصف (7-9) أو الوحدات (ثانوي)', path: ['grade'] },
+  );
 
 /** تسجيل الدخول — login */
 export const loginSchema = z.object({

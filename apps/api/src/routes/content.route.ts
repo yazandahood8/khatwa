@@ -12,6 +12,7 @@ const admin = [requireAuth, requireRole(UserRole.ADMIN)] as const;
 router.get('/subjects', c.listSubjects);
 router.get('/grades', c.listGrades);
 router.get('/levels', c.listLevels);
+router.get('/questionnaires', c.listQuestionnaires);
 router.get('/topics', c.listTopics);
 router.get('/lessons', c.listLessons);
 router.get('/lessons/:id', c.getLesson);
@@ -39,6 +40,10 @@ router.delete('/grades/:id', ...admin, c.deleteGrade);
 
 router.post('/levels', ...admin, c.createLevel);
 router.delete('/levels/:id', ...admin, c.deleteLevel);
+
+router.post('/questionnaires', ...admin, c.createQuestionnaire);
+router.put('/questionnaires/:id', ...admin, c.updateQuestionnaire);
+router.delete('/questionnaires/:id', ...admin, c.deleteQuestionnaire);
 
 router.post('/topics', ...admin, c.createTopic);
 router.put('/topics/:id', ...admin, c.updateTopic);

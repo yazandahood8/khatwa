@@ -30,6 +30,36 @@ const judgeSchema = z.object({
     .optional(),
 });
 
+/**
+ * اشتقاق سياق المادة/الصف/المستوى من الموضوع — يدعم مسارَي التسلسل:
+ * 7-9 عبر level→grade، و10-12 عبر questionnaire→level (بلا صف).
+ */
+function deriveTopicContext(topic: {
+  level: {
+    name: string;
+    grade: { gradeNumber: number; subject: { nameAr: string } } | null;
+    subject: { nameAr: string } | null;
+  } | null;
+  questionnaire: {
+    number: number;
+    level: { name: string; subject: { nameAr: string } | null };
+  } | null;
+}): { subject: string; grade: number | null; level: string | null } {
+  if (topic.questionnaire) {
+    return {
+      subject: topic.questionnaire.level.subject?.nameAr ?? 'رياضيات',
+      grade: null,
+      level: `${topic.questionnaire.level.name} · שאלון ${topic.questionnaire.number}`,
+    };
+  }
+  const lvl = topic.level;
+  return {
+    subject: lvl?.grade?.subject.nameAr ?? lvl?.subject?.nameAr ?? 'رياضيات',
+    grade: lvl?.grade?.gradeNumber ?? null,
+    level: lvl?.name ?? null,
+  };
+}
+
 /** GET /api/ai/quota — كم سؤال بقي للطالب اليوم. */
 export async function aiQuota(req: Request, res: Response) {
   const quota = await getQuota(req.user!.id, req.user!.role);
@@ -51,7 +81,12 @@ export async function askTutor(req: Request, res: Response) {
     include: {
       methods: { include: { steps: { orderBy: { stepNumber: 'asc' } } } },
       commonMistakes: true,
-      topic: { include: { level: { include: { grade: { include: { subject: true } } } } } },
+      topic: {
+        include: {
+          level: { include: { grade: { include: { subject: true } }, subject: true } },
+          questionnaire: { include: { level: { include: { subject: true } } } },
+        },
+      },
     },
   });
   if (!problem) throw ApiError.notFound('المسألة غير موجودة');
@@ -110,10 +145,11 @@ export async function askTutor(req: Request, res: Response) {
     throw e;
   }
 
+  const tctx = deriveTopicContext(problem.topic);
   const systemPrompt = buildTutorSystemPrompt({
-    subject: problem.topic.level.grade.subject.nameAr,
-    grade: problem.topic.level.grade.gradeNumber,
-    level: problem.topic.level.name,
+    subject: tctx.subject,
+    grade: tctx.grade,
+    level: tctx.level,
     topic: problem.topic.nameAr,
     question: problem.question,
     finalAnswer: problem.finalAnswer,
@@ -254,7 +290,14 @@ export async function judgeCode(req: Request, res: Response) {
 
   const problem = await prisma.problem.findUnique({
     where: { id: problemId },
-    include: { topic: { include: { level: { include: { grade: { include: { subject: true } } } } } } },
+    include: {
+      topic: {
+        include: {
+          level: { include: { grade: { include: { subject: true } }, subject: true } },
+          questionnaire: { include: { level: { include: { subject: true } } } },
+        },
+      },
+    },
   });
   if (!problem) throw ApiError.notFound('المسألة غير موجودة');
   if (!problem.language) {
@@ -280,7 +323,7 @@ export async function judgeCode(req: Request, res: Response) {
   }
 
   const ctx = {
-    subject: problem.topic.level.grade.subject.nameAr,
+    subject: deriveTopicContext(problem.topic).subject,
     topic: problem.topic.nameAr,
     question: problem.question,
     language: problem.language,
