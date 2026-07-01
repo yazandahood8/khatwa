@@ -127,7 +127,12 @@ export async function listQuestionnaires(req: Request, res: Response) {
     orderBy: { orderIndex: 'asc' },
     include: {
       topics: {
-        select: { lessons: { where: { isPublished: true }, select: { durationMinutes: true } } },
+        select: {
+          lessons: {
+            where: { isPublished: true },
+            select: { durationMinutes: true, durationSeconds: true },
+          },
+        },
       },
     },
   });
@@ -135,7 +140,11 @@ export async function listQuestionnaires(req: Request, res: Response) {
   const data = await Promise.all(
     rows.map(async (q) => {
       const lessons = q.topics.flatMap((t) => t.lessons);
-      const durationMinutes = lessons.reduce((s, l) => s + (l.durationMinutes ?? 0), 0);
+      const totalSeconds = lessons.reduce(
+        (s, l) => s + (l.durationSeconds ?? (l.durationMinutes ?? 0) * 60),
+        0,
+      );
+      const durationMinutes = Math.round(totalSeconds / 60);
       const studentRows = await prisma.lessonProgress.findMany({
         where: { lesson: { isPublished: true, topic: { questionnaireId: q.id } } },
         distinct: ['studentId'],

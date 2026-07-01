@@ -59,6 +59,7 @@ export interface Lesson {
   description?: string | null;
   topicId: string;
   durationMinutes?: number | null;
+  durationSeconds?: number | null;
   videoUrl?: string | null;
   thumbnailUrl?: string | null;
   orderIndex: number;

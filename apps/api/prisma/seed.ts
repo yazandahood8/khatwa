@@ -16,6 +16,7 @@ import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
 import { LESSON_PROBLEMS } from './generators';
 import { CS_PLAN } from './csLessonPlan';
 import { CS_PROBLEMS } from './csGenerators';
+import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
 
 const prisma = new PrismaClient();
 
@@ -275,6 +276,52 @@ async function seedUnitTracks(subjectId: string) {
 }
 
 /**
+ * يزرع محتوى الشالونات (مواضيع + دروس) من questionnaireContent.
+ * يطابق رقم الشالون داخل مسارات وحدات المادة (الأرقام لا تتعارض بين المسارات).
+ * Idempotent: المواضيع upsert حسب (الشالون+الاسم)؛ الدروس تُتخطّى إذا وُجدت.
+ */
+async function seedQuestionnaireContent(subjectId: string) {
+  let topics = 0;
+  let lessons = 0;
+  for (const [numStr, content] of Object.entries(QUESTIONNAIRE_CONTENT)) {
+    const number = Number(numStr);
+    const q = await prisma.questionnaire.findFirst({
+      where: { number, level: { subjectId } },
+    });
+    if (!q) {
+      console.log(`  ↳ ⚠ שאלون ${number} غير موجود لهذه المادة — تخطّي`);
+      continue;
+    }
+    for (const [ti, t] of content.topics.entries()) {
+      const existing = await prisma.topic.findFirst({
+        where: { questionnaireId: q.id, nameAr: t.name },
+      });
+      const topic =
+        existing ??
+        (await prisma.topic.create({
+          data: { questionnaireId: q.id, nameAr: t.name, orderIndex: ti },
+        }));
+      topics++;
+      if ((await prisma.lesson.count({ where: { topicId: topic.id } })) > 0) continue;
+      for (const l of t.lessons) {
+        await prisma.lesson.create({
+          data: {
+            topicId: topic.id,
+            title: l.title,
+            orderIndex: l.chapter,
+            durationSeconds: l.sec,
+            durationMinutes: Math.round(l.sec / 60),
+            isPublished: true,
+          },
+        });
+        lessons++;
+      }
+    }
+  }
+  console.log(`  ↳ questionnaire content: ${topics} topics, ${lessons} lessons`);
+}
+
+/**
  * يبني شجرة علوم الحاسوب: مادة ← صف (ثانوي) ← مستوى (3/5 وحدات) ← موضوع ← دروس ← مسائل برمجة.
  * مسائل البرمجة من نوع code (language='csharp') يقيّمها الذكاء الاصطناعي؛ الحل المرجعي في finalAnswer.
  */
@@ -382,7 +429,8 @@ async function main() {
 
   const subject = await ensureSubject('رياضيات');
   const topicIndex = await seedTreeWithLessons(subject.id);
-  await seedUnitTracks(subject.id); // مسارات 10-12 (شالونات فارغة حتى يزوّدنا المستخدم بالمواضيع)
+  await seedUnitTracks(subject.id); // مسارات 10-12 (شالونات)
+  await seedQuestionnaireContent(subject.id); // محتوى الشالونات (شالون 182 …)
 
   // مسائل خطية — صف 7 موحّد
   const linId = topicIndex.get('7|موحّد|المعادلات الخطية');

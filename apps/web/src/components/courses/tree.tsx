@@ -81,6 +81,17 @@ export function Empty({ text }: { text: string }) {
   return <p className="px-3 py-6 text-center text-sm text-muted-foreground">{text}</p>;
 }
 
+/** مدة الدرس للعرض: mm:ss من الثواني، وإلا "X د" من الدقائق، وإلا null. */
+function formatDuration(seconds?: number | null, minutes?: number | null): string | null {
+  if (seconds != null) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+  if (minutes != null) return `${minutes} د`;
+  return null;
+}
+
 /** hook: lazy-load children once on first expand */
 export function useLazy<T>(loader: () => Promise<T[]>) {
   const [open, setOpen] = useState(false);
@@ -134,7 +145,8 @@ export function TopicNode({ topic, ctx, depth = 3 }: { topic: Topic; ctx: Ctx; d
                 const locked = ctx.plan === 'free' && idx > 0;
                 const done = !!ctx.progress[le.id]?.completedAt;
                 const started = !done && !!ctx.progress[le.id];
-                const noVideo = !le.videoUrl; // الدرس بلا فيديو بعد — مُعلَّم "قريباً"
+                const noVideo = !le.videoUrl; // الدرس بلا فيديو بعد
+                const duration = formatDuration(le.durationSeconds, le.durationMinutes);
                 return (
                   <Row
                     key={le.id}
@@ -154,11 +166,7 @@ export function TopicNode({ topic, ctx, depth = 3 }: { topic: Topic; ctx: Ctx; d
                     meta={
                       locked
                         ? 'مدفوع'
-                        : noVideo
-                          ? 'قريباً'
-                          : le.durationMinutes
-                            ? `${le.durationMinutes} د`
-                            : undefined
+                        : (duration ?? (noVideo ? 'قريباً' : undefined)) ?? undefined
                     }
                   />
                 );

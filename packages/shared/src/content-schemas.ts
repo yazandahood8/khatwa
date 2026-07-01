@@ -74,6 +74,7 @@ export const createLessonSchema = z.object({
   title: z.string().trim().min(2, 'العنوان قصير جداً').max(150),
   description: z.string().trim().max(1000).optional(),
   durationMinutes: z.coerce.number().int().min(0).optional(),
+  durationSeconds: z.coerce.number().int().min(0).optional(),
   videoUrl: z.string().url().optional(),
   thumbnailUrl: z.string().url().optional(),
   orderIndex: orderIndex.optional(),
