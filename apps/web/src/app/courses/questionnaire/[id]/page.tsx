@@ -38,7 +38,7 @@ export default function QuestionnairePage() {
   }, [id]);
 
   const ctx: Ctx = { plan, progress };
-  const title = number ? `שאלون ${number}` : 'الدورة';
+  const title = number ? `نموذج ${number}` : 'الدورة';
 
   return (
     <AppShell nav={studentNav} title={title}>
@@ -54,7 +54,7 @@ export default function QuestionnairePage() {
           {topics === null ? (
             <Loading />
           ) : topics.length === 0 ? (
-            <Empty text="لا مواضيع في هذا الشالون بعد." />
+            <Empty text="لا مواضيع في هذا النموذج بعد." />
           ) : (
             topics.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} depth={0} />)
           )}

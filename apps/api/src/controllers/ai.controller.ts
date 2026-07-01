@@ -49,7 +49,7 @@ function deriveTopicContext(topic: {
     return {
       subject: topic.questionnaire.level.subject?.nameAr ?? 'رياضيات',
       grade: null,
-      level: `${topic.questionnaire.level.name} · שאלון ${topic.questionnaire.number}`,
+      level: `${topic.questionnaire.level.name} · نموذج ${topic.questionnaire.number}`,
     };
   }
   const lvl = topic.level;

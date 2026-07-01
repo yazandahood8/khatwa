@@ -4,7 +4,7 @@ import { buildTutorSystemPrompt, buildCodeJudgePrompt } from './aiPrompt';
 const ctx = {
   subject: 'رياضيات',
   grade: 9,
-  level: '4יח׳',
+  level: '4 وحدات',
   topic: 'المعادلة التربيعية',
   question: 'x² + 5x + 6 = 0',
   finalAnswer: 'x = -2 أو x = -3',

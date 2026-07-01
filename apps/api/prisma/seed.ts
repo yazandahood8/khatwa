@@ -124,14 +124,17 @@ async function ensureLevel(gradeId: string, name: string) {
 
 // مسار وحدات مستقل عن الصف (10-12) — مرتبط بالمادة مباشرةً.
 async function ensureTrackLevel(subjectId: string, unitLevel: number) {
-  const name = `${unitLevel}יח׳`;
-  return (
-    (await prisma.level.findFirst({ where: { subjectId, unitLevel } })) ??
-    (await prisma.level.create({ data: { subjectId, unitLevel, name } }))
-  );
+  const name = `${unitLevel} وحدات`;
+  const existing = await prisma.level.findFirst({ where: { subjectId, unitLevel } });
+  if (existing) {
+    return existing.name === name
+      ? existing
+      : prisma.level.update({ where: { id: existing.id }, data: { name } });
+  }
+  return prisma.level.create({ data: { subjectId, unitLevel, name } });
 }
 
-// שאלון — دورة داخل مسار الوحدات (upsert حسب المستوى+الرقم).
+// نموذج — دورة داخل مسار الوحدات (upsert حسب المستوى+الرقم).
 async function ensureQuestionnaire(levelId: string, number: number, orderIndex: number) {
   return prisma.questionnaire.upsert({
     where: { levelId_number: { levelId, number } },
@@ -210,7 +213,7 @@ async function ensureLessons(gradeNum: number, topicName: string, topicId: strin
   return { lessons: lessons.length, questions, worked };
 }
 
-// שאלונים لكل مسار وحدات (رياضيات) — حسب الشاشات المرجعية. المواضيع تُضاف لاحقاً من المستخدم.
+// نماذج لكل مسار وحدات (رياضيات) — حسب الشاشات المرجعية. المواضيع تُضاف لاحقاً من المستخدم.
 const MATH_QUESTIONNAIRES: Record<number, number[]> = {
   3: [182, 381, 382],
   4: [481, 482],
@@ -256,8 +259,8 @@ async function seedTreeWithLessons(subjectId: string) {
 }
 
 /**
- * يبني مسارات الوحدات المستقلة عن الصف (10-12): مادة ← مستوى(3/4/5) ← שאלון.
- * المواضيع/الدروس داخل كل שאלון تُضاف لاحقاً من المستخدم.
+ * يبني مسارات الوحدات المستقلة عن الصف (10-12): مادة ← مستوى(3/4/5) ← نموذج.
+ * المواضيع/الدروس داخل كل نموذج تُضاف لاحقاً من المستخدم.
  */
 async function seedUnitTracks(subjectId: string) {
   let tracks = 0;
@@ -276,9 +279,10 @@ async function seedUnitTracks(subjectId: string) {
 }
 
 /**
- * يزرع محتوى الشالونات (مواضيع + دروس) من questionnaireContent.
- * يطابق رقم الشالون داخل مسارات وحدات المادة (الأرقام لا تتعارض بين المسارات).
- * Idempotent: المواضيع upsert حسب (الشالون+الاسم)؛ الدروس تُتخطّى إذا وُجدت.
+ * يزرع محتوى النماذج (مواضيع + دروس) من questionnaireContent.
+ * يطابق رقم النموذج داخل مسارات وحدات المادة (الأرقام لا تتعارض بين المسارات).
+ * المصدر مرجعي: يُحذف محتوى النموذج الحالي ويُعاد بناؤه (يبقى idempotent).
+ * تنبيه: مقصور على الدروس بلا فيديو؛ لا تُدخل مواضيع يدويًا تحت نموذج مُدار بالمصدر.
  */
 async function seedQuestionnaireContent(subjectId: string) {
   let topics = 0;
@@ -289,20 +293,16 @@ async function seedQuestionnaireContent(subjectId: string) {
       where: { number, level: { subjectId } },
     });
     if (!q) {
-      console.log(`  ↳ ⚠ שאלون ${number} غير موجود لهذه المادة — تخطّي`);
+      console.log(`  ↳ ⚠ نموذج ${number} غير موجود لهذه المادة — تخطّي`);
       continue;
     }
+    // إعادة بناء من المصدر — يحذف المواضيع (وتُحذف دروسها بالتتالي)
+    await prisma.topic.deleteMany({ where: { questionnaireId: q.id } });
     for (const [ti, t] of content.topics.entries()) {
-      const existing = await prisma.topic.findFirst({
-        where: { questionnaireId: q.id, nameAr: t.name },
+      const topic = await prisma.topic.create({
+        data: { questionnaireId: q.id, nameAr: t.name, orderIndex: ti },
       });
-      const topic =
-        existing ??
-        (await prisma.topic.create({
-          data: { questionnaireId: q.id, nameAr: t.name, orderIndex: ti },
-        }));
       topics++;
-      if ((await prisma.lesson.count({ where: { topicId: topic.id } })) > 0) continue;
       for (const l of t.lessons) {
         await prisma.lesson.create({
           data: {

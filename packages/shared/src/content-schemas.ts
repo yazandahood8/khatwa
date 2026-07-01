@@ -24,7 +24,7 @@ export const createGradeSchema = z.object({
   gradeNumber: z.coerce.number().int().min(7, 'الصف من 7 إلى 12').max(12, 'الصف من 7 إلى 12'),
 });
 
-// المستويات (יחידות) — levels
+// المستويات (وحدات) — levels
 // أب واحد فقط: gradeId (7-9) أو subjectId (مسار وحدات 10-12).
 export const createLevelSchema = z
   .object({
@@ -38,10 +38,10 @@ export const createLevelSchema = z
     path: ['gradeId'],
   });
 
-// שאלון — questionnaires (courses under a unit track, 10-12)
+// نموذج — questionnaires (courses under a unit track, 10-12)
 export const createQuestionnaireSchema = z.object({
   levelId: z.string().min(1),
-  number: z.coerce.number().int().min(1, 'رقم الشالون مطلوب'),
+  number: z.coerce.number().int().min(1, 'رقم النموذج مطلوب'),
   title: z.string().trim().max(100).optional(),
   orderIndex: orderIndex.optional(),
   isPublished: z.boolean().optional(),

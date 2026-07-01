@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Loading, Empty } from '@/components/courses/tree';
 import { cn } from '@/lib/utils';
 
-/** بطاقات المرحلة الثانوية (10-12): تبويبات وحدات (3/4/5) + بطاقات שאלون. */
+/** بطاقات المرحلة الثانوية (10-12): تبويبات وحدات (3/4/5) + بطاقات نموذج. */
 export function HighSchoolTracks({ subjectId }: { subjectId: string }) {
   const [tracks, setTracks] = useState<Level[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
@@ -69,7 +69,7 @@ function QuestionnaireGrid({ levelId }: { levelId: string }) {
   }, [levelId]);
 
   if (items === null) return <Loading />;
-  if (items.length === 0) return <Empty text="لا يوجد شالونات في هذا المسار بعد." />;
+  if (items.length === 0) return <Empty text="لا يوجد نماذج في هذا المسار بعد." />;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -92,7 +92,7 @@ function QuestionnaireCard({ q }: { q: Questionnaire }) {
       <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 font-display text-lg font-bold italic text-primary">
         ƒx
       </span>
-      <h3 className="font-display text-xl font-bold">{q.title ?? `שאלון ${q.number}`}</h3>
+      <h3 className="font-display text-xl font-bold">{q.title ?? `نموذج ${q.number}`}</h3>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <Users className="h-4 w-4" /> {q.studentCount} طالب
