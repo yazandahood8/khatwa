@@ -20,9 +20,20 @@ export function createApp() {
 
   // الأمان والوسائط الأساسية — Security & core middleware
   app.use(helmet());
+  // أصول CORS المسموحة: الواجهة الرسمية (WEB_ORIGIN) + التطوير المحلي + نشرات Vercel المؤقتة للمشروع.
+  const allowedOrigins = new Set(
+    [...env.WEB_ORIGIN.split(','), 'http://localhost:3000'].map((o) => o.trim()).filter(Boolean),
+  );
+  const vercelPreview = /^https:\/\/khatwa-web[a-z0-9-]*\.vercel\.app$/;
   app.use(
     cors({
-      origin: env.WEB_ORIGIN,
+      origin(origin, cb) {
+        // بلا أصل (نفس المصدر أو أدوات مثل curl)، أو ضمن القائمة، أو نشرة Vercel للمشروع
+        if (!origin || allowedOrigins.has(origin) || vercelPreview.test(origin)) {
+          return cb(null, true);
+        }
+        return cb(null, false); // لا نضيف ترويسة ACAO — المتصفح يحجب دون خطأ 500
+      },
       credentials: true,
       exposedHeaders: ['X-AI-Remaining'], // ليقرأها المتصفح من ردّ الـ AI
     }),
