@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { UserRole } from '@khatwa/shared';
 import { requireAuth, requireRole } from '../middleware/auth.middleware';
 import * as p from '../controllers/problems.controller';
-import { checkAnswer, getAttempt, getTopicProgress } from '../controllers/attempts.controller';
+import { checkAnswer, runCode, getAttempt, getTopicProgress } from '../controllers/attempts.controller';
 import { askTutor, aiQuota, judgeCode } from '../controllers/ai.controller';
 
 const router = Router();
@@ -19,6 +19,7 @@ router.get('/problems/:id', requireAuth, p.getProblem);
 
 // حل المسائل — solving (students)
 router.post('/problems/:id/check', requireAuth, checkAnswer);
+router.post('/problems/:id/run', requireAuth, runCode); // تشغيل C# ومقارنة الناتج
 router.get('/problems/:id/attempt', requireAuth, getAttempt);
 router.get('/topics/:topicId/progress', requireAuth, getTopicProgress);
 

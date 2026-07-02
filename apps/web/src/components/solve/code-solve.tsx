@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal, Lightbulb } from 'lucide-react';
 import { streamJudge } from '@/lib/ai-api';
-import { runCSharp } from '@/lib/run-code';
-import { getAttempt, getTopicProgress, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
+import { runCode, getAttempt, getTopicProgress, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
 import { ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -37,7 +36,13 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
   const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
   const [attemptedIds, setAttemptedIds] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
-  const [runOutput, setRunOutput] = useState<{ ok: boolean; text: string; note?: string } | null>(null);
+  const [runOutput, setRunOutput] = useState<{
+    ok: boolean;
+    text: string;
+    note?: string;
+    match: boolean;
+    gradable: boolean;
+  } | null>(null);
   const rawRef = useRef('');
 
   useEffect(() => {
@@ -79,15 +84,21 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     setCelebrate(false);
   }
 
-  // تشغيل الكود فعلياً (مترجم C# حقيقي عبر Wandbox)
+  // تشغيل الكود فعلياً ومقارنة ناتجه بالحل المرجعي (نجاح عند التطابق)
   async function run() {
-    if (!code.trim() || running) return;
+    if (!code.trim() || running || busy) return;
     setRunning(true);
     setRunOutput(null);
+    setVerdict(null);
     setError(null);
     try {
-      const r = await runCSharp(code);
-      setRunOutput({ ok: r.ok, text: r.output, note: r.note });
+      const r = await runCode(id, code);
+      setRunOutput({ ok: r.ok, text: r.output, note: r.note, match: r.match, gradable: r.gradable });
+      if (typeof r.attemptsCount === 'number') setAttempts(r.attemptsCount);
+      if (r.match && !solved) {
+        setSolved(true);
+        setTimeout(() => setCelebrate(true), 600);
+      }
     } catch {
       setError('تعذّر تشغيل الكود. تحقّق من اتصالك وحاول مرة ثانية.');
     } finally {
@@ -234,10 +245,22 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
                   <span
                     className={cn(
                       'ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                      runOutput.ok ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive',
+                      !runOutput.ok
+                        ? 'bg-destructive/20 text-destructive'
+                        : runOutput.match
+                          ? 'bg-success/20 text-success'
+                          : runOutput.gradable
+                            ? 'bg-warning/20 text-warning'
+                            : 'bg-white/10 text-white/60',
                     )}
                   >
-                    {runOutput.ok ? 'تم بنجاح' : 'خطأ'}
+                    {!runOutput.ok
+                      ? 'خطأ'
+                      : runOutput.match
+                        ? '✅ الناتج مطابق — نجحت!'
+                        : runOutput.gradable
+                          ? 'الناتج مختلف عن المطلوب'
+                          : 'تم التشغيل'}
                   </span>
                 )}
               </div>
@@ -251,10 +274,15 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
                         {runOutput.note}
                       </p>
                     )}
+                    {runOutput && runOutput.ok && !runOutput.gradable && !runOutput.note && (
+                      <p className="mb-2 font-sans text-xs text-white/50" dir="rtl">
+                        هذه المسألة تُقيَّم بالفحص الذكي — اضغط «افحص كودي».
+                      </p>
+                    )}
                     <pre
                       className={cn(
                         'whitespace-pre-wrap break-words font-mono text-sm leading-relaxed',
-                        runOutput?.ok ? 'text-[#d4d4e8]' : 'text-destructive',
+                        !runOutput?.ok ? 'text-destructive' : 'text-[#d4d4e8]',
                       )}
                     >
                       {runOutput?.text || (!runOutput?.note ? '(لا يوجد ناتج)' : '')}

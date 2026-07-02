@@ -65,6 +65,21 @@ export const checkAnswer = (
     body: JSON.stringify(body),
   });
 
+export interface RunResult {
+  ok: boolean; // تجمّع وتشغّل بلا خطأ
+  output: string; // ناتج التشغيل أو رسالة الخطأ
+  note?: string;
+  match: boolean; // طابق الناتج المرجعي
+  gradable: boolean; // قابل للتقييم بالناتج (للمسألة ناتج مرجعي)
+  attemptsCount?: number;
+  completed?: boolean;
+}
+export const runCode = (problemId: string, code: string) =>
+  apiFetch<RunResult>(`/api/problems/${problemId}/run`, {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+
 export interface AttemptInfo {
   attemptsCount: number;
   isCorrect: boolean;
