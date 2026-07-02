@@ -53,3 +53,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   }
   return body.data as T;
 }
+
+/** حالة الصيانة — عام، بلا مصادقة. */
+export const getMaintenance = () =>
+  apiFetch<{ maintenance: boolean }>('/api/maintenance').catch(() => ({ maintenance: false }));

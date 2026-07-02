@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loginSchema } from '@khatwa/shared';
+import { getMaintenance } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { dashboardPathForRole } from '@/lib/routes';
 import { AuthLayout } from '@/components/auth-layout';
@@ -19,6 +20,14 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [maintenance, setMaintenance] = useState(params.get('maintenance') === '1');
+
+  // اكشف حالة الصيانة (حتى لو دخل الزائر /login مباشرة بلا وسيط)
+  useEffect(() => {
+    void getMaintenance().then((s) => {
+      if (s.maintenance) setMaintenance(true);
+    });
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,10 +50,8 @@ function LoginForm() {
     }
   }
 
-  const maintenance = params.get('maintenance') === '1';
-
   return (
-    <AuthLayout title="تسجيل الدخول" subtitle="أهلاً بعودتك إلى خطوة 👋">
+    <AuthLayout title="تسجيل الدخول" subtitle="أهلاً بعودتك إلى خطوة 👋" bare={maintenance}>
       {maintenance && (
         <p className="mb-4 rounded-xl bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
           🛠️ الموقع تحت الصيانة حالياً. الدخول متاح للمستخدمين المصرّح لهم فقط.
@@ -90,12 +97,14 @@ function LoginForm() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        ما عندك حساب؟{' '}
-        <Link href="/register" className="font-medium text-primary hover:underline">
-          سجّل الآن
-        </Link>
-      </p>
+      {!maintenance && (
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          ما عندك حساب؟{' '}
+          <Link href="/register" className="font-medium text-primary hover:underline">
+            سجّل الآن
+          </Link>
+        </p>
+      )}
     </AuthLayout>
   );
 }

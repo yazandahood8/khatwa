@@ -6,15 +6,22 @@ export function AuthLayout({
   title,
   subtitle,
   children,
+  bare = false,
 }: {
   title: string;
   subtitle: string;
   children: React.ReactNode;
+  bare?: boolean; // أثناء الصيانة: أخفِ اللوحة الترويجية واعرض النموذج فقط
 }) {
   return (
-    <main className="grid min-h-screen lg:grid-cols-2">
-      {/* اللوحة الترويجية — brand panel */}
-      <div className="relative hidden flex-col justify-between overflow-hidden gradient-primary p-12 text-white lg:flex">
+    <main className={bare ? 'flex min-h-screen items-center justify-center' : 'grid min-h-screen lg:grid-cols-2'}>
+      {/* اللوحة الترويجية — brand panel (تُخفى في وضع الصيانة) */}
+      <div
+        className={
+          'relative hidden flex-col justify-between overflow-hidden gradient-primary p-12 text-white lg:flex ' +
+          (bare ? '!hidden' : '')
+        }
+      >
         <Link href="/" className="flex items-center gap-2 font-display text-2xl font-bold">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 backdrop-blur-sm">
             خ
