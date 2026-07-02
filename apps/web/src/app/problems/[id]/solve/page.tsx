@@ -267,7 +267,12 @@ export default function SolvePage() {
                     <Keyboard /> لوحة المفاتيح
                   </Button>
                 </div>
-                <ScratchPad onAnalyze={(img) => aiRef.current?.sendDraft(img)} />
+                <ScratchPad
+                  onAnalyze={(img) => {
+                    setShowChat(true); // على الجوال: افتح لوح المساعد ليظهر الرد
+                    aiRef.current?.sendDraft(img);
+                  }}
+                />
               </div>
             )}
           </div>
@@ -298,32 +303,55 @@ export default function SolvePage() {
           )}
         </div>
 
-        {/* المساعد الذكي — AI tutor (desktop side panel) */}
-        <aside className="hidden w-[360px] shrink-0 border-r border-border p-4 lg:block">
-          <AiTutorPanel ref={aiRef} problemId={id} onSolved={handleAiSolved} getState={() => ({ attemptsCount: attempts, current })} />
+        {/* المساعد الذكي — نسخة واحدة تتكيّف: عمود جانبي على الحاسوب، لوح سفلي منزلق على الجوال.
+            نبقيها مركّبة دائماً (حتى مغلقة على الجوال) كي تبقى المحادثة والـ ref ثابتَين. */}
+        <aside
+          className={cn(
+            'fixed inset-x-0 bottom-0 z-50 h-[78vh] rounded-t-2xl border-t border-border bg-card p-4 shadow-float transition-transform duration-300',
+            'lg:static lg:z-auto lg:h-auto lg:w-[360px] lg:shrink-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:border-r lg:bg-transparent lg:shadow-none lg:transition-none',
+            showChat ? 'translate-y-0' : 'translate-y-full',
+          )}
+        >
+          {/* مقبض السحب + إغلاق (جوال فقط) */}
+          <div className="relative mb-2 flex h-5 items-center lg:hidden">
+            <span className="mx-auto h-1.5 w-12 rounded-full bg-border" />
+            <button
+              onClick={() => setShowChat(false)}
+              className="absolute end-0 text-muted-foreground"
+              aria-label="إغلاق"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="h-[calc(100%-1.75rem)] lg:h-full">
+            <AiTutorPanel
+              ref={aiRef}
+              problemId={id}
+              onSolved={handleAiSolved}
+              getState={() => ({ attemptsCount: attempts, current })}
+            />
+          </div>
         </aside>
       </div>
 
-      {/* زرّ المحادثة العائم — mobile floating chat button */}
-      <button
-        onClick={() => setShowChat(true)}
-        className="fixed bottom-5 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float lg:hidden"
-        aria-label="افتح المساعد الذكي"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </button>
-
-      {/* لوح المحادثة على الجوال — mobile chat sheet */}
+      {/* خلفية معتمة للّوح على الجوال — mobile sheet backdrop */}
       {showChat && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-foreground/40 backdrop-blur-sm lg:hidden">
-          <button className="flex-1" aria-label="إغلاق" onClick={() => setShowChat(false)} />
-          <div className="h-[70vh] rounded-t-2xl bg-card p-4">
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-border" />
-            <div className="h-[calc(100%-1.5rem)]">
-              <AiTutorPanel ref={aiRef} problemId={id} onSolved={handleAiSolved} getState={() => ({ attemptsCount: attempts, current })} />
-            </div>
-          </div>
-        </div>
+        <button
+          className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm lg:hidden"
+          aria-label="إغلاق"
+          onClick={() => setShowChat(false)}
+        />
+      )}
+
+      {/* زرّ المحادثة العائم — mobile floating chat button (يختفي عند فتح اللوح) */}
+      {!showChat && (
+        <button
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-5 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float lg:hidden"
+          aria-label="افتح المساعد الذكي"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
       )}
 
       {celebrate && (
