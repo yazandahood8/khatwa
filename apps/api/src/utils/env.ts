@@ -37,6 +37,14 @@ const envSchema = z.object({
     .optional()
     .transform((v) => v === 'true' || v === '1'),
 
+  // وضع الصيانة — يحجب الجميع ويسجّل خروجهم، إلا البُرد في ALLOWED_EMAILS. اضبط "on" للتفعيل.
+  MAINTENANCE_MODE: z
+    .string()
+    .optional()
+    .transform((v) => v === 'on' || v === 'true' || v === '1'),
+  // قائمة البُرد المسموح لها أثناء الصيانة، مفصولة بفواصل. مثال: a@x.com,b@y.com
+  ALLOWED_EMAILS: z.string().optional().default(''),
+
   // البريد — Transactional email over SMTP (provider-agnostic; optional).
   // عند غياب الإعداد يُسجَّل البريد في اللوج بدل إرساله (تطوير).
   SMTP_HOST: z.string().optional(),

@@ -41,8 +41,15 @@ function LoginForm() {
     }
   }
 
+  const maintenance = params.get('maintenance') === '1';
+
   return (
     <AuthLayout title="تسجيل الدخول" subtitle="أهلاً بعودتك إلى خطوة 👋">
+      {maintenance && (
+        <p className="mb-4 rounded-xl bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
+          🛠️ الموقع تحت الصيانة حالياً. الدخول متاح للمستخدمين المصرّح لهم فقط.
+        </p>
+      )}
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <Label htmlFor="email">البريد الإلكتروني</Label>

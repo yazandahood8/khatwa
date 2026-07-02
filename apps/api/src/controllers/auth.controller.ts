@@ -6,6 +6,7 @@ import { signToken } from '../utils/jwt';
 import { toPublicUser } from '../services/userMapper';
 import { ApiError } from '../utils/ApiError';
 import { env } from '../utils/env';
+import { maintenanceOn, isEmailAllowed, maintenanceError } from '../utils/maintenance';
 
 /** اشتراك الطالب الافتراضي عند التسجيل — free, أو premium لشهر أثناء البيتا المغلقة. */
 function defaultStudentSubscription() {
@@ -18,6 +19,9 @@ function defaultStudentSubscription() {
 /** POST /api/auth/register — إنشاء حساب جديد (طالب أو ولي أمر). */
 export async function register(req: Request, res: Response<{ success: true; data: AuthResponse }>) {
   const input = registerSchema.parse(req.body);
+
+  // أثناء الصيانة: امنع تسجيل غير المسموح لهم
+  if (maintenanceOn() && !isEmailAllowed(input.email)) throw maintenanceError();
 
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
@@ -56,6 +60,9 @@ export async function login(req: Request, res: Response<{ success: true; data: A
   if (!ok) {
     throw ApiError.unauthorized('البريد الإلكتروني أو كلمة السر غير صحيحة');
   }
+
+  // أثناء الصيانة: امنع دخول غير المسموح لهم
+  if (maintenanceOn() && !isEmailAllowed(user.email)) throw maintenanceError();
 
   await prisma.user.update({ where: { id: user.id }, data: { lastActive: new Date() } });
 

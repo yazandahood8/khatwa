@@ -1,4 +1,4 @@
-import { getToken } from './auth-cookies';
+import { getToken, clearSession } from './auth-cookies';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -42,6 +42,13 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (!res.ok || !body.success) {
     const err = body.error;
+    // وضع الصيانة: سجّل خروج المستخدم فوراً ووجّهه لصفحة الدخول
+    if (err?.code === 'MAINTENANCE' && typeof window !== 'undefined') {
+      clearSession();
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login?maintenance=1';
+      }
+    }
     throw new ApiClientError(err?.code ?? 'ERROR', err?.message ?? 'حدث خطأ', err?.details);
   }
   return body.data as T;
