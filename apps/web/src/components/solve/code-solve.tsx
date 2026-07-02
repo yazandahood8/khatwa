@@ -66,6 +66,15 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     else router.push('/courses');
   }
 
+  // حلّ من جديد — امسح آخر نتيجة وأخفِ لافتة الحل ليعيد الطالب الفحص (يُبقي كوده كما هو)
+  function resolveAgain() {
+    setFeedback('');
+    setVerdict(null);
+    setError(null);
+    setSolved(false);
+    setCelebrate(false);
+  }
+
   async function hint() {
     if (busy) return;
     setBusy(true);
@@ -226,13 +235,18 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
 
           {/* solved banner */}
           {solved && !celebrate && (
-            <div className="flex items-center justify-between rounded-xl bg-success/10 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-success/10 px-4 py-3">
               <span className="flex items-center gap-2 font-display font-semibold text-success">
                 <CheckCircle2 className="h-5 w-5" /> حللت المسألة!
               </span>
-              <Button variant="gradient" onClick={goNext}>
-                {next ? 'المسألة التالية' : 'إنهاء التمارين'}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={resolveAgain}>
+                  <RotateCcw /> حلّ من جديد
+                </Button>
+                <Button variant="gradient" onClick={goNext}>
+                  {next ? 'المسألة التالية' : 'إنهاء التمارين'}
+                </Button>
+              </div>
             </div>
           )}
         </div>
