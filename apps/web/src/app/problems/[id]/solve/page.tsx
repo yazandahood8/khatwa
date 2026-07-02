@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { X, Plus, CheckCircle2, Pencil, MessageCircle, RotateCcw } from 'lucide-react';
+import { X, Plus, CheckCircle2, Pencil, MessageCircle, RotateCcw, Keyboard } from 'lucide-react';
 import {
   getProblem,
   getProblems,
@@ -197,8 +197,8 @@ export default function SolvePage() {
               </div>
             </div>
 
-            {/* مسار الحل — solution builder / step path */}
-            {(steps.length > 0 || !solved) && (
+            {/* مسار الحل — solution builder / step path (يُخفى في وضع المسودة) */}
+            {!showPad && (steps.length > 0 || !solved) && (
               <div className="space-y-2">
                 <p className="font-display text-sm font-semibold text-muted-foreground">خطواتك</p>
                 <StepPath
@@ -260,14 +260,20 @@ export default function SolvePage() {
 
             {showPad && (
               <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-                <p className="mb-2 font-display text-sm font-semibold text-muted-foreground">مسودة حرة</p>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="font-display text-sm font-semibold text-muted-foreground">مسودة حرة</p>
+                  {/* العودة لوضع لوحة المفاتيح والخطوات */}
+                  <Button variant="secondary" size="sm" onClick={() => setShowPad(false)}>
+                    <Keyboard /> لوحة المفاتيح
+                  </Button>
+                </div>
                 <ScratchPad onAnalyze={(img) => aiRef.current?.sendDraft(img)} />
               </div>
             )}
           </div>
 
-          {/* لوحة المفاتيح + الأزرار — keyboard & actions (sticky bottom) */}
-          {!solved && (
+          {/* لوحة المفاتيح + الأزرار — keyboard & actions (يُخفى في وضع المسودة) */}
+          {!solved && !showPad && (
             <div className="mx-auto mt-4 w-full max-w-2xl space-y-3">
               <MathKeyboard
                 onInput={(t) => setCurrent((c) => c + t)}
