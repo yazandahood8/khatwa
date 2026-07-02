@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal, Lightbulb } from 'lucide-react';
 import { streamJudge } from '@/lib/ai-api';
+import { runCSharp } from '@/lib/run-code';
 import { getAttempt, getTopicProgress, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
 import { ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,8 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
   const [error, setError] = useState<string | null>(null);
   const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set());
   const [attemptedIds, setAttemptedIds] = useState<Set<string>>(new Set());
+  const [running, setRunning] = useState(false);
+  const [runOutput, setRunOutput] = useState<{ ok: boolean; text: string; note?: string } | null>(null);
   const rawRef = useRef('');
 
   useEffect(() => {
@@ -42,6 +45,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     setFeedback('');
     setVerdict(null);
     setError(null);
+    setRunOutput(null);
     getAttempt(id)
       .then((a) => {
         setAttempts(a?.attemptsCount ?? 0);
@@ -73,6 +77,22 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     setError(null);
     setSolved(false);
     setCelebrate(false);
+  }
+
+  // تشغيل الكود فعلياً (مترجم C# حقيقي عبر Wandbox)
+  async function run() {
+    if (!code.trim() || running) return;
+    setRunning(true);
+    setRunOutput(null);
+    setError(null);
+    try {
+      const r = await runCSharp(code);
+      setRunOutput({ ok: r.ok, text: r.output, note: r.note });
+    } catch {
+      setError('تعذّر تشغيل الكود. تحقّق من اتصالك وحاول مرة ثانية.');
+    } finally {
+      setRunning(false);
+    }
   }
 
   async function hint() {
@@ -193,13 +213,57 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="gradient" onClick={judge} disabled={busy || !code.trim()} className="flex-1 sm:flex-none">
+            <Button variant="gradient" onClick={judge} disabled={busy || running || !code.trim()} className="flex-1 sm:flex-none">
               <Play /> {busy && panelMode === 'judge' ? 'جارٍ الفحص…' : 'افحص كودي'}
             </Button>
-            <Button variant="secondary" onClick={hint} disabled={busy}>
+            <Button variant="secondary" onClick={run} disabled={busy || running || !code.trim()}>
+              <Terminal /> {running ? 'جارٍ التشغيل…' : 'شغّل'}
+            </Button>
+            <Button variant="secondary" onClick={hint} disabled={busy || running}>
               <Lightbulb /> {busy && panelMode === 'hint' ? 'جارٍ التلميح…' : 'تلميح'}
             </Button>
           </div>
+
+          {/* ناتج التشغيل — run output (terminal) */}
+          {(runOutput || running) && (
+            <div className="overflow-hidden rounded-2xl border border-border bg-[#1e1e2e] shadow-card">
+              <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2">
+                <Terminal className="h-3.5 w-3.5 text-white/60" />
+                <span className="font-mono text-xs text-white/60">الناتج</span>
+                {runOutput && !running && (
+                  <span
+                    className={cn(
+                      'ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                      runOutput.ok ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive',
+                    )}
+                  >
+                    {runOutput.ok ? 'تم بنجاح' : 'خطأ'}
+                  </span>
+                )}
+              </div>
+              <div className="max-h-72 overflow-auto p-4 scrollbar-thin" dir="ltr">
+                {running ? (
+                  <span className="font-mono text-sm text-white/40">…يشغّل كودك</span>
+                ) : (
+                  <>
+                    {runOutput?.note && (
+                      <p className="mb-2 font-sans text-xs text-warning" dir="rtl">
+                        {runOutput.note}
+                      </p>
+                    )}
+                    <pre
+                      className={cn(
+                        'whitespace-pre-wrap break-words font-mono text-sm leading-relaxed',
+                        runOutput?.ok ? 'text-[#d4d4e8]' : 'text-destructive',
+                      )}
+                    >
+                      {runOutput?.text || (!runOutput?.note ? '(لا يوجد ناتج)' : '')}
+                    </pre>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {error && (
             <p className="rounded-xl bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">{error}</p>
