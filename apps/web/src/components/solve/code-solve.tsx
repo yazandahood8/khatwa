@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal, Lightbulb } from 'lucide-react';
+import { X, Play, RotateCcw, CheckCircle2, AlertTriangle, XCircle, Terminal, Lightbulb, Eye } from 'lucide-react';
 import { streamJudge } from '@/lib/ai-api';
 import { runCode, getAttempt, getTopicProgress, type ProblemFull, type ProblemListItem } from '@/lib/problems-api';
 import { ApiClientError } from '@/lib/api';
@@ -42,7 +42,9 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     note?: string;
     match: boolean;
     gradable: boolean;
+    expected?: string;
   } | null>(null);
+  const [showExpected, setShowExpected] = useState(false);
   const rawRef = useRef('');
 
   useEffect(() => {
@@ -89,11 +91,19 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
     if (!code.trim() || running || busy) return;
     setRunning(true);
     setRunOutput(null);
+    setShowExpected(false);
     setVerdict(null);
     setError(null);
     try {
       const r = await runCode(id, code);
-      setRunOutput({ ok: r.ok, text: r.output, note: r.note, match: r.match, gradable: r.gradable });
+      setRunOutput({
+        ok: r.ok,
+        text: r.output,
+        note: r.note,
+        match: r.match,
+        gradable: r.gradable,
+        expected: r.expected,
+      });
       if (typeof r.attemptsCount === 'number') setAttempts(r.attemptsCount);
       if (r.match && !solved) {
         setSolved(true);
@@ -287,6 +297,16 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
                     >
                       {runOutput?.text || (!runOutput?.note ? '(لا يوجد ناتج)' : '')}
                     </pre>
+                    {runOutput?.ok && !runOutput.match && runOutput.gradable && runOutput.expected != null && (
+                      <button
+                        type="button"
+                        onClick={() => setShowExpected(true)}
+                        className="mt-3 flex items-center gap-1 font-sans text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+                        dir="rtl"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> أظهر الناتج المطلوب
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -346,6 +366,56 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
 
       {celebrate && (
         <Celebration attempts={attempts} isLast={!next} onNext={goNext} onClose={() => setCelebrate(false)} />
+      )}
+
+      {/* حوار الناتج المطلوب — expected-output dialog */}
+      {showExpected && runOutput?.expected != null && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-sm"
+          onClick={() => setShowExpected(false)}
+        >
+          <div
+            className="relative w-full max-w-lg animate-fade-slide-up rounded-2xl bg-card p-6 shadow-float"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowExpected(false)}
+              className="absolute left-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="إغلاق"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h2 className="mb-4 font-display text-lg font-bold">مقارنة الناتج</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-success">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> الناتج المطلوب
+                </p>
+                <pre
+                  className="max-h-60 overflow-auto rounded-xl border border-success/30 bg-[#1e1e2e] p-3 font-mono text-sm leading-relaxed text-[#d4d4e8] scrollbar-thin"
+                  dir="ltr"
+                >
+                  {runOutput.expected || '(فارغ)'}
+                </pre>
+              </div>
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-destructive">
+                  <XCircle className="h-3.5 w-3.5" /> ناتجك
+                </p>
+                <pre
+                  className="max-h-60 overflow-auto rounded-xl border border-destructive/30 bg-[#1e1e2e] p-3 font-mono text-sm leading-relaxed text-[#d4d4e8] scrollbar-thin"
+                  dir="ltr"
+                >
+                  {runOutput.text || '(فارغ)'}
+                </pre>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground" dir="rtl">
+              قارن السطرين وعدّل كودك حتى يتطابق الناتج تماماً.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

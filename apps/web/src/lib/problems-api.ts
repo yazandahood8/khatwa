@@ -71,6 +71,7 @@ export interface RunResult {
   note?: string;
   match: boolean; // طابق الناتج المرجعي
   gradable: boolean; // قابل للتقييم بالناتج (للمسألة ناتج مرجعي)
+  expected?: string; // الناتج المطلوب (يُرسَل عند الاختلاف فقط)
   attemptsCount?: number;
   completed?: boolean;
 }

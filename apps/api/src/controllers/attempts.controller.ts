@@ -125,6 +125,8 @@ export async function runCode(req: Request, res: Response) {
     note: student.note,
     match,
     gradable,
+    // نعرض الناتج المطلوب فقط عند الاختلاف (لمساعدة الطالب على المقارنة)
+    expected: gradable && !match ? expected : undefined,
     attemptsCount,
     completed,
   });
