@@ -322,22 +322,28 @@ async function seedQuestionnaireContent(subjectId: string) {
 }
 
 /**
- * يبني شجرة علوم الحاسوب: مادة ← صف (ثانوي) ← مستوى (3/5 وحدات) ← موضوع ← دروس ← مسائل برمجة.
+ * يبني بجروت علوم الحاسوب كمسار وحدات مستقل عن الصف:
+ *   مادة ← مستوى وحدات (3/5) ← موضوع (مُجمّع حسب الوِحدة عبر الوصف) ← دروس ← مسائل برمجة.
+ * لا صفوف هنا — علوم الحاسوب مادة بجروت تُعرض حسب عدد الوحدات (3/5) مثل مسارات الرياضيات 10-12.
  * مسائل البرمجة من نوع code (language='csharp') يقيّمها الذكاء الاصطناعي؛ الحل المرجعي في finalAnswer.
  */
 async function seedCs(subjectId: string) {
+  // تنظيف البنية القديمة: كانت CS تُزرع تحت "صف 10" فاختفت بعد إعادة هيكلة 10-12.
+  // حذف الصفوف يزيل بالتتالي مستوياتها/مواضيعها/دروسها القديمة قبل إعادة البناء كمسار وحدات.
+  await prisma.grade.deleteMany({ where: { subjectId } });
+
   const order = new Map<string, number>(); // level → running topic order
   let topics = 0;
   let lessons = 0;
   let coded = 0;
   let text = 0;
 
-  const grade = await ensureGrade(subjectId, 10); // المرحلة الثانوية (10–12)
   for (const t of CS_PLAN) {
-    const level = await ensureLevel(grade.id, t.level);
+    const unitLevel = parseInt(t.level, 10); // "3 وحدات" → 3، "5 وحدات" → 5
+    const level = await ensureTrackLevel(subjectId, unitLevel);
     const oi = order.get(t.level) ?? 0;
     order.set(t.level, oi + 1);
-    const topic = await ensureTopic(level.id, t.name, oi, t.unit);
+    const topic = await ensureTopic(level.id, t.name, oi, t.unit); // الوصف = الوِحدة (يُستخدم للتجميع بالعرض)
     topics++;
 
     if ((await prisma.lesson.count({ where: { topicId: topic.id } })) > 0) continue;

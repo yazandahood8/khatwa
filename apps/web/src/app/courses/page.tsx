@@ -86,7 +86,7 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
         ) : (
           <>
             {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
-            <HighSchoolTracks subjectId={subject.id} />
+            <HighSchoolTracks subjectId={subject.id} ctx={ctx} />
           </>
         ))}
     </div>

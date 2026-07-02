@@ -6,15 +6,20 @@ import { Users, Clock, ArrowLeft } from 'lucide-react';
 import {
   getUnitTracks,
   getQuestionnaires,
+  getTopics,
   type Level,
   type Questionnaire,
+  type Topic,
 } from '@/lib/content-api';
 import { Card } from '@/components/ui/card';
-import { Loading, Empty } from '@/components/courses/tree';
+import { Loading, Empty, TopicNode, type Ctx } from '@/components/courses/tree';
 import { cn } from '@/lib/utils';
 
-/** بطاقات المرحلة الثانوية (10-12): تبويبات وحدات (3/4/5) + بطاقات نموذج. */
-export function HighSchoolTracks({ subjectId }: { subjectId: string }) {
+/**
+ * مسارات المرحلة الثانوية حسب الوحدات (3/4/5): تبويبات وحدات + محتوى المسار.
+ * محتوى المسار: بطاقات نماذج (رياضيات — تحت questionnaire) أو شجرة مواضيع (علوم الحاسوب — تحت المستوى مباشرةً).
+ */
+export function HighSchoolTracks({ subjectId, ctx }: { subjectId: string; ctx: Ctx }) {
   const [tracks, setTracks] = useState<Level[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
 
@@ -29,6 +34,8 @@ export function HighSchoolTracks({ subjectId }: { subjectId: string }) {
 
   if (tracks === null) return <Loading />;
   if (tracks.length === 0) return null;
+
+  const activeTrack = tracks.find((t) => t.id === active) ?? null;
 
   return (
     <div className="space-y-4 px-2 py-3">
@@ -49,13 +56,58 @@ export function HighSchoolTracks({ subjectId }: { subjectId: string }) {
           </button>
         ))}
       </div>
-      {active && <QuestionnaireGrid levelId={active} />}
+      {activeTrack &&
+        // مسار قائم على النماذج (رياضيات) مقابل مسار مواضيع مباشرة (علوم الحاسوب).
+        ((activeTrack._count?.questionnaires ?? 0) > 0 ? (
+          <QuestionnaireGrid levelId={activeTrack.id} />
+        ) : (
+          <TrackTopicTree levelId={activeTrack.id} ctx={ctx} />
+        ))}
     </div>
   );
 }
 
 function trackLabel(t: Level) {
   return t.unitLevel ? `${t.unitLevel} وحدات` : t.name;
+}
+
+/** شجرة مواضيع مسار وحدات (علوم الحاسوب) — مواضيع مُجمّعة حسب الوِحدة (topic.description) ثم دروس/مسائل. */
+function TrackTopicTree({ levelId, ctx }: { levelId: string; ctx: Ctx }) {
+  const [topics, setTopics] = useState<Topic[] | null>(null);
+
+  useEffect(() => {
+    setTopics(null);
+    getTopics(levelId)
+      .then(setTopics)
+      .catch(() => setTopics([]));
+  }, [levelId]);
+
+  if (topics === null) return <Loading />;
+  if (topics.length === 0) return <Empty text="لا مواضيع في هذا المسار بعد." />;
+
+  // تجميع حسب الوِحدة مع الحفاظ على ترتيب المنهج
+  const groups: { unit: string; topics: Topic[] }[] = [];
+  for (const t of topics) {
+    const unit = t.description ?? '';
+    const g = groups.find((x) => x.unit === unit);
+    if (g) g.topics.push(t);
+    else groups.push({ unit, topics: [t] });
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-1">
+      {groups.map((g) => (
+        <div key={g.unit || 'ungrouped'}>
+          {g.unit && (
+            <p className="px-3 pb-1 pt-3 text-xs font-semibold text-muted-foreground">{g.unit}</p>
+          )}
+          {g.topics.map((t) => (
+            <TopicNode key={t.id} topic={t} ctx={ctx} depth={1} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function QuestionnaireGrid({ levelId }: { levelId: string }) {
