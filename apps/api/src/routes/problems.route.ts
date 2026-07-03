@@ -15,6 +15,7 @@ router.get('/ai/quota', requireAuth, aiQuota);
 
 // قراءة — reads (any authed user)
 router.get('/problems', requireAuth, p.listProblems);
+router.get('/problems/by-code/:code', requireAuth, p.getProblemByCode); // مسح الباركود: كود → id
 router.get('/problems/:id', requireAuth, p.getProblem);
 
 // حل المسائل — solving (students)

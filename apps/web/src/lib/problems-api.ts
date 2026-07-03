@@ -42,7 +42,19 @@ export interface ProblemFull extends ProblemListItem {
 
 export const getProblems = (topicId: string) =>
   apiFetch<ProblemListItem[]>(`/api/problems?topicId=${topicId}`);
+
+// كل المسائل (بلا فلترة موضوع) — used by the admin QR-print page. Admin يرى الكود واللغة.
+export interface AdminProblemRow extends ProblemListItem {
+  code: string | null;
+  language: string | null;
+}
+export const getAllProblems = () => apiFetch<AdminProblemRow[]>('/api/problems');
 export const getProblem = (id: string) => apiFetch<ProblemFull>(`/api/problems/${id}`);
+// مسح الباركود: كود المسألة الثابت → معرّفها (+ نوعها للتحقق أنها رياضيات).
+export const getProblemByCode = (code: string) =>
+  apiFetch<{ id: string; language: string | null }>(
+    `/api/problems/by-code/${encodeURIComponent(code)}`,
+  );
 export const createProblem = (body: CreateProblemInput) =>
   apiFetch<ProblemFull>('/api/problems', { method: 'POST', body: JSON.stringify(body) });
 export const updateProblem = (id: string, body: UpdateProblemInput) =>

@@ -17,8 +17,10 @@ const askSchema = z.object({
     .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) }))
     .max(20)
     .optional(),
-  // صورة مسودة الطالب (base64 PNG) — optional handwritten draft image
+  // صورة مسودة الطالب أو صورة ورقته (base64) — optional handwritten draft or paper photo
   image: z.string().max(4_000_000).optional(),
+  // نوع الصورة — PNG للمسودة المرسومة، JPEG لصورة الكاميرا (أخفّ حجماً)
+  mediaType: z.enum(['image/png', 'image/jpeg']).default('image/png'),
 });
 
 const judgeSchema = z.object({
@@ -176,7 +178,7 @@ export async function askTutor(req: Request, res: Response) {
     ? [
         {
           type: 'image' as const,
-          source: { type: 'base64' as const, media_type: 'image/png' as const, data: input.image },
+          source: { type: 'base64' as const, media_type: input.mediaType, data: input.image },
         },
         { type: 'text' as const, text: input.message },
       ]

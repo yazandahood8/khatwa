@@ -17,6 +17,7 @@ const PROTECTED: { prefix: string; roles: UserRole[] }[] = [
   { prefix: '/lessons', roles: ALL_ROLES },
   { prefix: '/problems', roles: ALL_ROLES },
   { prefix: '/settings', roles: ALL_ROLES },
+  { prefix: '/scan', roles: ALL_ROLES }, // مسح باركود السؤال من الورقة
 ];
 
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -35,10 +36,10 @@ export function middleware(req: NextRequest) {
   const rule = PROTECTED.find((r) => pathname.startsWith(r.prefix));
   if (!rule) return NextResponse.next();
 
-  // غير مسجّل → صفحة الدخول مع callback
+  // غير مسجّل → صفحة الدخول مع callback (نحفظ المسار + الاستعلام مثل ?c= لمسح الباركود)
   if (!isLoggedIn) {
     const url = new URL('/login', req.url);
-    url.searchParams.set('callbackUrl', pathname);
+    url.searchParams.set('callbackUrl', pathname + req.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
@@ -61,6 +62,8 @@ export const config = {
     '/lessons/:path*',
     '/problems/:path*',
     '/settings/:path*',
+    '/scan/:path*',
+    '/scan',
     ...AUTH_PAGES,
   ],
 };

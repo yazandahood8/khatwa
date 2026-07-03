@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 export interface AiTutorHandle {
   sendStep: (stepText: string) => void;
   sendDraft: (imageBase64: string) => void;
+  sendPhoto: (imageBase64: string, mediaType?: 'image/png' | 'image/jpeg') => void;
 }
 
 interface Props {
@@ -62,7 +63,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  async function send(userMessage: string, image?: string) {
+  async function send(userMessage: string, image?: string, mediaType?: 'image/png' | 'image/jpeg') {
     if (busy) return;
     setError(null);
     const history = messages.filter((m) => m.content.trim()).slice(-10);
@@ -76,7 +77,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     try {
       const { remaining: rem } = await streamTutor(
         problemId,
-        { message: userMessage, attemptsCount: getState().attemptsCount, history, image },
+        { message: userMessage, attemptsCount: getState().attemptsCount, history, image, mediaType },
         (chunk) => {
           acc += chunk;
           speaker?.feed(chunk); // ينطق فور اكتمال كل جملة
@@ -109,6 +110,9 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     },
     sendDraft: (imageBase64: string) => {
       void send('📝 هاي مسودتي المكتوبة بخط يدي، راجعها وساعدني', imageBase64);
+    },
+    sendPhoto: (imageBase64: string, mediaType: 'image/png' | 'image/jpeg' = 'image/jpeg') => {
+      void send('📄 صورة ورقتي — السؤال وحلّي، حلّلها من فضلك', imageBase64, mediaType);
     },
   }));
 

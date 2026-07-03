@@ -53,6 +53,19 @@ export async function getProblem(req: Request, res: Response) {
   ok(res, safe);
 }
 
+/**
+ * GET /api/problems/by-code/:code — ترجمة كود المسألة (الباركود) إلى معرّفها.
+ * تُستخدم في مسح الباركود من الورقة المطبوعة: الكود الثابت → id للتوجيه لصفحة الحل.
+ */
+export async function getProblemByCode(req: Request, res: Response) {
+  const problem = await prisma.problem.findUnique({
+    where: { code: req.params.code },
+    select: { id: true, language: true },
+  });
+  if (!problem) throw ApiError.notFound('المسألة غير موجودة');
+  ok(res, problem);
+}
+
 /** POST /api/problems — إنشاء مسألة كاملة (admin). */
 export async function createProblem(req: Request, res: Response) {
   const input = createProblemSchema.parse(req.body);

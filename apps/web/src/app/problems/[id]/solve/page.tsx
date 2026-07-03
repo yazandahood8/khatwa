@@ -17,6 +17,7 @@ import { Math } from '@/components/math/math';
 import { MathKeyboard } from '@/components/math/math-keyboard';
 import { ScratchPad } from '@/components/math/scratch-pad';
 import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-panel';
+import { PhotoCaptureButton, type PhotoCaptureHandle } from '@/components/solve/photo-capture-button';
 import { CodeSolve } from '@/components/solve/code-solve';
 import { QuestionNav } from '@/components/solve/question-nav';
 import { ReferenceButton } from '@/components/solve/reference-button';
@@ -45,7 +46,15 @@ export default function SolvePage() {
   const [shake, setShake] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const aiRef = useRef<AiTutorHandle>(null);
+  const photoRef = useRef<PhotoCaptureHandle>(null);
+  const photoAutoOpened = useRef(false);
   const solvedRef = useRef(false);
+
+  // يرسل صورة الورقة للمساعد ويفتح لوح المحادثة (على الجوال) — send paper photo to the assistant.
+  const handlePhoto = useCallback((base64: string, mediaType: 'image/png' | 'image/jpeg') => {
+    setShowChat(true);
+    aiRef.current?.sendPhoto(base64, mediaType);
+  }, []);
 
   const reset = () => {
     setCurrent('');
@@ -91,6 +100,18 @@ export default function SolvePage() {
       })
       .catch(() => {});
   }, [id]);
+
+  // قادم من مسح الباركود (?photo=1): افتح الكاميرا فوراً لتصوير الورقة — auto-open camera after scan.
+  // ملاحظة: بعض المتصفحات تمنع الفتح البرمجي بلا لمسة، لذا يبقى زر "صوّر ورقتك" ظاهراً كبديل.
+  useEffect(() => {
+    if (photoAutoOpened.current || !problem || problem.language) return;
+    const wantPhoto = new URLSearchParams(window.location.search).get('photo') === '1';
+    if (!wantPhoto) return;
+    photoAutoOpened.current = true;
+    photoRef.current?.open();
+    // نظّف الرابط حتى لا يُعاد الفتح عند التنقّل — drop the flag from the URL.
+    router.replace(`/problems/${id}/solve`);
+  }, [problem, id, router]);
 
   const index = sequence.findIndex((p) => p.id === id);
   const total = sequence.length;
@@ -298,6 +319,12 @@ export default function SolvePage() {
                 <Button variant="ghost" onClick={() => setShowPad((v) => !v)}>
                   <Pencil /> مسودة
                 </Button>
+                {/* صوّر ورقتك — التقط صورة السؤال وحلّك من الورقة وأرسلها للمساعد */}
+                <PhotoCaptureButton
+                  ref={photoRef}
+                  onCapture={(r) => handlePhoto(r.base64, r.mediaType)}
+                  onError={(msg) => setFeedback({ correct: false, msg })}
+                />
               </div>
             </div>
           )}

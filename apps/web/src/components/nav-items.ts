@@ -8,6 +8,7 @@ import {
   Sparkles,
   BarChart3,
   Users,
+  QrCode,
 } from 'lucide-react';
 import type { NavItem } from '@/components/app-shell';
 
@@ -46,5 +47,6 @@ export function adminNav(newMethods = 0): NavItem[] {
     },
     { href: '/admin/subscriptions', label: 'الاشتراكات', icon: CreditCard },
     { href: '/admin/analytics', label: 'الإحصائيات', icon: BarChart3 },
+    { href: '/admin/print-qr', label: 'باركود الأسئلة', icon: QrCode },
   ];
 }
