@@ -38,7 +38,7 @@ export function createApp() {
       exposedHeaders: ['X-AI-Remaining'], // ليقرأها المتصفح من ردّ الـ AI
     }),
   );
-  app.use(express.json({ limit: '3mb' })); // يتّسع لصورة المسودة (base64)
+  app.use(express.json({ limit: '5mb' })); // يتّسع لصورة الكاميرا/المسودة (base64 حتى 4M)
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(isProduction ? 'combined' : 'dev'));
 

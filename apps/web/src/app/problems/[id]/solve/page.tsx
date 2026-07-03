@@ -18,6 +18,7 @@ import { MathKeyboard } from '@/components/math/math-keyboard';
 import { ScratchPad } from '@/components/math/scratch-pad';
 import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-panel';
 import { PhotoCaptureButton, type PhotoCaptureHandle } from '@/components/solve/photo-capture-button';
+import { PhoneCaptureHandoff } from '@/components/solve/phone-capture-handoff';
 import { CodeSolve } from '@/components/solve/code-solve';
 import { QuestionNav } from '@/components/solve/question-nav';
 import { ReferenceButton } from '@/components/solve/reference-button';
@@ -324,6 +325,12 @@ export default function SolvePage() {
                   ref={photoRef}
                   onCapture={(r) => handlePhoto(r.base64, r.mediaType)}
                   onError={(msg) => setFeedback({ correct: false, msg })}
+                />
+                {/* على الكمبيوتر: امسح الباركود بجوالك، صوّر الورقة، ويظهر الرد هنا */}
+                <PhoneCaptureHandoff
+                  problemId={id}
+                  onPhoto={handlePhoto}
+                  triggerClassName="hidden sm:inline-flex"
                 />
               </div>
             </div>

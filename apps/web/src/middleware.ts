@@ -18,6 +18,7 @@ const PROTECTED: { prefix: string; roles: UserRole[] }[] = [
   { prefix: '/problems', roles: ALL_ROLES },
   { prefix: '/settings', roles: ALL_ROLES },
   { prefix: '/scan', roles: ALL_ROLES }, // مسح باركود السؤال من الورقة
+  { prefix: '/capture', roles: ALL_ROLES }, // الجوال يصوّر الورقة (ربط بالكمبيوتر)
 ];
 
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -64,6 +65,8 @@ export const config = {
     '/settings/:path*',
     '/scan/:path*',
     '/scan',
+    '/capture/:path*',
+    '/capture',
     ...AUTH_PAGES,
   ],
 };
