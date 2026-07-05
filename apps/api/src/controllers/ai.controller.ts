@@ -6,7 +6,13 @@ import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../servic
 import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { recordDiscoveredMethod } from '../services/newMethod';
 import { matchStep } from '../services/stepMatch';
-import { buildTutorSystemPrompt, buildCodeJudgePrompt, buildCodeHintPrompt } from '../utils/aiPrompt';
+import {
+  buildTutorSystemPrompt,
+  buildCodeJudgePrompt,
+  buildCodeHintPrompt,
+  buildTraceTableJudgePrompt,
+  buildTraceRecJudgePrompt,
+} from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
 
@@ -30,6 +36,9 @@ const judgeSchema = z.object({
     .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(4000) }))
     .max(20)
     .optional(),
+  // صورة تتبّع مرسوم/مصوَّر (base64) — لأسئلة التتبّع العودي بالصناديق
+  image: z.string().max(4_000_000).optional(),
+  mediaType: z.enum(['image/png', 'image/jpeg']).default('image/png'),
 });
 
 /**
@@ -293,6 +302,7 @@ export async function judgeCode(req: Request, res: Response) {
   const problem = await prisma.problem.findUnique({
     where: { id: problemId },
     include: {
+      commonMistakes: true,
       topic: {
         include: {
           level: { include: { grade: { include: { subject: true } }, subject: true } },
@@ -305,8 +315,9 @@ export async function judgeCode(req: Request, res: Response) {
   if (!problem.language) {
     throw ApiError.badRequest('هذه ليست مسألة برمجة — استخدم المساعد التعليمي العادي');
   }
-  if (!input.hint && !input.code.trim()) {
-    throw ApiError.badRequest('اكتب كودك أولاً');
+  const isTrace = problem.kind === 'trace_table' || problem.kind === 'trace_rec';
+  if (!input.hint && !input.code.trim() && !input.image) {
+    throw ApiError.badRequest(isTrace ? 'اكتب تتبّعك أولاً' : 'اكتب كودك أولاً');
   }
 
   // تحديد المعدل حسب الباقة — rate limit by plan
@@ -331,18 +342,43 @@ export async function judgeCode(req: Request, res: Response) {
     language: problem.language,
     starterCode: problem.starterCode,
     referenceSolution: problem.finalAnswer,
+    commonMistakes: problem.commonMistakes.map((m) => ({
+      description: m.description,
+      wrongExample: m.wrongExample,
+      correction: m.correction,
+    })),
   };
-  const systemPrompt = input.hint ? buildCodeHintPrompt(ctx) : buildCodeJudgePrompt(ctx);
+  const systemPrompt = input.hint
+    ? buildCodeHintPrompt(ctx)
+    : problem.kind === 'trace_table'
+      ? buildTraceTableJudgePrompt(ctx)
+      : problem.kind === 'trace_rec'
+        ? buildTraceRecJudgePrompt(ctx)
+        : buildCodeJudgePrompt(ctx);
 
-  const userContent = input.hint
+  const answerLabel = isTrace ? 'إجابة الطالب (تتبّع)' : 'كود الطالب';
+  const userText = input.hint
     ? input.code.trim()
-      ? `كود الطالب الحالي (قد يكون ناقصاً):\n\n${input.code}\n\n(يطلب تلميحاً)`
-      : 'الطالب لم يكتب كوداً بعد ويطلب تلميحاً للبداية.'
-    : `كود الطالب:\n\n${input.code}`;
+      ? `${answerLabel} الحالية (قد تكون ناقصة):\n\n${input.code}\n\n(يطلب تلميحاً)`
+      : 'الطالب لم يكتب شيئاً بعد ويطلب تلميحاً للبداية.'
+    : input.code.trim()
+      ? `${answerLabel}:\n\n${input.code}`
+      : `${answerLabel}: (مرفقة كصورة مرسومة/مصوَّرة)`;
+
+  // الدور الحالي: نصّ فقط أو نصّ + صورة تتبّع مرسوم — text, or image + text
+  const currentContent = input.image
+    ? [
+        {
+          type: 'image' as const,
+          source: { type: 'base64' as const, media_type: input.mediaType, data: input.image },
+        },
+        { type: 'text' as const, text: userText },
+      ]
+    : userText;
 
   const messages: Anthropic.MessageParam[] = [
     ...(input.history ?? []),
-    { role: 'user', content: userContent },
+    { role: 'user', content: currentContent },
   ];
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');

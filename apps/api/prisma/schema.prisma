@@ -217,6 +217,7 @@ model Problem {
   topicId         String     @map("topic_id")
   lessonId        String?    @map("lesson_id") // مسائل تدريب الدرس (اختياري)
   language        String? // null = رياضيات؛ "csharp" = مسألة برمجة يقيّمها AI
+  kind            String? // null = عادي؛ "trace_table" = جدول تتبّع؛ "trace_rec" = صناديق عودية
   starterCode     String?    @map("starter_code") // كود بداية اختياري لمسائل البرمجة
   allowFreeMethod Boolean    @default(true) @map("allow_free_method")
   orderIndex      Int        @default(0) @map("order_index")

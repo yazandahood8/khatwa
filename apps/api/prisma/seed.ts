@@ -17,6 +17,7 @@ import { LESSON_PROBLEMS } from './generators';
 import { CS_PLAN } from './csLessonPlan';
 import { CS_PROBLEMS } from './csGenerators';
 import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
+import { QUESTIONNAIRE_PROBLEMS } from './questionnaireProblems';
 
 const prisma = new PrismaClient();
 
@@ -287,6 +288,7 @@ async function seedUnitTracks(subjectId: string) {
 async function seedQuestionnaireContent(subjectId: string) {
   let topics = 0;
   let lessons = 0;
+  let worked = 0;
   for (const [numStr, content] of Object.entries(QUESTIONNAIRE_CONTENT)) {
     const number = Number(numStr);
     const q = await prisma.questionnaire.findFirst({
@@ -304,7 +306,7 @@ async function seedQuestionnaireContent(subjectId: string) {
       });
       topics++;
       for (const l of t.lessons) {
-        await prisma.lesson.create({
+        const lesson = await prisma.lesson.create({
           data: {
             topicId: topic.id,
             title: l.title,
@@ -315,10 +317,38 @@ async function seedQuestionnaireContent(subjectId: string) {
           },
         });
         lessons++;
+
+        // مسائل تدريب الدرس (سؤال + جواب + طريقة + أخطاء شائعة) إن وُجد مولّد
+        const gen = QUESTIONNAIRE_PROBLEMS[`${number}|${t.name}|${l.chapter}`];
+        if (gen) {
+          for (const [idx, p] of gen().entries()) {
+            await prisma.problem.create({
+              data: {
+                topicId: topic.id,
+                lessonId: lesson.id,
+                question: p.question,
+                finalAnswer: p.finalAnswer,
+                difficulty: p.difficulty,
+                orderIndex: idx,
+                allowFreeMethod: true,
+                methods: {
+                  create: {
+                    name: p.method.name,
+                    isRecommended: true,
+                    isApproved: true,
+                    steps: { create: p.method.steps.map((s, i) => ({ stepNumber: i + 1, ...s })) },
+                  },
+                },
+                commonMistakes: { create: p.commonMistakes },
+              },
+            });
+            worked++;
+          }
+        }
       }
     }
   }
-  console.log(`  ↳ questionnaire content: ${topics} topics, ${lessons} lessons`);
+  console.log(`  ↳ questionnaire content: ${topics} topics, ${lessons} lessons, ${worked} worked problems`);
 }
 
 /**
@@ -371,10 +401,14 @@ async function seedCs(subjectId: string) {
               question: p.question,
               finalAnswer: p.referenceSolution, // الحل المرجعي لتقييم AI
               language: 'csharp',
+              kind: p.kind ?? null, // null = اكتب كوداً؛ trace_table / trace_rec = تتبّع
               starterCode: p.starterCode ?? null,
               difficulty: p.difficulty,
               orderIndex: idx,
               allowFreeMethod: true,
+              ...(p.commonMistakes && p.commonMistakes.length > 0
+                ? { commonMistakes: { create: p.commonMistakes } }
+                : {}),
             },
           });
           coded++;

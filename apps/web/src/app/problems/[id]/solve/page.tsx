@@ -20,6 +20,8 @@ import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-pa
 import { PhotoCaptureButton, type PhotoCaptureHandle } from '@/components/solve/photo-capture-button';
 import { PhoneCaptureHandoff } from '@/components/solve/phone-capture-handoff';
 import { CodeSolve } from '@/components/solve/code-solve';
+import { TraceTable } from '@/components/solve/trace-table';
+import { TraceRecursion } from '@/components/solve/trace-recursion';
 import { QuestionNav } from '@/components/solve/question-nav';
 import { ReferenceButton } from '@/components/solve/reference-button';
 import { StepPath } from '@/components/solve/step-path';
@@ -174,6 +176,14 @@ export default function SolvePage() {
         </div>
       </div>
     );
+  }
+
+  // مسائل التتبّع — واجهات مخصّصة (جدول تتبّع / صناديق عودية) بدل محرّر الكود
+  if (problem.kind === 'trace_table') {
+    return <TraceTable problem={problem} sequence={sequence} />;
+  }
+  if (problem.kind === 'trace_rec') {
+    return <TraceRecursion problem={problem} sequence={sequence} />;
   }
 
   // مسألة برمجة (علوم الحاسوب) — واجهة كتابة الكود + المصحّح الذكي بدل الخطوات

@@ -33,6 +33,7 @@ export interface ProblemFull extends ProblemListItem {
   topicId: string;
   code: string | null;
   language: string | null; // "csharp" = مسألة برمجة يقيّمها AI
+  kind: string | null; // "trace_table" | "trace_rec" = مسألة تتبّع
   starterCode: string | null;
   answerTolerance: number;
   allowFreeMethod: boolean;

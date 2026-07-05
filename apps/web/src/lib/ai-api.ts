@@ -70,7 +70,13 @@ export async function streamTutor(
  */
 export async function streamJudge(
   problemId: string,
-  body: { code: string; history: TutorTurn[]; hint?: boolean },
+  body: {
+    code: string;
+    history: TutorTurn[];
+    hint?: boolean;
+    image?: string;
+    mediaType?: 'image/png' | 'image/jpeg';
+  },
   onToken: (chunk: string) => void,
 ): Promise<{ remaining: number | null }> {
   const token = getToken();
