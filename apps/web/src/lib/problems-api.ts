@@ -1,5 +1,5 @@
 import { apiFetch } from './api';
-import type { CreateProblemInput, UpdateProblemInput } from '@khatwa/shared';
+import type { CreateProblemInput, UpdateProblemInput, FigureSpec } from '@khatwa/shared';
 
 export interface ProblemListItem {
   id: string;
@@ -35,6 +35,8 @@ export interface ProblemFull extends ProblemListItem {
   language: string | null; // "csharp" = مسألة برمجة يقيّمها AI
   kind: string | null; // "trace_table" | "trace_rec" = مسألة تتبّع
   starterCode: string | null;
+  figure: FigureSpec | null; // مخطط هندسي اختياري يُعرض مع السؤال
+
   answerTolerance: number;
   allowFreeMethod: boolean;
   methods: SolutionMethod[];

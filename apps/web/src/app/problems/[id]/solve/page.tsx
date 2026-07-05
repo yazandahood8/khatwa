@@ -14,6 +14,7 @@ import {
   type ProblemListItem,
 } from '@/lib/problems-api';
 import { Math } from '@/components/math/math';
+import { ProblemFigure } from '@/components/math/problem-figure';
 import { MathKeyboard } from '@/components/math/math-keyboard';
 import { ScratchPad } from '@/components/math/scratch-pad';
 import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-panel';
@@ -227,6 +228,7 @@ export default function SolvePage() {
               <div className="text-xl leading-relaxed" dir="auto">
                 {problem ? problem.question : 'جارٍ التحميل…'}
               </div>
+              {problem?.figure && <ProblemFigure spec={problem.figure} />}
             </div>
 
             {/* مسار الحل — solution builder / step path (يُخفى في وضع المسودة) */}

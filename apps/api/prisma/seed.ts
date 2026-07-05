@@ -11,7 +11,7 @@
  * Idempotent: المواضيع upsert حسب (المستوى + الاسم)؛ الدروس/المسائل تُتخطّى إذا وُجدت.
  * تشغيل: npm run seed --workspace=apps/api
  */
-import { PrismaClient, Difficulty } from '@prisma/client';
+import { PrismaClient, Difficulty, type Prisma } from '@prisma/client';
 import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
 import { LESSON_PROBLEMS } from './generators';
 import { CS_PLAN } from './csLessonPlan';
@@ -180,6 +180,7 @@ async function ensureLessons(gradeNum: number, topicName: string, topicId: strin
             question: p.question,
             finalAnswer: p.finalAnswer,
             difficulty: p.difficulty,
+            figure: (p.figure ?? undefined) as Prisma.InputJsonValue | undefined,
             orderIndex: idx,
             allowFreeMethod: true,
             methods: {
