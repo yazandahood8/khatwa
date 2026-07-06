@@ -149,19 +149,39 @@ export async function payplusWebhook(req: Request, res: Response) {
 
 // ----------------------- Admin -----------------------
 
-/** GET /api/admin/subscriptions — كل الاشتراكات + الإيراد الشهري. */
+/** GET /api/admin/subscriptions — كل الاشتراكات + الإيراد الحقيقي (المدفوع فعلاً فقط). */
 export async function adminList(_req: Request, res: Response) {
   const subs = await prisma.subscription.findMany({
     where: { status: 'active' },
     orderBy: { createdAt: 'desc' },
     include: { student: { select: { id: true, name: true, email: true } } },
   });
-  const monthlyRevenue = subs.reduce((sum, s) => sum + (PRICE[s.plan as SubscriptionPlan] ?? 0), 0);
-  const counts = subs.reduce<Record<string, number>>((acc, s) => {
-    acc[s.plan] = (acc[s.plan] ?? 0) + 1;
+
+  const now = Date.now();
+  const rows = subs.map((s) => {
+    const expired = s.plan !== 'free' && !!s.endsAt && s.endsAt.getTime() < now;
+    const effectivePlan = expired ? SubscriptionPlan.FREE : (s.plan as SubscriptionPlan);
+    const isPaid = !expired && !!s.payplusSubscriptionId; // دفع فعلي عبر PayPlus فقط
+    const isTrial = !expired && effectivePlan !== SubscriptionPlan.FREE && !s.payplusSubscriptionId;
+    return { ...s, effectivePlan, expired, isPaid, isTrial };
+  });
+
+  // 💰 الإيراد الحقيقي: فقط الاشتراكات المدفوعة فعلاً عبر PayPlus وغير المنتهية.
+  // التجارب ومنح البيتا (بلا payplusSubscriptionId) ليست مالاً حقيقياً.
+  const monthlyRevenue = rows
+    .filter((r) => r.isPaid)
+    .reduce((sum, r) => sum + (PRICE[r.effectivePlan] ?? 0), 0);
+
+  const paying = rows.filter((r) => r.isPaid).length;
+  const trials = rows.filter((r) => r.isTrial).length;
+
+  // توزيع الباقات حسب الحالة الفعلية (المنتهية تُحتسب مجانية)
+  const counts = rows.reduce<Record<string, number>>((acc, r) => {
+    acc[r.effectivePlan] = (acc[r.effectivePlan] ?? 0) + 1;
     return acc;
   }, {});
-  ok(res, { subscriptions: subs, monthlyRevenue, counts });
+
+  ok(res, { subscriptions: rows, monthlyRevenue, paying, trials, counts });
 }
 
 /** PUT /api/admin/subscriptions/:studentId — منح/تغيير باقة طالب. */

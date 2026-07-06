@@ -42,6 +42,7 @@ export interface AdminAnalytics {
   aiCostUsd: number;
   planCounts: Record<string, number>;
   paid: number;
+  trials: number;
   conversion: number;
 }
 export const getAdminAnalytics = () => apiFetch<AdminAnalytics>('/api/admin/analytics');

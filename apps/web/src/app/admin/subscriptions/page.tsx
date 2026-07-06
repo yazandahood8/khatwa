@@ -11,9 +11,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const PLANS = ['free', 'basic', 'premium'];
 const PLAN_LABEL: Record<string, string> = { free: 'مجاني', basic: 'أساسي', premium: 'بريميوم' };
 
+function StatusBadge({ s }: { s: AdminSub }) {
+  if (s.expired)
+    return <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">منتهٍ</span>;
+  if (s.isPaid)
+    return <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">مدفوع 💳</span>;
+  if (s.isTrial)
+    return <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">تجربة</span>;
+  return <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">مجاني</span>;
+}
+
 export default function AdminSubscriptionsPage() {
   const [subs, setSubs] = useState<AdminSub[]>([]);
   const [revenue, setRevenue] = useState(0);
+  const [paying, setPaying] = useState(0);
+  const [trials, setTrials] = useState(0);
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   const load = useCallback(() => {
@@ -21,6 +33,8 @@ export default function AdminSubscriptionsPage() {
       .then((d) => {
         setSubs(d.subscriptions);
         setRevenue(d.monthlyRevenue);
+        setPaying(d.paying);
+        setTrials(d.trials);
         setCounts(d.counts);
       })
       .catch(() => {});
@@ -39,22 +53,39 @@ export default function AdminSubscriptionsPage() {
       <div className="grid gap-4 sm:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base text-muted-foreground">الإيراد الشهري</CardTitle>
+            <CardTitle className="text-base text-muted-foreground">
+              الإيراد الشهري الحقيقي
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{revenue} ₪</p>
+            <p className="text-xs text-muted-foreground">مدفوع فعلاً عبر PayPlus</p>
           </CardContent>
         </Card>
-        {PLANS.map((p) => (
-          <Card key={p}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base text-muted-foreground">{PLAN_LABEL[p]}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{counts[p] ?? 0}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-muted-foreground">مشتركون مدفوعون</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{paying}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-muted-foreground">قيد التجربة</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{trials}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-muted-foreground">مجاني</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{counts.free ?? 0}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -69,7 +100,10 @@ export default function AdminSubscriptionsPage() {
               {subs.map((s) => (
                 <div key={s.id} className="flex items-center justify-between gap-3 py-2">
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{s.student.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-medium">{s.student.name}</p>
+                      <StatusBadge s={s} />
+                    </div>
                     <p className="truncate text-xs text-muted-foreground" dir="ltr">
                       {s.student.email}
                     </p>

@@ -37,6 +37,7 @@ export default function AdminAnalyticsPage() {
         <Metric label="إجمالي الطلاب" value={a.students} icon="👥" />
         <Metric label="نشطون اليوم" value={a.activeToday} icon="🟢" />
         <Metric label="مشتركون مدفوعون" value={a.paid} icon="💎" />
+        <Metric label="قيد التجربة" value={a.trials} icon="⏳" />
         <Metric label="معدّل التحويل" value={`${a.conversion}%`} icon="📊" />
         <Metric label="الدروس" value={a.lessons} icon="🎬" />
         <Metric label="المسائل" value={a.problems} icon="✏️" />

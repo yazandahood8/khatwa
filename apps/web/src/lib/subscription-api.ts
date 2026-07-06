@@ -5,6 +5,9 @@ export interface CurrentSubscription {
   status: string;
   endsAt: string | null;
   aiDailyLimit: number;
+  aiMonthlyLimit?: number;
+  isTrial?: boolean;
+  trialDaysLeft?: number;
 }
 
 export const getCurrentSubscription = () =>
@@ -29,12 +32,20 @@ export interface AdminSub {
   plan: string;
   status: string;
   endsAt: string | null;
+  effectivePlan: string;
+  expired: boolean;
+  isPaid: boolean;
+  isTrial: boolean;
   student: { id: string; name: string; email: string };
 }
 export const getAdminSubscriptions = () =>
-  apiFetch<{ subscriptions: AdminSub[]; monthlyRevenue: number; counts: Record<string, number> }>(
-    '/api/admin/subscriptions',
-  );
+  apiFetch<{
+    subscriptions: AdminSub[];
+    monthlyRevenue: number;
+    paying: number;
+    trials: number;
+    counts: Record<string, number>;
+  }>('/api/admin/subscriptions');
 export const setStudentPlan = (studentId: string, plan: string) =>
   apiFetch(`/api/admin/subscriptions/${studentId}`, {
     method: 'PUT',

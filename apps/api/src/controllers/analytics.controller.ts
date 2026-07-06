@@ -13,16 +13,25 @@ export async function adminAnalytics(_req: Request, res: Response) {
       prisma.lesson.count(),
       prisma.problem.count(),
       prisma.aiSession.count(),
-      prisma.subscription.findMany({ where: { status: 'active' }, select: { plan: true } }),
+      prisma.subscription.findMany({
+        where: { status: 'active' },
+        select: { plan: true, endsAt: true, payplusSubscriptionId: true },
+      }),
       prisma.aiSession.aggregate({ _sum: { tokensUsed: true } }),
       prisma.problemAttempt.count(),
     ]);
 
-  const planCounts = subs.reduce<Record<string, number>>((acc, s) => {
+  const now = Date.now();
+  // استبعد الاشتراكات المنتهية (تجربة/مدفوع انتهى) — احسب بالحالة الفعلية.
+  const liveSubs = subs.filter((s) => !(s.plan !== 'free' && s.endsAt && s.endsAt.getTime() < now));
+
+  const planCounts = liveSubs.reduce<Record<string, number>>((acc, s) => {
     acc[s.plan] = (acc[s.plan] ?? 0) + 1;
     return acc;
   }, {});
-  const paid = (planCounts.basic ?? 0) + (planCounts.premium ?? 0);
+  // 💎 مدفوع = دفع فعلي عبر PayPlus فقط (التجارب لا تُحتسب).
+  const paid = liveSubs.filter((s) => s.payplusSubscriptionId).length;
+  const trials = liveSubs.filter((s) => s.plan !== 'free' && !s.payplusSubscriptionId).length;
   const conversion = students ? Math.round((paid / students) * 100) : 0;
 
   const totalTokens = tokensAgg._sum.tokensUsed ?? 0;
@@ -42,6 +51,7 @@ export async function adminAnalytics(_req: Request, res: Response) {
       aiCostUsd: Number(aiCostUsd.toFixed(2)),
       planCounts,
       paid,
+      trials,
       conversion,
     },
   });
