@@ -12,11 +12,11 @@ const PAID = [SubscriptionPlan.BASIC, SubscriptionPlan.PREMIUM] as const;
 const upgradeSchema = z.object({ plan: z.enum(PAID) });
 const adminSetSchema = z.object({ plan: z.nativeEnum(SubscriptionPlan) });
 
-/** أسعار الباقات الشهرية بالشيكل — monthly plan prices (₪). */
+/** أسعار الباقات الشهرية بالشيكل — monthly plan prices (₪). خطة واحدة مدفوعة: بريميوم 99₪. */
 const PRICE: Record<SubscriptionPlan, number> = {
   [SubscriptionPlan.FREE]: 0,
-  [SubscriptionPlan.BASIC]: 49,
-  [SubscriptionPlan.PREMIUM]: 79,
+  [SubscriptionPlan.BASIC]: 49, // مُلغاة من الواجهة — محفوظة للتوافق فقط
+  [SubscriptionPlan.PREMIUM]: 99,
 };
 
 function monthFromNow(): Date {

@@ -20,7 +20,7 @@ import { useToast } from '@/components/ui/toast';
 const PLAN_LABEL: Record<string, string> = {
   free: 'مجاني',
   basic: 'أساسي · 49₪',
-  premium: 'بريميوم · 79₪',
+  premium: 'بريميوم · 99₪',
 };
 
 export default function SubscriptionSettingsPage() {

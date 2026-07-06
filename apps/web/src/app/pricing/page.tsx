@@ -20,26 +20,19 @@ const TIERS = [
     cta: 'ابدأ مجاناً',
   },
   {
-    key: 'basic' as const,
-    name: 'أساسي',
-    price: '49',
-    featured: false,
-    features: ['كل الدروس المسجّلة', '50 سؤال للمساعد الذكي يومياً', 'تتبّع التقدّم', 'مسودة حرة (Scratch Pad)'],
-    cta: 'اشترك بالأساسي',
-  },
-  {
     key: 'premium' as const,
     name: 'بريميوم',
-    price: '79',
+    price: '99',
     featured: true,
     features: [
+      'تجربة مجانية 7 أيام',
       'كل الدروس المسجّلة',
-      '80 سؤال للمساعد الذكي يومياً',
+      '30 سؤال للمساعد الذكي يومياً (٥٠٠ شهرياً)',
       'تقارير أسبوعية مفصّلة للأهل',
       'أولوية في الدعم',
       'إشعارات تذكير ذكية',
     ],
-    cta: 'اشترك بالبريميوم',
+    cta: 'ابدأ تجربة 7 أيام مجاناً',
   },
 ];
 
@@ -82,11 +75,11 @@ export default function PricingPage() {
       <div className="mb-12 mt-4 text-center">
         <h1 className="font-display text-3xl font-bold sm:text-4xl">اختر باقتك</h1>
         <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
-          بدل 600₪ للمدرّس الخصوصي — مساعد ذكي 24/7 بسعر كوب قهوة بالأسبوع.
+          بدل 600₪ للمدرّس الخصوصي — مساعد ذكي 24/7 بسعر كوب قهوة بالأسبوع. جرّب 7 أيام مجاناً.
         </p>
       </div>
 
-      <div className="grid items-start gap-6 md:grid-cols-3">
+      <div className="mx-auto grid max-w-3xl items-start gap-6 md:grid-cols-2">
         {TIERS.map((t) => (
           <div
             key={t.key}

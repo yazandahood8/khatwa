@@ -146,7 +146,7 @@ export default function HomePage() {
               </Badge>
               <h3 className="mb-4 font-display text-lg font-semibold text-primary">خطوة</h3>
               <p className="mb-5 font-display text-3xl font-bold">
-                <span className="text-success">79₪</span>
+                <span className="text-success">99₪</span>
                 <span className="text-base font-normal text-muted-foreground"> / شهر</span>
               </p>
               <ul className="space-y-3 text-sm">
