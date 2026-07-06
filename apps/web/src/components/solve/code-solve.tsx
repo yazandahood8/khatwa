@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Celebration } from '@/components/solve/celebration';
 import { QuestionNav } from '@/components/solve/question-nav';
+import { ProblemFigure } from '@/components/math/problem-figure';
 import { ReferenceButton } from '@/components/solve/reference-button';
 import { CodeEditor } from '@/components/solve/code-editor';
 import { cn } from '@/lib/utils';
@@ -212,6 +213,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
             <div className="whitespace-pre-wrap text-lg leading-relaxed" dir="auto">
               {problem.question}
             </div>
+            {problem.figure && <ProblemFigure spec={problem.figure} />}
           </div>
 
           {/* محرّر الكود — code editor */}

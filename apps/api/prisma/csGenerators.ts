@@ -5,6 +5,7 @@
  * الدروس غير المغطّاة تستخدم نصوص أسئلة الخطة (بلا حلٍّ مرجعي) مؤقتاً.
  */
 import { Difficulty } from '@prisma/client';
+import type { FigureSpec } from '@khatwa/shared';
 
 export type CsMistake = { description: string; wrongExample: string; correction: string };
 export type CsProblem = {
@@ -1403,4 +1404,88 @@ GROUP BY City;`),
 FROM Students
 WHERE Grade > (SELECT AVG(Grade) FROM Students);`),
   ],
+};
+
+/**
+ * مخططات/أمثلة لأسئلة علوم الحاسوب (3 وحدات) — المفتاح `${مفتاح الدرس}#${ترتيب السؤال}` (يبدأ من 0).
+ * تُعرض تحت نصّ السؤال في محرّر الكود (CodeSolve). أسئلة التتبّع لها واجهتها الخاصة فتُستثنى.
+ */
+export const CS_FIGURES: Record<string, FigureSpec> = {
+  // ---------- ما هي علوم الحاسوب؟ ----------
+  '3 وحدات|ما هي علوم الحاسوب؟|5#0': { type: 'ioExample', output: 'أحمد' },
+  '3 وحدات|ما هي علوم الحاسوب؟|5#1': { type: 'ioExample', output: 'أحمد\n17' },
+  '3 وحدات|ما هي علوم الحاسوب؟|5#2': { type: 'ioExample', output: 'Write("A"); Write("B");        ⟶  AB\nWriteLine("A"); WriteLine("B"); ⟶\nA\nB', note: 'Write يبقى في نفس السطر؛ WriteLine ينتقل لسطر جديد.' },
+  '3 وحدات|ما هي علوم الحاسوب؟|5#3': { type: 'ioExample', output: '*\n**\n***\n****\n*****', note: 'الصف i فيه i نجمة (5 صفوف).' },
+
+  // ---------- المتغيرات وأنواع البيانات ----------
+  '3 وحدات|المتغيرات وأنواع البيانات|3#0': { type: 'ioExample', output: 'أحمد 17 89.5' },
+  '3 وحدات|المتغيرات وأنواع البيانات|4#0': { type: 'ioExample', output: '2', note: '17 = 3×5 + 2، فالباقي 2.' },
+  '3 وحدات|المتغيرات وأنواع البيانات|4#1': { type: 'ioExample', input: '5   3', output: '15' },
+  '3 وحدات|المتغيرات وأنواع البيانات|4#2': { type: 'ioExample', output: '7 / 2   = 3\n7.0 / 2 = 3.5', note: 'قسمة عددين صحيحين تقتطع الكسر؛ يكفي أن يكون أحدهما double.' },
+  '3 وحدات|المتغيرات وأنواع البيانات|4#3': { type: 'ioExample', input: '37', output: '98.6' },
+  '3 وحدات|المتغيرات وأنواع البيانات|6#0': { type: 'ioExample', input: 'سارة', output: 'أهلاً سارة!' },
+  '3 وحدات|المتغيرات وأنواع البيانات|6#1': { type: 'ioExample', input: '4\n6', output: '10' },
+  '3 وحدات|المتغيرات وأنواع البيانات|6#2': { type: 'ioExample', input: 'أحمد\n17', output: '2109', note: '2026 + (100 − 17) = 2109.' },
+  '3 وحدات|المتغيرات وأنواع البيانات|8#0': { type: 'arrayCells', values: ['ب', 'ر', 'ن', 'ا', 'م', 'ج'], highlight: [2], caption: 's[2] — الفهرسة تبدأ من 0' },
+  '3 وحدات|المتغيرات وأنواع البيانات|8#1': { type: 'ioExample', input: 'برنامج', output: 'جمانرب' },
+  '3 وحدات|المتغيرات وأنواع البيانات|8#2': { type: 'ioExample', output: 'level ⟶ true\nhello ⟶ false' },
+  '3 وحدات|المتغيرات وأنواع البيانات|8#3': { type: 'ioExample', input: 'Hello World', output: '3', note: 'الحروف المتحركة: e, o, o.' },
+
+  // ---------- الدوال (Methods) ----------
+  '3 وحدات|الدوال (Methods)|2#0': { type: 'ioExample', output: '********************', note: '20 نجمة.' },
+  '3 وحدات|الدوال (Methods)|2#1': { type: 'ioExample', output: '****\n****\n****\n****', note: 'n = 4.' },
+  '3 وحدات|الدوال (Methods)|2#2': { type: 'ioExample', output: '7 × 1 = 7\n7 × 2 = 14\n7 × 3 = 21\n…\n7 × 10 = 70' },
+  '3 وحدات|الدوال (Methods)|2#3': { type: 'ioExample', output: '  *\n ***\n*****\n ***\n  *', note: 'معيّن نجوم (مثال n = 3).' },
+  '3 وحدات|الدوال (Methods)|3#0': { type: 'ioExample', output: 'Max(8, 5) ⟶ 8' },
+  '3 وحدات|الدوال (Methods)|3#1': { type: 'ioExample', output: 'IsEven(6) ⟶ true\nIsEven(7) ⟶ false' },
+  '3 وحدات|الدوال (Methods)|3#2': { type: 'ioExample', output: 'CalcAverage(4, 5, 6) ⟶ 5' },
+  '3 وحدات|الدوال (Methods)|3#3': { type: 'ioExample', output: 'GCD(48, 18) ⟶ 6' },
+  '3 وحدات|الدوال (Methods)|6#0': { type: 'ioExample', output: 'Max3(4, 9, 7) ⟶ 9' },
+  '3 وحدات|الدوال (Methods)|6#1': { type: 'ioExample', output: 'IsPrime(7) ⟶ true\nIsPrime(9) ⟶ false' },
+  '3 وحدات|الدوال (Methods)|6#2': { type: 'ioExample', output: 'Celsius2Fahrenheit(37) ⟶ 98.6' },
+  '3 وحدات|الدوال (Methods)|6#3': { type: 'ioExample', output: 'Power(2, 5) ⟶ 32', note: '2×2×2×2×2 = 32.' },
+
+  // ---------- الشروط والتحقق ----------
+  '3 وحدات|الشروط والتحقق|3#0': { type: 'ioExample', output: '-4 ⟶ سالب\n0  ⟶ صفر\n7  ⟶ موجب' },
+  '3 وحدات|الشروط والتحقق|3#1': { type: 'ioExample', output: '40 ⟶ راسب\n72 ⟶ ناجح\n95 ⟶ ممتاز' },
+  '3 وحدات|الشروط والتحقق|3#2': { type: 'ioExample', output: '95 ⟶ ممتاز\n83 ⟶ جيد جداً\n64 ⟶ مقبول\n50 ⟶ راسب' },
+  '3 وحدات|الشروط والتحقق|3#3': { type: 'ioExample', output: '2000 ⟶ true\n1900 ⟶ false\n2024 ⟶ true' },
+
+  // ---------- حلقة while ----------
+  '3 وحدات|حلقة while|2#0': { type: 'ioExample', output: '10 9 8 7 6 5 4 3 2 1' },
+  '3 وحدات|حلقة while|2#1': { type: 'ioExample', output: '2 4 6 8 10 … 96 98 100' },
+  '3 وحدات|حلقة while|2#2': { type: 'ioExample', output: '1001', note: '1001 = 7 × 11 × 13 (يقبل القسمة على 7 و13).' },
+  '3 وحدات|حلقة while|3#0': { type: 'ioExample', input: '5', output: '15', note: '1+2+3+4+5 = 15.' },
+  '3 وحدات|حلقة while|3#1': { type: 'ioExample', input: '5', output: '120', note: '5! = 1×2×3×4×5.' },
+  '3 وحدات|حلقة while|3#2': { type: 'ioExample', input: '4 8 3 -1', output: 'المجموع 15، المتوسط 5' },
+  '3 وحدات|حلقة while|3#3': { type: 'ioExample', input: '1234', output: '10', note: '1+2+3+4 = 10.' },
+
+  // ---------- حلقة for ----------
+  '3 وحدات|حلقة for|1#0': { type: 'ioExample', output: '1 2 3 4 5 6 7 8 9 10' },
+  '3 وحدات|حلقة for|1#1': { type: 'ioExample', output: '7 14 21 28 35 42 49 56 63 70' },
+  '3 وحدات|حلقة for|1#3': { type: 'ioExample', output: '2 3 5 7 11 13 … 89 97' },
+  '3 وحدات|حلقة for|3#0': { type: 'ioExample', output: '*****\n*****\n*****\n*****\n*****' },
+  '3 وحدات|حلقة for|3#1': { type: 'ioExample', output: '*\n**\n***\n****', note: 'n = 4.' },
+  '3 وحدات|حلقة for|3#2': { type: 'ioExample', output: '1  2  3  … 10\n2  4  6  … 20\n…\n10 20 30 … 100' },
+  '3 وحدات|حلقة for|3#3': { type: 'ioExample', output: '* \n* * \n* * * \n* * * * ', note: 'كل نجمة متبوعة بمسافة.' },
+
+  // ---------- المصفوفة أحادية البعد ----------
+  '3 وحدات|المصفوفة أحادية البعد (Array)|2#0': { type: 'arrayCells', values: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'], highlight: [2], caption: 'days[2]' },
+  '3 وحدات|المصفوفة أحادية البعد (Array)|2#1': { type: 'arrayCells', values: ['2', '4', '6', '8'], highlight: [3], caption: 'a[a.Length − 1]' },
+  '3 وحدات|المصفوفة أحادية البعد (Array)|2#2': { type: 'ioExample', output: '{1, 2, 3, 4, 5} ⟶ {5, 4, 3, 2, 1}', note: 'عكس في المكان دون مصفوفة إضافية.' },
+  '3 وحدات|المصفوفة أحادية البعد (Array)|2#3': { type: 'arrayCells', values: ['·', '·', '·', '·', '·'], caption: 'new int[5] — الفهارس الصحيحة 0..4؛ arr[5] خارج الحدود' },
+  '3 وحدات|المصفوفة أحادية البعد (Array)|5#0': { type: 'arrayCells', values: ['3', '7', '1', '9', '4'], highlight: [1], caption: 'البحث التسلسلي عن 7 ⟶ الموقع 1' },
+  '3 وحدات|المصفوفة أحادية البعد (Array)|5#3': { type: 'ioExample', output: '{3, 9, 4, 9, 7} ⟶ ثاني أكبر = 7' },
+
+  // ---------- المصفوفة ثنائية البعد ----------
+  '3 وحدات|المصفوفة ثنائية البعد (2D Array)|2#0': { type: 'ioExample', output: '1 2 3\n4 5 6\n7 8 9' },
+  '3 وحدات|المصفوفة ثنائية البعد (2D Array)|2#3': { type: 'ioExample', output: 'الأصل      المنقول\n1 2 3      1 4 7\n4 5 6  ⟶  2 5 8\n7 8 9      3 6 9' },
+
+  // ---------- الوراثة وتعدد الأشكال ----------
+  '3 وحدات|الوراثة وتعدد الأشكال (Inheritance & Polymorphism)|2#3': { type: 'ioExample', output: 'هوهو', note: 'النوع الفعلي Dog يحدّد Speak() المُنفَّذة (تعدد الأشكال).' },
+  '3 وحدات|الوراثة وتعدد الأشكال (Inheritance & Polymorphism)|5#0': { type: 'ioExample', output: 'هوهو\nمياو\n(صوت عام)', note: 'كل غرض يستدعي Speak() الخاصة به.' },
+
+  // ---------- قواعد البيانات (SQL) ----------
+  '3 وحدات|قواعد البيانات ونظم المعلومات|3#0': { type: 'ioExample', input: "SELECT Name FROM Students WHERE City = 'حيفا';", output: 'Name\n----\nليان\nسامي' },
+  '3 وحدات|قواعد البيانات ونظم المعلومات|3#2': { type: 'ioExample', input: 'SELECT City, AVG(Grade) …', output: 'City    AvgGrade\n-----   --------\nحيفا    88\nعكا     91' },
 };

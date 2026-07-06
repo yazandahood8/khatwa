@@ -1,13 +1,18 @@
 'use client';
 
 import type { FigureSpec, TransversalPos } from '@khatwa/shared';
+import { cn } from '@/lib/utils';
 
 /**
- * يرسم مخطط سؤال هندسي كـ SVG تعريفي (بلا صور مرفوعة) — draws a geometry figure from a FigureSpec.
- * مخطط تخطيطي للتوضيح: المواقع والنِّسب ثابتة للقراءة، لا مرسومة بمقياس دقيق.
- * الألوان من الثيم: الشكل بـ currentColor (text-foreground)، والمطلوب/المبرَز بـ text-primary.
+ * يرسم مخطط سؤال كـ SVG تعريفي (رياضيات) أو كتلة HTML (مثال/مصفوفة لعلوم الحاسوب).
+ * مخطط تخطيطي للتوضيح؛ الألوان من الثيم (text-foreground / text-primary).
  */
 export function ProblemFigure({ spec }: { spec: FigureSpec }) {
+  // مخططات علوم الحاسوب تُعرض كـ HTML (نصّ أحادي المسافة / خلايا) لا كـ SVG.
+  if (spec.type === 'ioExample')
+    return <IoExample input={spec.input} output={spec.output} note={spec.note} />;
+  if (spec.type === 'arrayCells')
+    return <ArrayCells values={spec.values} showIndices={spec.showIndices} highlight={spec.highlight} caption={spec.caption} />;
   return (
     <div className="mt-4 flex justify-center">
       <svg
@@ -18,6 +23,46 @@ export function ProblemFigure({ spec }: { spec: FigureSpec }) {
       >
         <Figure spec={spec} />
       </svg>
+    </div>
+  );
+}
+
+/* ---------------- CS: example & array (HTML) ---------------- */
+
+function IoExample({ input, output, note }: { input?: string; output: string; note?: string }) {
+  return (
+    <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3">
+      <p className="mb-1.5 text-xs font-semibold text-muted-foreground">مثال</p>
+      {input != null && input !== '' && (
+        <div className="mb-1.5 text-sm">
+          <span className="text-muted-foreground">المدخل: </span>
+          <code dir="ltr" className="font-mono">{input}</code>
+        </div>
+      )}
+      <div className="text-xs text-muted-foreground">الناتج:</div>
+      <pre dir="auto" className="mt-1 overflow-x-auto rounded-md bg-card p-2 font-mono text-[13px] leading-snug text-foreground">
+        {output}
+      </pre>
+      {note != null && note !== '' && <p className="mt-1.5 text-xs text-muted-foreground">{note}</p>}
+    </div>
+  );
+}
+
+function ArrayCells({ values, showIndices = true, highlight, caption }: { values: string[]; showIndices?: boolean; highlight?: number[]; caption?: string }) {
+  const hi = new Set(highlight ?? []);
+  return (
+    <div className="mt-4">
+      {caption != null && caption !== '' && <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{caption}</p>}
+      <div dir="ltr" className="flex gap-1 overflow-x-auto pb-1">
+        {values.map((v, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <div className={cn('flex h-9 min-w-[36px] items-center justify-center rounded-md border px-2 font-mono text-sm', hi.has(i) ? 'border-primary bg-primary/10 font-semibold text-primary' : 'border-border bg-card text-foreground')}>
+              {v}
+            </div>
+            {showIndices && <span className="mt-1 font-mono text-[10px] text-muted-foreground">{i}</span>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

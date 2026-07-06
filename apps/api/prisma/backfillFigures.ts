@@ -9,6 +9,7 @@
  */
 import { PrismaClient, type Prisma } from '@prisma/client';
 import { LESSON_PROBLEMS } from './generators';
+import { CS_PROBLEMS, CS_FIGURES } from './csGenerators';
 
 const prisma = new PrismaClient();
 
@@ -17,6 +18,7 @@ async function main() {
   let missing = 0;
   let withFigure = 0;
 
+  // --- رياضيات: المخطط مرفق بالمسألة نفسها، والمطابقة حسب الصف + الموضوع ---
   for (const [key, gen] of Object.entries(LESSON_PROBLEMS)) {
     const [gradeStr, topicName] = key.split('|');
     const gradeNumber = Number(gradeStr);
@@ -25,7 +27,6 @@ async function main() {
       if (!p.figure) continue;
       withFigure++;
 
-      // مطابقة دقيقة: نص السؤال داخل الموضوع الصحيح (الصف + اسم الموضوع).
       const res = await prisma.problem.updateMany({
         where: {
           question: p.question,
@@ -38,6 +39,31 @@ async function main() {
       else {
         missing++;
         console.warn(`  ⚠ لم يُعثر على مسألة مطابقة: [${key}] ${p.question.slice(0, 40)}…`);
+      }
+    }
+  }
+
+  // --- علوم الحاسوب: المخطط في CS_FIGURES بمفتاح `${مفتاح الدرس}#${الترتيب}`، والمطابقة حسب المستوى (3/5 وحدات) + الموضوع ---
+  for (const [key, gen] of Object.entries(CS_PROBLEMS)) {
+    const [level, topicName] = key.split('|');
+    const problems = gen();
+    for (let idx = 0; idx < problems.length; idx++) {
+      const fig = CS_FIGURES[`${key}#${idx}`];
+      if (!fig) continue;
+      withFigure++;
+
+      const res = await prisma.problem.updateMany({
+        where: {
+          question: problems[idx].question,
+          topic: { nameAr: topicName, level: { name: level } },
+        },
+        data: { figure: fig as unknown as Prisma.InputJsonValue },
+      });
+
+      if (res.count > 0) updated += res.count;
+      else {
+        missing++;
+        console.warn(`  ⚠ لم يُعثر على مسألة CS مطابقة: [${key}#${idx}] ${problems[idx].question.slice(0, 40)}…`);
       }
     }
   }

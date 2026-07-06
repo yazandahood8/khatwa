@@ -121,6 +121,10 @@ export type FigureSpec =
       marks?: { sides?: [0 | 1 | 2 | 3, 0 | 1 | 2 | 3, 0 | 1 | 2 | 3]; angles?: [0 | 1 | 2, 0 | 1 | 2, 0 | 1 | 2] };
       criterion?: string; // ض.ض.ض / ض.ز.ض …
     }
+  // --- علوم الحاسوب: مثال ناتج/مدخل (كتلة أحادية المسافة) ---
+  | { type: 'ioExample'; input?: string; output: string; note?: string }
+  // --- علوم الحاسوب: خلايا مصفوفة بقيَم وفهارس (مع إبراز) ---
+  | { type: 'arrayCells'; values: string[]; showIndices?: boolean; highlight?: number[]; caption?: string }
   // --- مثلثان متشابهان (نسبة التشابه/الظلال) ---
   | { type: 'similarTriangles'; a: [string, string, string?]; b: [string, string, string?]; right?: boolean }
   // --- نظرية طاليس: مثلث ABC وقطعة DE ∥ BC ---
