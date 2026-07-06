@@ -23,10 +23,31 @@ const PROTECTED: { prefix: string; roles: UserRole[] }[] = [
 
 const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'];
 
+/**
+ * يقرأ الدور من الـ JWT مباشرة — decode the role from the JWT payload (source of truth).
+ * لا نتحقق من التوقيع هنا (الـ API يفرضه على كل طلب)؛ هذا فقط لتوجيه الصفحات،
+ * ويتجنّب تضارب كوكي الدور المنفصل مع التوكن.
+ */
+function roleFromToken(token: string | undefined): UserRole | undefined {
+  if (!token) return undefined;
+  try {
+    const part = token.split('.')[1];
+    if (!part) return undefined;
+    const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded)) as { role?: UserRole };
+    return payload.role;
+  } catch {
+    return undefined;
+  }
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get(TOKEN_COOKIE)?.value;
-  const role = req.cookies.get(ROLE_COOKIE)?.value as UserRole | undefined;
+  // الدور من التوكن أولاً (المصدر الموثوق)، ثم كوكي الدور كاحتياط للتوافق.
+  const role =
+    roleFromToken(token) ?? (req.cookies.get(ROLE_COOKIE)?.value as UserRole | undefined);
   const isLoggedIn = Boolean(token);
 
   // مستخدم مسجّل يحاول فتح صفحة دخول/تسجيل → وجّهه للوحته
