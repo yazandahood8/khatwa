@@ -50,12 +50,18 @@ export type FigureSpec =
   | { type: 'rect'; w: string; h: string; square?: boolean; diagonal?: string }
   // مثلث بقاعدة وارتفاع (الارتفاع خطّ متقطّع عمودي)
   | { type: 'triangleBaseHeight'; base: string; height: string }
-  // مثلث قائم الزاوية: ضلعان قائمان + وتر (squares = مربّعات على الأضلاع لتفسير فيثاغورس)
-  | { type: 'rightTriangle'; legs: [string, string]; hyp?: string; squares?: boolean }
-  // متوازي أضلاع بقاعدة وارتفاع
-  | { type: 'parallelogram'; base: string; height: string }
-  // شبه منحرف بقاعدتين وارتفاع
-  | { type: 'trapezoid'; base1: string; base2: string; height: string }
+  // مثلث قائم الزاوية: ضلعان قائمان + وتر (squares = مربّعات فيثاغورس؛ altitude = ارتفاع على الوتر)
+  | {
+      type: 'rightTriangle';
+      legs: [string, string];
+      hyp?: string;
+      squares?: boolean;
+      altitude?: { seg1: string; seg2: string; h: string }; // الارتفاع من الزاوية القائمة على الوتر (المتوسط الهندسي)
+    }
+  // متوازي أضلاع: قاعدة/ارتفاع اختياريان، وزاوية معلّمة، وقطر اختياري
+  | { type: 'parallelogram'; base?: string; height?: string; angle?: string; diagonal?: boolean }
+  // شبه منحرف بقاعدتين وارتفاع (leg = ساق متساوي الساقين؛ mid = القطعة المتوسطة)
+  | { type: 'trapezoid'; base1: string; base2: string; height?: string; leg?: string; mid?: string }
   // معيّن بقطرين
   | { type: 'rhombus'; diag1: string; diag2: string }
   // --- الدائرة ---
@@ -95,6 +101,9 @@ export type FigureSpec =
       mappedPolygon?: { x: number; y: number }[]; // صورة المضلّع
       reflectAxis?: 'x' | 'y'; // محور انعكاس مبرَز
       rotationDeg?: number; // قوس دوران حول المبدأ
+      // قطوع مكافئة y=ax²+bx+c (عنصران: الأصل متقطّع + الصورة مبرَزة = تحويل)
+      parabolas?: { a: number; b?: number; c?: number; dashed?: boolean; accent?: boolean }[];
+      verticalLines?: number[]; // محاور تماثل (متقطّعة)
     }
   // --- مستقيم الأعداد (المتباينات) ---
   | {
@@ -112,6 +121,10 @@ export type FigureSpec =
       marks?: { sides?: [0 | 1 | 2 | 3, 0 | 1 | 2 | 3, 0 | 1 | 2 | 3]; angles?: [0 | 1 | 2, 0 | 1 | 2, 0 | 1 | 2] };
       criterion?: string; // ض.ض.ض / ض.ز.ض …
     }
+  // --- مثلثان متشابهان (نسبة التشابه/الظلال) ---
+  | { type: 'similarTriangles'; a: [string, string, string?]; b: [string, string, string?]; right?: boolean }
+  // --- نظرية طاليس: مثلث ABC وقطعة DE ∥ BC ---
+  | { type: 'triangleParallelLine'; ad: string; db: string; de: string; bc: string }
   // --- مجسّمات ثلاثية الأبعاد (isometric؛ الأسطوانة/المخروط بمنظور بسيط) ---
   | {
       type: 'solid';

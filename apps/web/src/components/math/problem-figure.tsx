@@ -125,11 +125,15 @@ function Figure({ spec }: { spec: FigureSpec }) {
     case 'triangleBaseHeight':
       return <TriangleBaseHeight base={spec.base} height={spec.height} />;
     case 'rightTriangle':
-      return <RightTriangle legs={spec.legs} hyp={spec.hyp} squares={spec.squares} />;
+      return <RightTriangle legs={spec.legs} hyp={spec.hyp} squares={spec.squares} altitude={spec.altitude} />;
     case 'parallelogram':
-      return <Parallelogram base={spec.base} height={spec.height} />;
+      return <Parallelogram base={spec.base} height={spec.height} angle={spec.angle} diagonal={spec.diagonal} />;
     case 'trapezoid':
-      return <Trapezoid base1={spec.base1} base2={spec.base2} height={spec.height} />;
+      return <Trapezoid base1={spec.base1} base2={spec.base2} height={spec.height} leg={spec.leg} mid={spec.mid} />;
+    case 'similarTriangles':
+      return <SimilarTriangles a={spec.a} b={spec.b} right={spec.right} />;
+    case 'triangleParallelLine':
+      return <TriangleParallelLine ad={spec.ad} db={spec.db} de={spec.de} bc={spec.bc} />;
     case 'rhombus':
       return <Rhombus diag1={spec.diag1} diag2={spec.diag2} />;
     case 'circle':
@@ -165,6 +169,8 @@ function Figure({ spec }: { spec: FigureSpec }) {
           mappedPolygon={spec.mappedPolygon}
           reflectAxis={spec.reflectAxis}
           rotationDeg={spec.rotationDeg}
+          parabolas={spec.parabolas}
+          verticalLines={spec.verticalLines}
         />
       );
     case 'numberLine':
@@ -626,7 +632,18 @@ function TriangleBaseHeight({ base, height }: { base: string; height: string }) 
   );
 }
 
-function RightTriangle({ legs, hyp, squares }: { legs: [string, string]; hyp?: string; squares?: boolean }) {
+function RightTriangle({
+  legs,
+  hyp,
+  squares,
+  altitude,
+}: {
+  legs: [string, string];
+  hyp?: string;
+  squares?: boolean;
+  altitude?: { seg1: string; seg2: string; h: string };
+}) {
+  if (altitude) return <RightTriangleAltitude seg1={altitude.seg1} seg2={altitude.seg2} h={altitude.h} />;
   // مع squares نُصغّر المثلث لإفساح المجال للمربّعات على الأضلاع.
   const A: [number, number] = squares ? [110, 86] : [60, 122]; // الزاوية القائمة
   const B: [number, number] = squares ? [150, 86] : [186, 122];
@@ -695,39 +712,81 @@ function PythSquares({
   );
 }
 
-function Parallelogram({ base, height }: { base: string; height: string }) {
-  const pts: [number, number][] = [
-    [55, 120],
-    [175, 120],
-    [205, 50],
-    [85, 50],
-  ];
+/** مثلث قائم مع الارتفاع على الوتر (المتوسط الهندسي): الوتر أفقي والرأس القائم فوق القدم. */
+function RightTriangleAltitude({ seg1, seg2, h }: { seg1: string; seg2: string; h: string }) {
+  const A: [number, number] = [40, 120]; // يسار الوتر
+  const B: [number, number] = [200, 120]; // يمين الوتر
+  // قدم الارتفاع D تقسم الوتر بنسبة seg1:seg2 (تخطيطي، وإلا المنتصف)
+  const r1 = num(seg1, 1);
+  const r2 = num(seg2, 1);
+  const t = r1 + r2 > 0 ? r1 / (r1 + r2) : 0.5;
+  const D: [number, number] = [A[0] + (B[0] - A[0]) * t, 120];
+  const apexY = 46;
+  const C: [number, number] = [D[0], apexY]; // الزاوية القائمة فوق القدم
   return (
     <>
-      <polygon points={pts.map((p) => p.join(',')).join(' ')} {...outline} />
-      <Dashed x1={110} y1={50} x2={110} y2={120} muted />
-      <RightAngleBox x={110} y={120} dx={1} dy={-1} />
-      <Label x={115} y={134} text={base} accent={isTarget(base)} />
-      <Label x={124} y={86} text={height} accent={isTarget(height)} />
+      <polygon points={`${A} ${B} ${C}`} {...outline} />
+      <Dashed x1={C[0]} y1={C[1]} x2={D[0]} y2={D[1]} muted />
+      <RightAngleBox x={C[0]} y={C[1]} dx={-1} dy={1} />
+      <RightAngleBox x={D[0]} y={D[1]} dx={1} dy={-1} />
+      <Label x={(A[0] + D[0]) / 2} y={134} text={seg1} accent={isTarget(seg1)} />
+      <Label x={(D[0] + B[0]) / 2} y={134} text={seg2} accent={isTarget(seg2)} />
+      <Label x={D[0] + 14} y={(apexY + 120) / 2} text={h} accent={isTarget(h)} />
     </>
   );
 }
 
-function Trapezoid({ base1, base2, height }: { base1: string; base2: string; height: string }) {
-  const pts: [number, number][] = [
-    [45, 120],
-    [195, 120],
-    [155, 52],
-    [85, 52],
-  ];
+function Parallelogram({ base, height, angle, diagonal }: { base?: string; height?: string; angle?: string; diagonal?: boolean }) {
+  const bl: [number, number] = [55, 120];
+  const br: [number, number] = [175, 120];
+  const tr: [number, number] = [205, 50];
+  const tl: [number, number] = [85, 50];
   return (
     <>
-      <polygon points={pts.map((p) => p.join(',')).join(' ')} {...outline} />
-      <Dashed x1={85} y1={52} x2={85} y2={120} muted />
-      <RightAngleBox x={85} y={120} dx={1} dy={-1} />
+      <polygon points={[bl, br, tr, tl].map((p) => p.join(',')).join(' ')} {...outline} />
+      {diagonal && <line x1={bl[0]} y1={bl[1]} x2={tr[0]} y2={tr[1]} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />}
+      {height != null && (
+        <>
+          <Dashed x1={110} y1={50} x2={110} y2={120} muted />
+          <RightAngleBox x={110} y={120} dx={1} dy={-1} />
+          <Label x={124} y={86} text={height} accent={isTarget(height)} />
+        </>
+      )}
+      {base != null && <Label x={115} y={134} text={base} accent={isTarget(base)} />}
+      {angle != null && (
+        <>
+          <Arc cx={bl[0]} cy={bl[1]} r={20} a0={0} a1={60} />
+          <Label x={bl[0] + 30} y={bl[1] - 11} text={angle} accent={isTarget(angle)} />
+        </>
+      )}
+    </>
+  );
+}
+
+function Trapezoid({ base1, base2, height, leg, mid }: { base1: string; base2: string; height?: string; leg?: string; mid?: string }) {
+  const bl: [number, number] = [45, 120];
+  const br: [number, number] = [195, 120];
+  const tr: [number, number] = [155, 52];
+  const tl: [number, number] = [85, 52];
+  return (
+    <>
+      <polygon points={[bl, br, tr, tl].map((p) => p.join(',')).join(' ')} {...outline} />
+      {height != null && (
+        <>
+          <Dashed x1={85} y1={52} x2={85} y2={120} muted />
+          <RightAngleBox x={85} y={120} dx={1} dy={-1} />
+          <Label x={99} y={86} text={height} accent={isTarget(height)} />
+        </>
+      )}
+      {mid != null && (
+        <>
+          <line x1={(bl[0] + tl[0]) / 2} y1={86} x2={(br[0] + tr[0]) / 2} y2={86} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+          <Label x={120} y={78} text={mid} accent={isTarget(mid)} />
+        </>
+      )}
+      {leg != null && <Label x={(br[0] + tr[0]) / 2 + 12} y={86} text={leg} accent={isTarget(leg)} />}
       <Label x={120} y={134} text={base1} accent={isTarget(base1)} />
       <Label x={120} y={42} text={base2} accent={isTarget(base2)} />
-      <Label x={99} y={86} text={height} accent={isTarget(height)} />
     </>
   );
 }
@@ -744,6 +803,60 @@ function Rhombus({ diag1, diag2 }: { diag1: string; diag2: string }) {
       <line x1={top[0]} y1={top[1]} x2={bottom[0]} y2={bottom[1]} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
       <Label x={152} y={72} text={diag1} accent={isTarget(diag1)} />
       <Label x={106} y={102} text={diag2} accent={isTarget(diag2)} />
+    </>
+  );
+}
+
+/* ---------------- similarity (grade 9) ---------------- */
+
+/** مثلثان متشابهان (قائمان) بأحجام مختلفة، مع علامة زاوية متساوية. */
+function SimilarTriangles({ a, b, right }: { a: [string, string, string?]; b: [string, string, string?]; right?: boolean }) {
+  const tri = (ox: number, oy: number, bw: number, bh: number, s: [string, string, string?]) => {
+    // مثلث قائم: الزاوية القائمة أسفل-اليسار
+    const A: [number, number] = [ox, oy];
+    const B: [number, number] = [ox + bw, oy];
+    const C: [number, number] = [ox, oy - bh];
+    return (
+      <g>
+        <polygon points={`${A} ${B} ${C}`} {...outline} />
+        {right && <RightAngleBox x={A[0]} y={A[1]} dx={1} dy={-1} />}
+        <Arc cx={B[0]} cy={B[1]} r={15} a0={180 - Math.round((Math.atan2(bh, bw) * 180) / Math.PI)} a1={180} accent />
+        <Label x={(A[0] + B[0]) / 2} y={oy + 13} text={s[0]} accent={isTarget(s[0])} />
+        <Label x={A[0] - 13} y={oy - bh / 2} text={s[1]} accent={isTarget(s[1])} />
+        {s[2] && <Label x={(B[0] + C[0]) / 2 + 12} y={(B[1] + C[1]) / 2 - 6} text={s[2]} accent={isTarget(s[2])} />}
+      </g>
+    );
+  };
+  return (
+    <>
+      {tri(40, 118, 44, 34, a)}
+      {tri(130, 122, 78, 60, b)}
+    </>
+  );
+}
+
+/** نظرية طاليس: مثلث ABC وقطعة DE ∥ BC. */
+function TriangleParallelLine({ ad, db, de, bc }: { ad: string; db: string; de: string; bc: string }) {
+  const A: [number, number] = [120, 30];
+  const B: [number, number] = [52, 128];
+  const C: [number, number] = [200, 128];
+  const t = 0.42; // موقع D,E على الضلعين (تخطيطي)
+  const D: [number, number] = [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t];
+  const E: [number, number] = [A[0] + (C[0] - A[0]) * t, A[1] + (C[1] - A[1]) * t];
+  return (
+    <>
+      <polygon points={`${A} ${B} ${C}`} {...outline} />
+      <line x1={D[0]} y1={D[1]} x2={E[0]} y2={E[1]} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+      {[A, B, C, D, E].map((p, i) => (
+        <circle key={i} cx={p[0]} cy={p[1]} r={2} fill="currentColor" />
+      ))}
+      <Label x={A[0]} y={A[1] - 8} text="A" />
+      <Label x={B[0] - 8} y={B[1] + 8} text="B" />
+      <Label x={C[0] + 8} y={C[1] + 8} text="C" />
+      <Label x={(A[0] + D[0]) / 2 - 10} y={(A[1] + D[1]) / 2} text={ad} accent={isTarget(ad)} />
+      <Label x={(D[0] + B[0]) / 2 - 10} y={(D[1] + B[1]) / 2} text={db} accent={isTarget(db)} />
+      <Label x={(D[0] + E[0]) / 2} y={(D[1] + E[1]) / 2 - 8} text={de} accent={isTarget(de)} />
+      <Label x={(B[0] + C[0]) / 2} y={(B[1] + C[1]) / 2 + 13} text={bc} accent={isTarget(bc)} />
     </>
   );
 }
@@ -1033,6 +1146,8 @@ function CoordinatePlane({
   mappedPolygon,
   reflectAxis,
   rotationDeg,
+  parabolas = [],
+  verticalLines = [],
 }: {
   points?: { x: number; y: number; label?: string; target?: boolean }[];
   segments?: [[number, number], [number, number]][];
@@ -1046,6 +1161,8 @@ function CoordinatePlane({
   mappedPolygon?: { x: number; y: number }[];
   reflectAxis?: 'x' | 'y';
   rotationDeg?: number;
+  parabolas?: { a: number; b?: number; c?: number; dashed?: boolean; accent?: boolean }[];
+  verticalLines?: number[];
 }) {
   const coords = [
     ...points.map((p) => [p.x, p.y] as const),
@@ -1081,6 +1198,25 @@ function CoordinatePlane({
     return clipSeg(SX(a[0]), SY(a[1]), SX(b[0]), SY(b[1]));
   };
 
+  // عيّنات القطع المكافئ مقصوصة إلى مستطيل الرسم (قطع متعدّدة عند الخروج).
+  const paraSegs = (p: { a: number; b?: number; c?: number }) => {
+    const a = p.a, b = p.b ?? 0, c = p.c ?? 0;
+    const segs: string[] = [];
+    let cur: string[] = [];
+    const xmin = -R - 1, xmax = R + 1;
+    const step = (xmax - xmin) / 90;
+    for (let x = xmin; x <= xmax + 1e-9; x += step) {
+      const sx = SX(x), sy = SY(a * x * x + b * x + c);
+      if (sx >= 16 && sx <= 224 && sy >= 12 && sy <= 148) cur.push(`${sx.toFixed(1)},${sy.toFixed(1)}`);
+      else {
+        if (cur.length > 1) segs.push(cur.join(' '));
+        cur = [];
+      }
+    }
+    if (cur.length > 1) segs.push(cur.join(' '));
+    return segs;
+  };
+
   return (
     <>
       {highlightQuadrant && (
@@ -1100,12 +1236,23 @@ function CoordinatePlane({
       <line x1={120} y1={148} x2={120} y2={12} stroke="currentColor" strokeWidth={STROKE} />
       <polygon points={`224,80 216,76 216,84`} fill="currentColor" />
       <polygon points={`120,12 116,20 124,20`} fill="currentColor" />
+      {/* محاور التماثل (رأسية متقطّعة) */}
+      {verticalLines.map((vx, i) => {
+        const seg = clipSeg(SX(vx), SY(R + 2), SX(vx), SY(-R - 2));
+        return seg ? <line key={`vl${i}`} x1={seg[0]} y1={seg[1]} x2={seg[2]} y2={seg[3]} stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" /> : null;
+      })}
       {/* خطوط y=mx+b */}
       {lines.map((ln, i) => {
         const seg = lineSeg(ln);
         if (!seg) return null;
         return <line key={`ln${i}`} x1={seg[0]} y1={seg[1]} x2={seg[2]} y2={seg[3]} stroke="currentColor" strokeWidth={2} strokeDasharray={ln.dashed ? '4 3' : undefined} className={ln.accent ? 'text-primary' : undefined} />;
       })}
+      {/* قطوع مكافئة */}
+      {parabolas.map((p, i) =>
+        paraSegs(p).map((pts, j) => (
+          <polyline key={`pa${i}-${j}`} points={pts} fill="none" stroke="currentColor" strokeWidth={2} strokeDasharray={p.dashed ? '4 3' : undefined} className={p.accent ? 'text-primary' : undefined} />
+        )),
+      )}
       {polygon && <polygon points={polygon.map((p) => `${SX(p.x)},${SY(p.y)}`).join(' ')} fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />}
       {mappedPolygon && <polygon points={mappedPolygon.map((p) => `${SX(p.x)},${SY(p.y)}`).join(' ')} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="4 3" className="text-primary" />}
       {segments.map(([a, b], i) => (
