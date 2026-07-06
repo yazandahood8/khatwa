@@ -35,7 +35,7 @@ export default function SubscriptionSettingsPage() {
   }, []);
 
   async function doCancel() {
-    if (!confirm('إلغاء الاشتراك والعودة للباقة المجانية؟')) return;
+    if (!confirm('العودة للباقة المجانية الآن؟')) return;
     setBusy(true);
     try {
       await cancelSubscription();
@@ -47,6 +47,9 @@ export default function SubscriptionSettingsPage() {
   }
 
   const isPremium = sub?.plan === 'premium';
+  const isTrial = Boolean(sub?.isTrial);
+  const daysLeft = sub?.trialDaysLeft ?? 0;
+  const endsDate = sub?.endsAt ? new Date(sub.endsAt).toLocaleDateString('ar') : '';
 
   return (
     <AppShell nav={navForRole(user?.role)} title="الاشتراك">
@@ -61,10 +64,16 @@ export default function SubscriptionSettingsPage() {
                 {isPremium ? <Crown className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
                 باقتك الحالية
               </span>
-              {sub && <Badge className="bg-white/20 text-white">{sub.plan === 'free' ? 'مجاني' : 'مفعّل'}</Badge>}
+              {sub && (
+                <Badge className="bg-white/20 text-white">
+                  {sub.plan === 'free' ? 'مجاني' : isTrial ? 'تجربة مجانية' : 'مفعّل'}
+                </Badge>
+              )}
             </div>
             {sub ? (
-              <p className="mt-2 font-display text-3xl font-bold">{PLAN_LABEL[sub.plan] ?? sub.plan}</p>
+              <p className="mt-2 font-display text-3xl font-bold">
+                {isTrial ? 'بريميوم — تجربة مجانية' : (PLAN_LABEL[sub.plan] ?? sub.plan)}
+              </p>
             ) : (
               <Skeleton className="mt-2 h-9 w-40 bg-white/20" />
             )}
@@ -77,17 +86,25 @@ export default function SubscriptionSettingsPage() {
                 <p className="text-sm text-muted-foreground">
                   <span className="font-semibold text-foreground">{sub.aiDailyLimit}</span> سؤال
                   للمساعد الذكي يومياً
-                  {sub.endsAt && ` · يتجدّد في ${new Date(sub.endsAt).toLocaleDateString('ar')}`}
+                  {isTrial
+                    ? ` · تجربتك المجانية تنتهي خلال ${daysLeft} ${daysLeft === 1 ? 'يوم' : 'أيام'}${endsDate ? ` (${endsDate})` : ''}`
+                    : sub.endsAt && ` · يتجدّد في ${endsDate}`}
                 </p>
+                {isTrial && (
+                  <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                    ⏳ بعد انتهاء التجربة يعود حسابك للباقة المجانية. اشترك للاستمرار بكل الميزات.
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
                   <Link href="/pricing">
                     <Button variant="gradient">
-                      <ArrowUpCircle /> {isPremium ? 'إدارة الباقة' : 'ترقية الباقة'}
+                      <ArrowUpCircle />{' '}
+                      {isTrial ? 'اشترك الآن' : isPremium ? 'إدارة الباقة' : 'ترقية الباقة'}
                     </Button>
                   </Link>
                   {sub.plan !== 'free' && (
                     <Button variant="destructive" onClick={doCancel} disabled={busy}>
-                      إلغاء الاشتراك
+                      {isTrial ? 'إنهاء التجربة' : 'إلغاء الاشتراك'}
                     </Button>
                   )}
                 </div>
