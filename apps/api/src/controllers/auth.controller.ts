@@ -8,11 +8,21 @@ import { ApiError } from '../utils/ApiError';
 import { env } from '../utils/env';
 import { maintenanceOn, isEmailAllowed, maintenanceError } from '../utils/maintenance';
 
-/** اشتراك الطالب الافتراضي عند التسجيل — free, أو premium لشهر أثناء البيتا المغلقة. */
+/** عدد أيام التجربة المجانية الكاملة لكل مستخدم جديد — full-access free-trial length. */
+const TRIAL_DAYS = 7;
+
+/**
+ * اشتراك الطالب الافتراضي عند التسجيل — تجربة بريميوم كاملة 7 أيام لكل مستخدم جديد.
+ * بعد انتهائها يعود تلقائياً للمجاني (يُفرض عبر endsAt في getUserPlan) فيلزمه الدفع للمتابعة.
+ * أثناء البيتا المغلقة (BETA_AUTO_PREMIUM) تُمنح تجربة أطول (شهر) لمختبِري البيتا.
+ */
 function defaultStudentSubscription() {
-  if (!env.BETA_AUTO_PREMIUM) return { plan: 'free' as const, status: 'active' as const };
   const endsAt = new Date();
-  endsAt.setMonth(endsAt.getMonth() + 1); // شهر بريميوم مجاني للبيتا
+  if (env.BETA_AUTO_PREMIUM) {
+    endsAt.setMonth(endsAt.getMonth() + 1); // بيتا مغلقة: شهر بريميوم كامل
+  } else {
+    endsAt.setDate(endsAt.getDate() + TRIAL_DAYS); // تجربة 7 أيام بريميوم
+  }
   return { plan: 'premium' as const, status: 'active' as const, endsAt };
 }
 

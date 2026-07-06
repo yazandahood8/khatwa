@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
-import { SubscriptionPlan, AI_DAILY_LIMITS } from '@khatwa/shared';
+import { SubscriptionPlan, AI_DAILY_LIMITS, AI_MONTHLY_LIMITS } from '@khatwa/shared';
 import { prisma } from '../services/prisma';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
@@ -39,18 +39,33 @@ async function setPlan(studentId: string, plan: SubscriptionPlan, payplusRef?: s
     : prisma.subscription.create({ data: { studentId, ...data } });
 }
 
-/** GET /api/subscriptions/current — اشتراك الطالب الحالي + حد الأسئلة. */
+/** GET /api/subscriptions/current — اشتراك الطالب الحالي + حد الأسئلة + حالة التجربة. */
 export async function getCurrent(req: Request, res: Response) {
   const sub = await prisma.subscription.findFirst({
     where: { studentId: req.user!.id, status: 'active' },
     orderBy: { createdAt: 'desc' },
   });
-  const plan = (sub?.plan as SubscriptionPlan) ?? SubscriptionPlan.FREE;
+
+  const now = Date.now();
+  const endsAt = sub?.endsAt ?? null;
+  const rawPlan = (sub?.plan as SubscriptionPlan) ?? SubscriptionPlan.FREE;
+  // انتهت التجربة/الاشتراك المدفوع ⇒ يُعرض كمجاني (نفس منطق getUserPlan).
+  const expired = rawPlan !== SubscriptionPlan.FREE && !!endsAt && endsAt.getTime() < now;
+  const plan = expired ? SubscriptionPlan.FREE : rawPlan;
+
+  // تجربة = باقة مدفوعة بلا دفع فعلي عبر PayPlus (قبل ربط الدفع كلها تجارب/mock).
+  const isTrial = !expired && rawPlan !== SubscriptionPlan.FREE && !sub?.payplusSubscriptionId;
+  const trialDaysLeft =
+    isTrial && endsAt ? Math.max(0, Math.ceil((endsAt.getTime() - now) / (1000 * 60 * 60 * 24))) : 0;
+
   ok(res, {
     plan,
-    status: sub?.status ?? 'active',
-    endsAt: sub?.endsAt ?? null,
+    status: expired ? 'expired' : (sub?.status ?? 'active'),
+    endsAt,
     aiDailyLimit: AI_DAILY_LIMITS[plan],
+    aiMonthlyLimit: AI_MONTHLY_LIMITS[plan],
+    isTrial,
+    trialDaysLeft,
   });
 }
 
