@@ -121,11 +121,11 @@ function Figure({ spec }: { spec: FigureSpec }) {
     case 'triangleSides':
       return <TriangleSides sides={spec.sides} rightAngleAt={spec.rightAngleAt} />;
     case 'rect':
-      return <Rect w={spec.w} h={spec.h} square={spec.square} />;
+      return <Rect w={spec.w} h={spec.h} square={spec.square} diagonal={spec.diagonal} />;
     case 'triangleBaseHeight':
       return <TriangleBaseHeight base={spec.base} height={spec.height} />;
     case 'rightTriangle':
-      return <RightTriangle legs={spec.legs} hyp={spec.hyp} />;
+      return <RightTriangle legs={spec.legs} hyp={spec.hyp} squares={spec.squares} />;
     case 'parallelogram':
       return <Parallelogram base={spec.base} height={spec.height} />;
     case 'trapezoid':
@@ -158,8 +158,19 @@ function Figure({ spec }: { spec: FigureSpec }) {
           polygon={spec.polygon}
           highlightQuadrant={spec.highlightQuadrant}
           range={spec.range}
+          lines={spec.lines}
+          intersection={spec.intersection}
+          vector={spec.vector}
+          mapped={spec.mapped}
+          mappedPolygon={spec.mappedPolygon}
+          reflectAxis={spec.reflectAxis}
+          rotationDeg={spec.rotationDeg}
         />
       );
+    case 'numberLine':
+      return <NumberLine min={spec.min} max={spec.max} rays={spec.rays} segment={spec.segment} points={spec.points} ticks={spec.ticks} />;
+    case 'congruentTriangles':
+      return <CongruentTriangles marks={spec.marks} criterion={spec.criterion} />;
     case 'solid':
       return <Solid kind={spec.kind} dims={spec.dims} open={spec.open} />;
     default:
@@ -579,7 +590,7 @@ const outline = { fill: 'none', stroke: 'currentColor', strokeWidth: STROKE } as
 
 /* ---------------- polygons ---------------- */
 
-function Rect({ w, h, square }: { w: string; h: string; square?: boolean }) {
+function Rect({ w, h, square, diagonal }: { w: string; h: string; square?: boolean; diagonal?: string }) {
   const cw = square ? 86 : 122;
   const ch = square ? 86 : 74;
   const x0 = 120 - cw / 2;
@@ -587,6 +598,12 @@ function Rect({ w, h, square }: { w: string; h: string; square?: boolean }) {
   return (
     <>
       <rect x={x0} y={y0} width={cw} height={ch} {...outline} />
+      {diagonal != null && (
+        <line x1={x0} y1={y0 + ch} x2={x0 + cw} y2={y0} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+      )}
+      {diagonal != null && (
+        <Label x={120} y={80 - 8} text={diagonal} accent={isTarget(diagonal)} />
+      )}
       <Label x={120} y={y0 + ch + 14} text={w} accent={isTarget(w)} />
       <Label x={x0 - 15} y={80} text={h} accent={isTarget(h)} />
     </>
@@ -609,17 +626,71 @@ function TriangleBaseHeight({ base, height }: { base: string; height: string }) 
   );
 }
 
-function RightTriangle({ legs, hyp }: { legs: [string, string]; hyp?: string }) {
-  const A: [number, number] = [60, 122]; // الزاوية القائمة
-  const B: [number, number] = [186, 122];
-  const C: [number, number] = [60, 46];
+function RightTriangle({ legs, hyp, squares }: { legs: [string, string]; hyp?: string; squares?: boolean }) {
+  // مع squares نُصغّر المثلث لإفساح المجال للمربّعات على الأضلاع.
+  const A: [number, number] = squares ? [110, 86] : [60, 122]; // الزاوية القائمة
+  const B: [number, number] = squares ? [150, 86] : [186, 122];
+  const C: [number, number] = squares ? [110, 50] : [60, 46];
   return (
     <>
+      {squares && <PythSquares A={A} B={B} C={C} legs={legs} hyp={hyp} />}
       <polygon points={`${A} ${B} ${C}`} {...outline} />
       <RightAngleBox x={A[0]} y={A[1]} dx={1} dy={-1} />
-      <Label x={(A[0] + B[0]) / 2} y={136} text={legs[0]} accent={isTarget(legs[0])} />
-      <Label x={A[0] - 15} y={(A[1] + C[1]) / 2} text={legs[1]} accent={isTarget(legs[1])} />
-      {hyp && <Label x={(B[0] + C[0]) / 2 + 20} y={(B[1] + C[1]) / 2 - 4} text={hyp} accent={isTarget(hyp)} />}
+      {!squares && (
+        <>
+          <Label x={(A[0] + B[0]) / 2} y={136} text={legs[0]} accent={isTarget(legs[0])} />
+          <Label x={A[0] - 15} y={(A[1] + C[1]) / 2} text={legs[1]} accent={isTarget(legs[1])} />
+          {hyp && <Label x={(B[0] + C[0]) / 2 + 20} y={(B[1] + C[1]) / 2 - 4} text={hyp} accent={isTarget(hyp)} />}
+        </>
+      )}
+    </>
+  );
+}
+
+/** مربّعات على أضلاع المثلث القائم لتفسير a²+b²=c². */
+function PythSquares({
+  A,
+  B,
+  C,
+  legs,
+  hyp,
+}: {
+  A: [number, number];
+  B: [number, number];
+  C: [number, number];
+  legs: [string, string];
+  hyp?: string;
+}) {
+  // مربّع للخارج على قطعة P→Q، بعيداً عن الرأس المقابل T.
+  const sq = (P: [number, number], Q: [number, number], T: [number, number]) => {
+    const dx = Q[0] - P[0];
+    const dy = Q[1] - P[1];
+    let nx = dy;
+    let ny = -dx;
+    const mx = (P[0] + Q[0]) / 2;
+    const my = (P[1] + Q[1]) / 2;
+    if ((T[0] - mx) * nx + (T[1] - my) * ny > 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+    const p3: [number, number] = [Q[0] + nx, Q[1] + ny];
+    const p4: [number, number] = [P[0] + nx, P[1] + ny];
+    const cen: [number, number] = [(P[0] + Q[0] + p3[0] + p4[0]) / 4, (P[1] + Q[1] + p3[1] + p4[1]) / 4];
+    return { pts: `${P} ${Q} ${p3} ${p4}`, cen };
+  };
+  const base = sq(A, B, C); // مربّع على الضلع القائم الأفقي
+  const left = sq(C, A, B); // مربّع على الضلع القائم الرأسي
+  const hypSq = sq(B, C, A); // مربّع على الوتر للخارج
+  const faint = { fill: 'currentColor', fillOpacity: 0.08, stroke: 'currentColor', strokeWidth: STROKE, className: 'text-muted-foreground' } as const;
+  const acc = { fill: 'currentColor', fillOpacity: 0.1, stroke: 'currentColor', strokeWidth: STROKE, className: 'text-primary' } as const;
+  return (
+    <>
+      <polygon points={base.pts} {...faint} />
+      <polygon points={left.pts} {...faint} />
+      <polygon points={hypSq.pts} {...acc} />
+      <Label x={base.cen[0]} y={base.cen[1]} text={legs[0]} accent={isTarget(legs[0])} />
+      <Label x={left.cen[0]} y={left.cen[1]} text={legs[1]} accent={isTarget(legs[1])} />
+      {hyp && <Label x={hypSq.cen[0]} y={hypSq.cen[1]} text={hyp} accent />}
     </>
   );
 }
@@ -912,23 +983,78 @@ function BorderedRect({ outerW, outerH, border }: { outerW: string; outerH: stri
 
 /* ---------------- coordinate plane ---------------- */
 
+/** قصّ قطعة إلى مستطيل الرسم (Liang–Barsky) في إحداثيات الشاشة. */
+function clipSeg(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] | null {
+  const xmin = 16, xmax = 224, ymin = 12, ymax = 148;
+  const dx = x2 - x1, dy = y2 - y1;
+  const p = [-dx, dx, -dy, dy];
+  const q = [x1 - xmin, xmax - x1, y1 - ymin, ymax - y1];
+  let t0 = 0, t1 = 1;
+  for (let i = 0; i < 4; i++) {
+    if (p[i] === 0) {
+      if (q[i] < 0) return null;
+    } else {
+      const r = q[i] / p[i];
+      if (p[i] < 0) {
+        if (r > t1) return null;
+        if (r > t0) t0 = r;
+      } else {
+        if (r < t0) return null;
+        if (r < t1) t1 = r;
+      }
+    }
+  }
+  return [x1 + t0 * dx, y1 + t0 * dy, x1 + t1 * dx, y1 + t1 * dy];
+}
+
+function Arrow({ x1, y1, x2, y2, accent, dashed }: { x1: number; y1: number; x2: number; y2: number; accent?: boolean; dashed?: boolean }) {
+  const ang = Math.atan2(y2 - y1, x2 - x1);
+  const h = 6;
+  const a1 = ang + Math.PI - 0.4;
+  const a2 = ang + Math.PI + 0.4;
+  return (
+    <g className={accent ? 'text-primary' : undefined}>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth={STROKE} strokeDasharray={dashed ? '3 3' : undefined} />
+      <polygon points={`${x2},${y2} ${x2 + h * Math.cos(a1)},${y2 + h * Math.sin(a1)} ${x2 + h * Math.cos(a2)},${y2 + h * Math.sin(a2)}`} fill="currentColor" />
+    </g>
+  );
+}
+
 function CoordinatePlane({
   points = [],
   segments = [],
   polygon,
   highlightQuadrant,
   range,
+  lines = [],
+  intersection,
+  vector,
+  mapped = [],
+  mappedPolygon,
+  reflectAxis,
+  rotationDeg,
 }: {
   points?: { x: number; y: number; label?: string; target?: boolean }[];
   segments?: [[number, number], [number, number]][];
   polygon?: { x: number; y: number }[];
   highlightQuadrant?: 1 | 2 | 3 | 4;
   range?: number;
+  lines?: { m?: number; b?: number; p1?: [number, number]; p2?: [number, number]; dashed?: boolean; accent?: boolean }[];
+  intersection?: { x: number; y: number };
+  vector?: { from: [number, number]; d: [number, number] };
+  mapped?: { x: number; y: number; label?: string }[];
+  mappedPolygon?: { x: number; y: number }[];
+  reflectAxis?: 'x' | 'y';
+  rotationDeg?: number;
 }) {
   const coords = [
     ...points.map((p) => [p.x, p.y] as const),
     ...segments.flat(),
     ...(polygon ?? []).map((p) => [p.x, p.y] as const),
+    ...mapped.map((p) => [p.x, p.y] as const),
+    ...(mappedPolygon ?? []).map((p) => [p.x, p.y] as const),
+    ...(intersection ? [[intersection.x, intersection.y] as const] : []),
+    ...(vector ? [vector.from, [vector.from[0] + vector.d[0], vector.from[1] + vector.d[1]] as const] : []),
   ];
   const maxAbs = Math.max(5, ...coords.map(([x, y]) => Math.max(Math.abs(x), Math.abs(y))));
   const R = range ?? maxAbs + 1;
@@ -936,21 +1062,29 @@ function CoordinatePlane({
   const SX = (x: number) => 120 + x * s;
   const SY = (y: number) => 80 - y * s;
   const grid: number[] = [];
-  if (R <= 10) for (let i = -Math.floor(R); i <= Math.floor(R); i++) if (i !== 0) grid.push(i);
+  if (R <= 12) for (let i = -Math.floor(R); i <= Math.floor(R); i++) if (i !== 0) grid.push(i);
   const quad: Record<number, [number, number]> = { 1: [1, 1], 2: [-1, 1], 3: [-1, -1], 4: [1, -1] };
+
+  // نقطتا كل خطّ في إحداثيات الشاشة ثم القصّ.
+  const lineSeg = (ln: { m?: number; b?: number; p1?: [number, number]; p2?: [number, number] }) => {
+    let a: [number, number], b: [number, number];
+    if (ln.p1 && ln.p2) {
+      a = ln.p1;
+      b = ln.p2;
+      if (a[0] === b[0]) return clipSeg(SX(a[0]), SY(-R - 2), SX(a[0]), SY(R + 2)); // رأسي
+    } else {
+      const m = ln.m ?? 0;
+      const bb = ln.b ?? 0;
+      a = [-R - 2, m * (-R - 2) + bb];
+      b = [R + 2, m * (R + 2) + bb];
+    }
+    return clipSeg(SX(a[0]), SY(a[1]), SX(b[0]), SY(b[1]));
+  };
+
   return (
     <>
       {highlightQuadrant && (
-        <rect
-          x={quad[highlightQuadrant][0] > 0 ? 120 : 18}
-          y={quad[highlightQuadrant][1] > 0 ? 15 : 80}
-          width={102}
-          height={65}
-          fill="currentColor"
-          fillOpacity={0.08}
-          stroke="none"
-          className="text-primary"
-        />
+        <rect x={quad[highlightQuadrant][0] > 0 ? 120 : 18} y={quad[highlightQuadrant][1] > 0 ? 15 : 80} width={102} height={65} fill="currentColor" fillOpacity={0.08} stroke="none" className="text-primary" />
       )}
       {grid.map((i) => (
         <g key={i} className="text-muted-foreground">
@@ -958,25 +1092,58 @@ function CoordinatePlane({
           <line x1={18} y1={SY(i)} x2={222} y2={SY(i)} stroke="currentColor" strokeWidth={0.5} opacity={0.4} />
         </g>
       ))}
+      {/* محور انعكاس مبرَز */}
+      {reflectAxis === 'x' && <line x1={16} y1={80} x2={224} y2={80} stroke="currentColor" strokeWidth={2.4} className="text-primary" />}
+      {reflectAxis === 'y' && <line x1={120} y1={148} x2={120} y2={12} stroke="currentColor" strokeWidth={2.4} className="text-primary" />}
       {/* المحاور */}
       <line x1={16} y1={80} x2={224} y2={80} stroke="currentColor" strokeWidth={STROKE} />
       <line x1={120} y1={148} x2={120} y2={12} stroke="currentColor" strokeWidth={STROKE} />
       <polygon points={`224,80 216,76 216,84`} fill="currentColor" />
       <polygon points={`120,12 116,20 124,20`} fill="currentColor" />
-      {polygon && (
-        <polygon points={polygon.map((p) => `${SX(p.x)},${SY(p.y)}`).join(' ')} fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
-      )}
+      {/* خطوط y=mx+b */}
+      {lines.map((ln, i) => {
+        const seg = lineSeg(ln);
+        if (!seg) return null;
+        return <line key={`ln${i}`} x1={seg[0]} y1={seg[1]} x2={seg[2]} y2={seg[3]} stroke="currentColor" strokeWidth={2} strokeDasharray={ln.dashed ? '4 3' : undefined} className={ln.accent ? 'text-primary' : undefined} />;
+      })}
+      {polygon && <polygon points={polygon.map((p) => `${SX(p.x)},${SY(p.y)}`).join(' ')} fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />}
+      {mappedPolygon && <polygon points={mappedPolygon.map((p) => `${SX(p.x)},${SY(p.y)}`).join(' ')} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="4 3" className="text-primary" />}
       {segments.map(([a, b], i) => (
-        <g key={i} className="text-primary">
+        <g key={`sg${i}`} className="text-primary">
           <line x1={SX(a[0])} y1={SY(a[1])} x2={SX(b[0])} y2={SY(b[1])} stroke="currentColor" strokeWidth={2} />
           <circle cx={SX(a[0])} cy={SY(a[1])} r={2.6} fill="currentColor" />
           <circle cx={SX(b[0])} cy={SY(b[1])} r={2.6} fill="currentColor" />
         </g>
       ))}
+      {/* سهم انسحاب */}
+      {vector && <Arrow x1={SX(vector.from[0])} y1={SY(vector.from[1])} x2={SX(vector.from[0] + vector.d[0])} y2={SY(vector.from[1] + vector.d[1])} accent />}
+      {/* روابط من الأصل إلى الصورة */}
+      {mapped.map((mp, i) =>
+        points[i] ? <Arrow key={`mc${i}`} x1={SX(points[i].x)} y1={SY(points[i].y)} x2={SX(mp.x)} y2={SY(mp.y)} accent dashed /> : null,
+      )}
+      {/* قوس دوران */}
+      {rotationDeg != null && (
+        <g className="text-primary">
+          <polyline points={arcPoints(120, 80, 24, 0, rotationDeg)} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+          <Label x={polar(120, 80, 34, rotationDeg / 2)[0]} y={polar(120, 80, 34, rotationDeg / 2)[1]} text={`${rotationDeg}°`} accent />
+        </g>
+      )}
+      {intersection && (
+        <g className="text-primary">
+          <circle cx={SX(intersection.x)} cy={SY(intersection.y)} r={3.4} fill="currentColor" />
+          <Label x={SX(intersection.x) + 22} y={SY(intersection.y) - 9} text={`(${intersection.x}, ${intersection.y})`} accent />
+        </g>
+      )}
+      {mapped.map((mp, i) => (
+        <g key={`mp${i}`} className="text-primary">
+          <circle cx={SX(mp.x)} cy={SY(mp.y)} r={3} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+          <Label x={SX(mp.x) + (mp.x < 0 ? -20 : 20)} y={SY(mp.y) - 9} text={mp.label ?? `(${mp.x}, ${mp.y})`} accent />
+        </g>
+      ))}
       {points.map((p, i) => (
-        <g key={i} className={p.target ? 'text-primary' : undefined}>
+        <g key={`pt${i}`} className={p.target ? 'text-primary' : undefined}>
           <circle cx={SX(p.x)} cy={SY(p.y)} r={3} fill="currentColor" />
-          <Label x={SX(p.x) + (p.x < 0 ? -20 : 20)} y={SY(p.y) - 9} text={p.label ?? `(${p.x}, ${p.y})`} accent={p.target} />
+          <Label x={SX(p.x) + (p.x < 0 ? -20 : 20)} y={SY(p.y) + (p.y < 0 ? 12 : -9)} text={p.label ?? `(${p.x}, ${p.y})`} accent={p.target} />
         </g>
       ))}
     </>
@@ -988,10 +1155,267 @@ function CoordinatePlane({
 // متجه العمق (للخلف-اليمين) للرسم متساوي القياس.
 const DEPTH: [number, number] = [30, -18];
 
-function Solid({ kind, dims, open }: { kind: 'box' | 'cube' | 'triangularPrism' | 'pentagonalPrism'; dims?: string[]; open?: boolean }) {
+function Solid({
+  kind,
+  dims,
+  open,
+}: {
+  kind: 'box' | 'cube' | 'triangularPrism' | 'pentagonalPrism' | 'cylinder' | 'cone' | 'cylinderCone' | 'coneInCylinder';
+  dims?: string[];
+  open?: boolean;
+}) {
   if (kind === 'triangularPrism') return <PrismSolid sides={3} />;
   if (kind === 'pentagonalPrism') return <PrismSolid sides={5} />;
+  if (kind === 'cylinder') return <CylinderSolid dims={dims} open={open} />;
+  if (kind === 'cone') return <ConeSolid dims={dims} />;
+  if (kind === 'cylinderCone') return <CylinderConeSolid dims={dims} />;
+  if (kind === 'coneInCylinder') return <ConeInCylinderSolid dims={dims} />;
   return <BoxSolid dims={dims} open={open} cube={kind === 'cube'} />;
+}
+
+/* ---------------- cylinder & cone ---------------- */
+
+const ELL_RY = 12; // نصف ارتفاع القطع الناقص (منظور القاعدة الدائرية)
+
+/** قطع ناقص كمسار (قاعدة أسطوانة/مخروط بمنظور). */
+function ellipsePath(cx: number, cy: number, rx: number, ry: number): string {
+  return `M ${cx - rx},${cy} a ${rx},${ry} 0 1,0 ${2 * rx},0 a ${rx},${ry} 0 1,0 ${-2 * rx},0 Z`;
+}
+
+function CylinderSolid({ dims = [], open }: { dims?: string[]; open?: boolean }) {
+  const rx = 40;
+  const ry = ELL_RY;
+  const cx = 108;
+  const topY = 44;
+  const botY = 122;
+  const [rLabel, hLabel] = dims;
+  return (
+    <>
+      {/* جانب */}
+      <line x1={cx - rx} y1={topY} x2={cx - rx} y2={botY} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={cx + rx} y1={topY} x2={cx + rx} y2={botY} stroke="currentColor" strokeWidth={STROKE} />
+      {/* قاعدة سفلى: نصف أمامي ظاهر ونصف خلفي متقطّع */}
+      <polyline points={arcEllipse(cx, botY, rx, ry, 0, 180)} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcEllipse(cx, botY, rx, ry, 180, 360)} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" />
+      {/* قمّة: بيضاوي كامل (مفتوحة = حلقة فقط) */}
+      <path d={ellipsePath(cx, topY, rx, ry)} fill={open ? 'none' : 'currentColor'} fillOpacity={open ? 0 : 0.08} stroke="currentColor" strokeWidth={STROKE} className={open ? undefined : 'text-muted-foreground'} />
+      {open && <path d={ellipsePath(cx, topY, rx * 0.72, ry * 0.72)} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="2 2" className="text-muted-foreground" />}
+      {/* نصف قطر + ارتفاع */}
+      <line x1={cx} y1={topY} x2={cx + rx} y2={topY} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+      {rLabel && <Label x={cx + rx / 2} y={topY - 8} text={rLabel} accent={isTarget(rLabel)} />}
+      {hLabel && <Label x={cx + rx + 16} y={(topY + botY) / 2} text={hLabel} accent={isTarget(hLabel)} />}
+      {hLabel && <Dashed x1={cx + rx + 4} y1={topY} x2={cx + rx + 4} y2={botY} muted />}
+    </>
+  );
+}
+
+/** نقاط قوس بيضاوي (زاوية بالدرجات؛ y للأسفل موجب). */
+function arcEllipse(cx: number, cy: number, rx: number, ry: number, a0: number, a1: number): string {
+  const step = 6;
+  const pts: string[] = [];
+  const dir = a1 >= a0 ? 1 : -1;
+  for (let a = a0; dir > 0 ? a <= a1 : a >= a1; a += dir * step)
+    pts.push(`${cx + rx * Math.cos(rad(a))},${cy + ry * Math.sin(rad(a))}`);
+  pts.push(`${cx + rx * Math.cos(rad(a1))},${cy + ry * Math.sin(rad(a1))}`);
+  return pts.join(' ');
+}
+
+function ConeSolid({ dims = [] }: { dims?: string[] }) {
+  const rx = 42;
+  const ry = ELL_RY;
+  const cx = 108;
+  const baseY = 120;
+  const apexY = 40;
+  const [rLabel, hLabel, slantLabel] = dims;
+  return (
+    <>
+      {/* القاعدة: أمامي ظاهر وخلفي متقطّع */}
+      <polyline points={arcEllipse(cx, baseY, rx, ry, 0, 180)} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcEllipse(cx, baseY, rx, ry, 180, 360)} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" />
+      {/* المولّدان */}
+      <line x1={cx - rx} y1={baseY} x2={cx} y2={apexY} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={cx + rx} y1={baseY} x2={cx} y2={apexY} stroke="currentColor" strokeWidth={STROKE} />
+      {/* ارتفاع متقطّع */}
+      <Dashed x1={cx} y1={apexY} x2={cx} y2={baseY} muted />
+      {/* نصف قطر */}
+      <line x1={cx} y1={baseY} x2={cx + rx} y2={baseY} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+      {rLabel && <Label x={cx + rx / 2} y={baseY + 13} text={rLabel} accent={isTarget(rLabel)} />}
+      {hLabel && <Label x={cx - 12} y={(apexY + baseY) / 2} text={hLabel} accent={isTarget(hLabel)} />}
+      {slantLabel && <Label x={(cx + rx / 2) + 12} y={(apexY + baseY) / 2 - 6} text={slantLabel} accent={isTarget(slantLabel)} />}
+    </>
+  );
+}
+
+function CylinderConeSolid({ dims = [] }: { dims?: string[] }) {
+  const rx = 36;
+  const ry = 10;
+  const cx = 108;
+  const cylTop = 92;
+  const cylBot = 132;
+  const apexY = 34;
+  const [rLabel, hLabel] = dims;
+  return (
+    <>
+      {/* أسطوانة */}
+      <line x1={cx - rx} y1={cylTop} x2={cx - rx} y2={cylBot} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={cx + rx} y1={cylTop} x2={cx + rx} y2={cylBot} stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcEllipse(cx, cylBot, rx, ry, 0, 180)} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcEllipse(cx, cylBot, rx, ry, 180, 360)} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" />
+      {/* مخروط فوقها */}
+      <line x1={cx - rx} y1={cylTop} x2={cx} y2={apexY} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={cx + rx} y1={cylTop} x2={cx} y2={apexY} stroke="currentColor" strokeWidth={STROKE} />
+      <path d={ellipsePath(cx, cylTop, rx, ry)} fill="none" stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
+      {rLabel && <Label x={cx + rx + 14} y={cylTop - 6} text={rLabel} accent={isTarget(rLabel)} />}
+      {hLabel && <Label x={cx + rx + 16} y={(cylTop + cylBot) / 2} text={hLabel} accent={isTarget(hLabel)} />}
+    </>
+  );
+}
+
+function ConeInCylinderSolid({ dims = [] }: { dims?: string[] }) {
+  const rx = 40;
+  const ry = 12;
+  const cx = 108;
+  const topY = 46;
+  const botY = 124;
+  const [rLabel, hLabel] = dims;
+  return (
+    <>
+      <line x1={cx - rx} y1={topY} x2={cx - rx} y2={botY} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={cx + rx} y1={topY} x2={cx + rx} y2={botY} stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcEllipse(cx, botY, rx, ry, 0, 180)} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcEllipse(cx, botY, rx, ry, 180, 360)} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" />
+      <path d={ellipsePath(cx, topY, rx, ry)} fill="currentColor" fillOpacity={0.06} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
+      {/* مخروط داخلي (متقطّع مبرَز) قمّته بمركز القمّة */}
+      <line x1={cx - rx} y1={botY} x2={cx} y2={topY} stroke="currentColor" strokeWidth={STROKE} strokeDasharray="4 3" className="text-primary" />
+      <line x1={cx + rx} y1={botY} x2={cx} y2={topY} stroke="currentColor" strokeWidth={STROKE} strokeDasharray="4 3" className="text-primary" />
+      {rLabel && <Label x={cx + rx / 2} y={topY - 8} text={rLabel} accent={isTarget(rLabel)} />}
+      {hLabel && <Label x={cx + rx + 16} y={(topY + botY) / 2} text={hLabel} accent={isTarget(hLabel)} />}
+    </>
+  );
+}
+
+/* ---------------- number line ---------------- */
+
+function NumberLine({
+  min,
+  max,
+  rays = [],
+  segment,
+  points = [],
+  ticks,
+}: {
+  min: number;
+  max: number;
+  rays?: { at: number; dir: 'left' | 'right'; closed: boolean }[];
+  segment?: { from: number; to: number; closedFrom: boolean; closedTo: boolean };
+  points?: { at: number; label?: string; closed?: boolean }[];
+  ticks?: number[];
+}) {
+  const x0 = 20, x1 = 220, y = 84;
+  const SX = (v: number) => x0 + ((v - min) / (max - min)) * (x1 - x0);
+  const tickVals = ticks ?? Array.from({ length: Math.floor(max) - Math.ceil(min) + 1 }, (_, i) => Math.ceil(min) + i);
+  const dot = (v: number, closed: boolean, accent = true) =>
+    closed ? (
+      <circle cx={SX(v)} cy={y} r={4} fill="currentColor" className={accent ? 'text-primary' : undefined} />
+    ) : (
+      <circle cx={SX(v)} cy={y} r={4} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={STROKE} className={accent ? 'text-primary' : undefined} />
+    );
+  return (
+    <>
+      <line x1={12} y1={y} x2={228} y2={y} stroke="currentColor" strokeWidth={STROKE} />
+      <polygon points={`228,${y} 220,${y - 4} 220,${y + 4}`} fill="currentColor" />
+      <polygon points={`12,${y} 20,${y - 4} 20,${y + 4}`} fill="currentColor" />
+      {tickVals.map((v) => (
+        <g key={v}>
+          <line x1={SX(v)} y1={y - 4} x2={SX(v)} y2={y + 4} stroke="currentColor" strokeWidth={STROKE} />
+          <Label x={SX(v)} y={y + 16} text={String(v)} />
+        </g>
+      ))}
+      {rays.map((r, i) => (
+        <g key={`r${i}`} className="text-primary">
+          <line x1={SX(r.at)} y1={y} x2={r.dir === 'right' ? x1 : x0} y2={y} stroke="currentColor" strokeWidth={3} />
+          {dot(r.at, r.closed)}
+        </g>
+      ))}
+      {segment && (
+        <g className="text-primary">
+          <line x1={SX(segment.from)} y1={y} x2={SX(segment.to)} y2={y} stroke="currentColor" strokeWidth={3} />
+          {dot(segment.from, segment.closedFrom)}
+          {dot(segment.to, segment.closedTo)}
+        </g>
+      )}
+      {points.map((p, i) => (
+        <g key={`p${i}`}>
+          {dot(p.at, p.closed ?? true)}
+          {p.label && <Label x={SX(p.at)} y={y - 12} text={p.label} accent />}
+        </g>
+      ))}
+    </>
+  );
+}
+
+/* ---------------- congruent triangles ---------------- */
+
+function CongruentTriangles({
+  marks,
+  criterion,
+}: {
+  marks?: { sides?: [0 | 1 | 2 | 3, 0 | 1 | 2 | 3, 0 | 1 | 2 | 3]; angles?: [0 | 1 | 2, 0 | 1 | 2, 0 | 1 | 2] };
+  criterion?: string;
+}) {
+  const sideMarks = marks?.sides ?? [0, 0, 0];
+  const angleMarks = marks?.angles ?? [0, 0, 0];
+  const tri = (ox: number): [number, number][] => [
+    [ox + 6, 118],
+    [ox + 74, 118],
+    [ox + 30, 52],
+  ];
+  const renderTri = (ox: number, keyPrefix: string) => {
+    const V = tri(ox);
+    const cen: [number, number] = [(V[0][0] + V[1][0] + V[2][0]) / 3, (V[0][1] + V[1][1] + V[2][1]) / 3];
+    const edges: [[number, number], [number, number]][] = [
+      [V[0], V[1]],
+      [V[1], V[2]],
+      [V[2], V[0]],
+    ];
+    return (
+      <g key={keyPrefix}>
+        <polygon points={V.map((p) => p.join(',')).join(' ')} {...outline} />
+        {edges.map(([p, q], i) => {
+          const n = sideMarks[i];
+          if (!n) return null;
+          const mx = (p[0] + q[0]) / 2;
+          const my = (p[1] + q[1]) / 2;
+          const ang = Math.atan2(q[1] - p[1], q[0] - p[0]) + Math.PI / 2;
+          return (
+            <g key={`s${i}`} className="text-primary">
+              {Array.from({ length: n }, (_, k) => {
+                const off = (k - (n - 1) / 2) * 4;
+                const bx = mx + Math.cos(ang - Math.PI / 2) * off;
+                const by = my + Math.sin(ang - Math.PI / 2) * off;
+                return <line key={k} x1={bx - Math.cos(ang) * 4} y1={by - Math.sin(ang) * 4} x2={bx + Math.cos(ang) * 4} y2={by + Math.sin(ang) * 4} stroke="currentColor" strokeWidth={STROKE} />;
+              })}
+            </g>
+          );
+        })}
+        {angleMarks.map((n, i) => {
+          if (!n) return null;
+          const [vx, vy] = V[i];
+          const dx = cen[0] - vx;
+          const dy = cen[1] - vy;
+          const base = (Math.atan2(-dy, dx) * 180) / Math.PI;
+          return <Arc key={`a${i}`} cx={vx} cy={vy} r={13 + n * 3} a0={base - 22} a1={base + 22} accent />;
+        })}
+      </g>
+    );
+  };
+  return (
+    <>
+      {renderTri(28, 't1')}
+      {renderTri(132, 't2')}
+      {criterion && <Label x={120} y={140} text={criterion} accent />}
+    </>
+  );
 }
 
 function BoxSolid({ dims, open, cube }: { dims?: string[]; open?: boolean; cube?: boolean }) {

@@ -46,12 +46,12 @@ export type FigureSpec =
   // مثلث بأطوال أضلاع معلّمة (لمتباينة المثلث/التصنيف)
   | { type: 'triangleSides'; sides: [string, string, string]; rightAngleAt?: 0 | 1 | 2 }
   // --- مضلّعات ---
-  // مستطيل/مربّع بأبعاد معلّمة
-  | { type: 'rect'; w: string; h: string; square?: boolean }
+  // مستطيل/مربّع بأبعاد معلّمة (diagonal = قطر معلّم اختياري)
+  | { type: 'rect'; w: string; h: string; square?: boolean; diagonal?: string }
   // مثلث بقاعدة وارتفاع (الارتفاع خطّ متقطّع عمودي)
   | { type: 'triangleBaseHeight'; base: string; height: string }
-  // مثلث قائم الزاوية: ضلعان قائمان + وتر
-  | { type: 'rightTriangle'; legs: [string, string]; hyp?: string }
+  // مثلث قائم الزاوية: ضلعان قائمان + وتر (squares = مربّعات على الأضلاع لتفسير فيثاغورس)
+  | { type: 'rightTriangle'; legs: [string, string]; hyp?: string; squares?: boolean }
   // متوازي أضلاع بقاعدة وارتفاع
   | { type: 'parallelogram'; base: string; height: string }
   // شبه منحرف بقاعدتين وارتفاع
@@ -78,7 +78,7 @@ export type FigureSpec =
   | { type: 'stadium'; w: string; h: string; radius: string }
   // مستطيل بإطار/ممرّ داخلي بعرض ثابت (يُبرَز المستطيل الداخلي)
   | { type: 'borderedRect'; outerW: string; outerH: string; border: string }
-  // --- جملة المحاور ---
+  // --- جملة المحاور / الدالة الخطية / التحويلات ---
   | {
       type: 'coordinatePlane';
       points?: { x: number; y: number; label?: string; target?: boolean }[];
@@ -86,6 +86,36 @@ export type FigureSpec =
       polygon?: { x: number; y: number }[];
       highlightQuadrant?: 1 | 2 | 3 | 4;
       range?: number; // نصف مدى المحاور (افتراضياً يُشتقّ من أكبر إحداثي)
+      // خطوط مستقيمة: y=mx+b أو مارّ بنقطتين
+      lines?: { m?: number; b?: number; p1?: [number, number]; p2?: [number, number]; dashed?: boolean; accent?: boolean }[];
+      intersection?: { x: number; y: number }; // نقطة حلّ الجملة
+      // تحويلات هندسية
+      vector?: { from: [number, number]; d: [number, number] }; // سهم انسحاب
+      mapped?: { x: number; y: number; label?: string }[]; // صور النقاط (متقطّعة/مبرَزة)
+      mappedPolygon?: { x: number; y: number }[]; // صورة المضلّع
+      reflectAxis?: 'x' | 'y'; // محور انعكاس مبرَز
+      rotationDeg?: number; // قوس دوران حول المبدأ
     }
-  // --- مجسّمات ثلاثية الأبعاد (رسم متساوي القياس isometric) ---
-  | { type: 'solid'; kind: 'box' | 'cube' | 'triangularPrism' | 'pentagonalPrism'; dims?: string[]; open?: boolean };
+  // --- مستقيم الأعداد (المتباينات) ---
+  | {
+      type: 'numberLine';
+      min: number;
+      max: number;
+      rays?: { at: number; dir: 'left' | 'right'; closed: boolean }[]; // x>2 مفتوحة، x≤−1 مغلقة…
+      segment?: { from: number; to: number; closedFrom: boolean; closedTo: boolean }; // 2<x<6
+      points?: { at: number; label?: string; closed?: boolean }[]; // ترتيب أعداد
+      ticks?: number[]; // علامات مخصّصة (وإلا أعداد صحيحة)
+    }
+  // --- مثلثان متطابقان بعلامات التطابق ---
+  | {
+      type: 'congruentTriangles';
+      marks?: { sides?: [0 | 1 | 2 | 3, 0 | 1 | 2 | 3, 0 | 1 | 2 | 3]; angles?: [0 | 1 | 2, 0 | 1 | 2, 0 | 1 | 2] };
+      criterion?: string; // ض.ض.ض / ض.ز.ض …
+    }
+  // --- مجسّمات ثلاثية الأبعاد (isometric؛ الأسطوانة/المخروط بمنظور بسيط) ---
+  | {
+      type: 'solid';
+      kind: 'box' | 'cube' | 'triangularPrism' | 'pentagonalPrism' | 'cylinder' | 'cone' | 'cylinderCone' | 'coneInCylinder';
+      dims?: string[]; // box: [w,h,d]؛ cube: [a]؛ cylinder/cone: [r,h] أو [r,h,slant]
+      open?: boolean;
+    };
