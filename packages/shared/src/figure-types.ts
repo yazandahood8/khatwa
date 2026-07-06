@@ -125,6 +125,19 @@ export type FigureSpec =
   | { type: 'ioExample'; input?: string; output: string; note?: string }
   // --- علوم الحاسوب: خلايا مصفوفة بقيَم وفهارس (مع إبراز) ---
   | { type: 'arrayCells'; values: string[]; showIndices?: boolean; highlight?: number[]; caption?: string }
+  // --- علوم الحاسوب (5 وحدات): بُنى بيانات ---
+  // قائمة مرتبطة: سلسلة/سلاسل عقد بأسهم وnull (chains لعرض قبل/بعد أو قائمتين)
+  | { type: 'linkedList'; chains: { label?: string; nodes: string[]; highlight?: number[] }[] }
+  // مكدس LIFO عمودي — items[0] القاع، الأخير القمّة
+  | { type: 'stack'; items: string[]; caption?: string }
+  // طابور FIFO أفقي — items[0] الأمام، الأخير الخلف
+  | { type: 'queue'; items: string[]; caption?: string }
+  // شجرة ثنائية بترتيب المستويات (nodes[i] → ابناه 2i+1 و2i+2؛ null لغياب عقدة)
+  | { type: 'binaryTree'; nodes: (string | null)[]; caption?: string }
+  // رسم بياني: عقد بمواقع (0..100) + حواف (بمعرّفات العقد)
+  | { type: 'graph'; nodes: { id: string; x: number; y: number; label?: string }[]; edges: [string, string][]; directed?: boolean; caption?: string }
+  // مخطط حالات آلة منتهية (DFA): حالات في صف + انتقالات معلّمة
+  | { type: 'dfa'; states: { id: string; accept?: boolean; start?: boolean }[]; transitions: { from: string; to: string; label: string }[]; caption?: string }
   // --- مثلثان متشابهان (نسبة التشابه/الظلال) ---
   | { type: 'similarTriangles'; a: [string, string, string?]; b: [string, string, string?]; right?: boolean }
   // --- نظرية طاليس: مثلث ABC وقطعة DE ∥ BC ---

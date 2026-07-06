@@ -1488,4 +1488,66 @@ export const CS_FIGURES: Record<string, FigureSpec> = {
   // ---------- قواعد البيانات (SQL) ----------
   '3 وحدات|قواعد البيانات ونظم المعلومات|3#0': { type: 'ioExample', input: "SELECT Name FROM Students WHERE City = 'حيفا';", output: 'Name\n----\nليان\nسامي' },
   '3 وحدات|قواعد البيانات ونظم المعلومات|3#2': { type: 'ioExample', input: 'SELECT City, AVG(Grade) …', output: 'City    AvgGrade\n-----   --------\nحيفا    88\nعكا     91' },
+
+  // ============================================================
+  //  5 وحدات — بُنى بيانات وخوارزميات متقدّمة
+  // ============================================================
+
+  // ---------- العودية ----------
+  '5 وحدات|العودية (Recursion / רקורסיה)|2#1': { type: 'ioExample', output: 'Power(2, 3) ⟶ 8', note: '2 × Power(2,2) = 2×4.' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|2#2': { type: 'ioExample', output: 'SumDigits(123) ⟶ 6', note: '3 + SumDigits(12) = 3+2+1.' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|2#3': { type: 'ioExample', output: 'Fib(50) الساذجة: ~2×10⁹ استدعاء\nبالحفظ (Memoization): 50 عملية', note: 'العودية الساذجة تعيد حساب القيم أُسّياً.' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|4#0': { type: 'ioExample', output: 'MaxArray({3, 9, 4}, 0) ⟶ 9' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|4#1': { type: 'ioExample', output: 'CountEven({2, 5, 8, 3}, 0) ⟶ 2' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|4#2': { type: 'ioExample', output: '{1, 2, 3, 4, 5} ⟶ {5, 4, 3, 2, 1}' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|4#3': { type: 'arrayCells', values: ['1', '3', '5', '7', '9', '11', '13'], highlight: [3], caption: 'البحث الثنائي العودي عن 7 ⟶ الفهرس 3' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|8#1': { type: 'ioExample', output: '{1, 4, 7} + {2, 3, 8} ⟶ {1, 2, 3, 4, 7, 8}', note: 'دمج جزأين مرتّبين بمؤشّرين.' },
+  '5 وحدات|العودية (Recursion / רקורסיה)|8#2': { type: 'ioExample', output: 'MergeSort: O(n log n)\nBubbleSort: O(n²)\nn=1000 ⟶ ~10,000 مقابل ~1,000,000' },
+
+  // ---------- الكفاءة الزمنية ----------
+  '5 وحدات|الكفاءة الزمنية (Big-O Notation)|2#1': { type: 'ioExample', output: 'n = 1000\nO(1)      ⟶ 1\nO(log n)  ⟶ ~10\nO(n)      ⟶ 1,000\nO(n²)     ⟶ 1,000,000' },
+  '5 وحدات|الكفاءة الزمنية (Big-O Notation)|2#3': { type: 'ioExample', output: '{2, 7, 4, 5}, k = 9 ⟶ (2, 7) و(4, 5)', note: 'بـ HashSet في مرور واحد O(n).' },
+
+  // ---------- المكدس (Stack) ----------
+  '5 وحدات|المكدس (Stack)|2#2': { type: 'stack', items: ['a', 'b', 'c'], caption: 'ادفع a,b,c ثم اسحب ⟶ c b a' },
+  '5 وحدات|المكدس (Stack)|2#3': { type: 'stack', items: ['{', '[', '('], caption: 'عند "]" القمّة "(" ⟶ عدم تطابق' },
+
+  // ---------- الطابور (Queue) ----------
+  '5 وحدات|الطابور (Queue)|2#1': { type: 'queue', items: ['A', 'B', 'C'], caption: 'FIFO — يخرج A أولاً (عكس المكدس)' },
+  '5 وحدات|الطابور (Queue)|2#2': { type: 'queue', items: ['A', 'B', 'C'], caption: 'الطابور FIFO — عكسه يحتاج بنية LIFO' },
+  '5 وحدات|الطابور (Queue)|2#3': { type: 'ioExample', output: 'size = 5, front = 3, rear = 1\nالعناصر بالترتيب: الفهارس 3, 4, 0, 1\nالإضافة: rear = (rear + 1) % 5', note: 'الطابور الدائري يلتفّ باستخدام باقي القسمة.' },
+
+  // ---------- القوائم المرتبطة (Linked List) ----------
+  '5 وحدات|القوائم المرتبطة (Linked List)|2#1': { type: 'linkedList', chains: [{ nodes: ['1', '7', '3'] }] },
+  '5 وحدات|القوائم المرتبطة (Linked List)|2#2': { type: 'linkedList', chains: [{ label: 'قبل', nodes: ['1', '7', '3'] }, { label: 'بعد', nodes: ['1', '7', '3', '9'], highlight: [3] }] },
+  '5 وحدات|القوائم المرتبطة (Linked List)|2#3': { type: 'linkedList', chains: [{ label: 'قبل', nodes: ['1', '2', '3'] }, { label: 'بعد', nodes: ['3', '2', '1'] }] },
+  '5 وحدات|القوائم المرتبطة (Linked List)|4#2': { type: 'linkedList', chains: [{ label: 'قبل', nodes: ['1', '2', '2', '3', '2'], highlight: [2, 4] }, { label: 'بعد', nodes: ['1', '2', '3'] }] },
+  '5 وحدات|القوائم المرتبطة (Linked List)|4#3': { type: 'linkedList', chains: [{ label: 'A', nodes: ['1', '3', '5'] }, { label: 'B', nodes: ['2', '4', '6'] }, { label: 'الناتج', nodes: ['1', '2', '3', '4', '5', '6'] }] },
+
+  // ---------- الأشجار الثنائية (Binary Trees) ----------
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|2#0': { type: 'binaryTree', nodes: ['5', '3', '7'] },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|2#1': { type: 'binaryTree', nodes: ['5', '3', '7'], caption: 'جذر 5، يسار 3، يمين 7' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|2#2': { type: 'binaryTree', nodes: ['5', '3', '7', '1', '4', null, '8'], caption: 'CountNodes ⟶ 6' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|2#3': { type: 'binaryTree', nodes: ['1', '2', '2', '3', '4', '4', '3'], caption: 'شجرة متماثلة' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|3#0': { type: 'binaryTree', nodes: ['1', '2', '3', '4', '5'], caption: 'أعطِ Preorder / Inorder / Postorder' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|3#2': { type: 'binaryTree', nodes: ['5', '3', '8', '1', '4', null, '9'], caption: 'أكبر قيمة بالعودية' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|3#3': { type: 'binaryTree', nodes: ['5', '3', '7', '1', '4', '6', '8'], caption: 'BST — أقرب سلف مشترك' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|7#0': { type: 'binaryTree', nodes: ['5', '3', '7', '1', '4'], caption: 'إدراج {5,3,7,1,4} في BST' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|7#1': { type: 'binaryTree', nodes: ['5', '3', '7', '1', '4', '6', '8'], caption: 'البحث في BST' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|7#2': { type: 'binaryTree', nodes: ['5', '3', '7', '1', '4'], caption: 'Inorder ⟶ 1 3 4 5 7' },
+  '5 وحدات|الأشجار الثنائية (Binary Trees)|7#3': { type: 'ioExample', output: 'حذف عقدة من BST:\n• ورقة        ⟶ تُحذف مباشرة\n• ابن واحد    ⟶ يحلّ الابن محلّها\n• ابنان       ⟶ يحلّ التالي في Inorder' },
+
+  // ---------- النماذج الحسابية (DFA / آلة تورينغ) ----------
+  '5 وحدات|النماذج الحسابية (מודלים חישוביים)|2#0': { type: 'dfa', caption: 'عدد زوجي من a', states: [{ id: 'q0', start: true, accept: true }, { id: 'q1' }], transitions: [{ from: 'q0', to: 'q1', label: 'a' }, { from: 'q1', to: 'q0', label: 'a' }, { from: 'q0', to: 'q0', label: 'b' }, { from: 'q1', to: 'q1', label: 'b' }] },
+  '5 وحدات|النماذج الحسابية (מודלים חישוביים)|2#1': { type: 'dfa', caption: 'ينتهي بـ ab', states: [{ id: 'q0', start: true }, { id: 'q1' }, { id: 'q2', accept: true }], transitions: [{ from: 'q0', to: 'q1', label: 'a' }, { from: 'q0', to: 'q0', label: 'b' }, { from: 'q1', to: 'q1', label: 'a' }, { from: 'q1', to: 'q2', label: 'b' }, { from: 'q2', to: 'q1', label: 'a' }, { from: 'q2', to: 'q0', label: 'b' }] },
+  '5 وحدات|النماذج الحسابية (מודלים חישוביים)|2#2': { type: 'dfa', caption: 'ثنائي يقبل القسمة على 3', states: [{ id: 'q0', start: true, accept: true }, { id: 'q1' }, { id: 'q2' }], transitions: [{ from: 'q0', to: 'q0', label: '0' }, { from: 'q0', to: 'q1', label: '1' }, { from: 'q1', to: 'q2', label: '0' }, { from: 'q1', to: 'q0', label: '1' }, { from: 'q2', to: 'q1', label: '0' }, { from: 'q2', to: 'q2', label: '1' }] },
+  '5 وحدات|النماذج الحسابية (מודלים חישוביים)|8#2': { type: 'arrayCells', values: ['a', 'b', 'b', 'a'], highlight: [0, 3], caption: 'شريط تورينغ: قارن الطرفين ثم امحُ للداخل' },
+
+  // ---------- OOP المتقدم ----------
+  '5 وحدات|OOP المتقدم|2#0': { type: 'ioExample', output: 'Square(4): Area = 16, Perimeter = 16', note: 'تطبيق الواجهة IShape.' },
+
+  // ---------- خوارزميات الرسوم البيانية (Graphs) ----------
+  '5 وحدات|خوارزميات الرسوم البيانية (Graphs)|4#1': { type: 'graph', directed: true, caption: 'BFS مقابل DFS', nodes: [{ id: '0', x: 50, y: 8 }, { id: '1', x: 24, y: 46 }, { id: '2', x: 76, y: 46 }, { id: '3', x: 14, y: 88 }, { id: '4', x: 66, y: 88 }], edges: [['0', '1'], ['0', '2'], ['1', '3'], ['2', '4']] },
+  '5 وحدات|خوارزميات الرسوم البيانية (Graphs)|4#2': { type: 'graph', directed: true, caption: 'أقصر مسار = عدد الحواف من المصدر', nodes: [{ id: '0', x: 50, y: 8, label: '0' }, { id: '1', x: 24, y: 46, label: '1' }, { id: '2', x: 76, y: 46, label: '1' }, { id: '3', x: 14, y: 88, label: '2' }, { id: '4', x: 66, y: 88, label: '2' }], edges: [['0', '1'], ['0', '2'], ['1', '3'], ['2', '4']] },
+  '5 وحدات|خوارزميات الرسوم البيانية (Graphs)|4#3': { type: 'graph', caption: 'رسم غير متّصل (مكوّنان)', nodes: [{ id: '0', x: 20, y: 30 }, { id: '1', x: 45, y: 12 }, { id: '2', x: 45, y: 55 }, { id: '3', x: 80, y: 25 }, { id: '4', x: 80, y: 70 }], edges: [['0', '1'], ['0', '2'], ['3', '4']] },
 };

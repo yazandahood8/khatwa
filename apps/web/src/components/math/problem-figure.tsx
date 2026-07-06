@@ -224,6 +224,18 @@ function Figure({ spec }: { spec: FigureSpec }) {
       return <CongruentTriangles marks={spec.marks} criterion={spec.criterion} />;
     case 'solid':
       return <Solid kind={spec.kind} dims={spec.dims} open={spec.open} />;
+    case 'linkedList':
+      return <LinkedList chains={spec.chains} />;
+    case 'stack':
+      return <StackFig items={spec.items} caption={spec.caption} />;
+    case 'queue':
+      return <QueueFig items={spec.items} caption={spec.caption} />;
+    case 'binaryTree':
+      return <BinaryTree nodes={spec.nodes} caption={spec.caption} />;
+    case 'graph':
+      return <GraphFig nodes={spec.nodes} edges={spec.edges} directed={spec.directed} caption={spec.caption} />;
+    case 'dfa':
+      return <Dfa states={spec.states} transitions={spec.transitions} caption={spec.caption} />;
     default:
       return null;
   }
@@ -1672,6 +1684,208 @@ function PrismSolid({ sides }: { sides: 3 | 5 }) {
         <line key={i} x1={p[0]} y1={p[1]} x2={back[i][0]} y2={back[i][1]} stroke="currentColor" strokeWidth={STROKE} />
       ))}
       <polygon points={front.map((p) => p.join(',')).join(' ')} {...outline} />
+    </>
+  );
+}
+
+/* ---------------- CS data structures (5-units) ---------------- */
+
+function CsCaption({ text }: { text?: string }) {
+  if (!text) return null;
+  return (
+    <text x={120} y={12} fontSize={11} fontWeight={600} textAnchor="middle" fill="currentColor" className="text-muted-foreground">
+      {text}
+    </text>
+  );
+}
+
+function LinkedList({ chains }: { chains: { label?: string; nodes: string[]; highlight?: number[] }[] }) {
+  const bw = 22, bh = 20, gap = 9;
+  const rowH = 40;
+  const y0 = 80 - ((chains.length - 1) * rowH) / 2;
+  return (
+    <>
+      {chains.map((ch, ci) => {
+        const y = y0 + ci * rowH - bh / 2;
+        const labelW = ch.label ? 26 : 0;
+        let x = 12 + labelW;
+        const parts: React.ReactNode[] = [];
+        if (ch.label) parts.push(<Label key="lb" x={12 + labelW / 2} y={y + bh / 2} text={ch.label} />);
+        ch.nodes.forEach((n, ni) => {
+          const hot = ch.highlight?.includes(ni);
+          parts.push(
+            <g key={`n${ni}`} className={hot ? 'text-primary' : undefined}>
+              <rect x={x} y={y} width={bw} height={bh} rx={3} fill="currentColor" fillOpacity={hot ? 0.12 : 0} stroke="currentColor" strokeWidth={STROKE} />
+              <Label x={x + bw / 2} y={y + bh / 2} text={n} accent={hot} />
+            </g>,
+          );
+          parts.push(<Arrow key={`a${ni}`} x1={x + bw} y1={y + bh / 2} x2={x + bw + gap - 2} y2={y + bh / 2} />);
+          x += bw + gap;
+        });
+        parts.push(<Label key="nl" x={x + 8} y={y + bh / 2} text="∅" />);
+        return <g key={ci}>{parts}</g>;
+      })}
+    </>
+  );
+}
+
+function StackFig({ items, caption }: { items: string[]; caption?: string }) {
+  const bw = 56, bh = 20;
+  const cx = 120, baseY = 138;
+  return (
+    <>
+      <CsCaption text={caption} />
+      {items.map((it, i) => {
+        const y = baseY - (i + 1) * (bh + 2);
+        return (
+          <g key={i}>
+            <rect x={cx - bw / 2} y={y} width={bw} height={bh} rx={3} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+            <Label x={cx} y={y + bh / 2} text={it} />
+          </g>
+        );
+      })}
+      {items.length > 0 && <Label x={cx + bw / 2 + 22} y={baseY - items.length * (bh + 2) + bh / 2} text="القمّة" accent />}
+      <line x1={cx - bw / 2 - 4} y1={baseY} x2={cx + bw / 2 + 4} y2={baseY} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
+    </>
+  );
+}
+
+function QueueFig({ items, caption }: { items: string[]; caption?: string }) {
+  const bw = 30, bh = 24, gap = 2;
+  const total = items.length * (bw + gap) - gap;
+  const x0 = 120 - total / 2;
+  const y = 80 - bh / 2;
+  return (
+    <>
+      <CsCaption text={caption} />
+      {items.map((it, i) => (
+        <g key={i}>
+          <rect x={x0 + i * (bw + gap)} y={y} width={bw} height={bh} rx={3} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+          <Label x={x0 + i * (bw + gap) + bw / 2} y={y + bh / 2} text={it} />
+        </g>
+      ))}
+      <Label x={x0 - 4} y={y - 8} text="الأمام" accent />
+      <Label x={x0 + total + 4} y={y - 8} text="الخلف" accent />
+    </>
+  );
+}
+
+function BinaryTree({ nodes, caption }: { nodes: (string | null)[]; caption?: string }) {
+  const pos = (i: number): [number, number] => {
+    const L = Math.floor(Math.log2(i + 1));
+    const slots = 2 ** L;
+    const posInLevel = i - (2 ** L - 1);
+    const x = 22 + ((posInLevel + 0.5) * 196) / slots;
+    const y = 32 + L * 40;
+    return [x, y];
+  };
+  const r = 13;
+  return (
+    <>
+      <CsCaption text={caption} />
+      {nodes.map((n, i) => {
+        if (n == null || i === 0) return null;
+        const parent = Math.floor((i - 1) / 2);
+        if (nodes[parent] == null) return null;
+        const [px, py] = pos(parent);
+        const [cx, cy] = pos(i);
+        return <line key={`e${i}`} x1={px} y1={py} x2={cx} y2={cy} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />;
+      })}
+      {nodes.map((n, i) => {
+        if (n == null) return null;
+        const [x, y] = pos(i);
+        return (
+          <g key={`n${i}`}>
+            <circle cx={x} cy={y} r={r} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={STROKE} />
+            <Label x={x} y={y} text={n} />
+          </g>
+        );
+      })}
+    </>
+  );
+}
+
+function GraphFig({ nodes, edges, directed, caption }: { nodes: { id: string; x: number; y: number; label?: string }[]; edges: [string, string][]; directed?: boolean; caption?: string }) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const SX = (x: number) => 24 + x * 1.9;
+  const SY = (y: number) => 24 + y * 1.15;
+  const r = 13;
+  return (
+    <>
+      <CsCaption text={caption} />
+      {edges.map(([a, b], i) => {
+        const na = byId.get(a);
+        const nb = byId.get(b);
+        if (!na || !nb) return null;
+        const x1 = SX(na.x), y1 = SY(na.y), x2 = SX(nb.x), y2 = SY(nb.y);
+        const d = Math.hypot(x2 - x1, y2 - y1) || 1;
+        const ux = (x2 - x1) / d, uy = (y2 - y1) / d;
+        const ex = x2 - ux * r, ey = y2 - uy * r;
+        const sx = x1 + ux * r, sy = y1 + uy * r;
+        return directed ? (
+          <Arrow key={`e${i}`} x1={sx} y1={sy} x2={ex} y2={ey} />
+        ) : (
+          <line key={`e${i}`} x1={sx} y1={sy} x2={ex} y2={ey} stroke="currentColor" strokeWidth={STROKE} />
+        );
+      })}
+      {nodes.map((n) => (
+        <g key={n.id}>
+          <circle cx={SX(n.x)} cy={SY(n.y)} r={r} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={STROKE} />
+          <Label x={SX(n.x)} y={SY(n.y)} text={n.label ?? n.id} />
+        </g>
+      ))}
+    </>
+  );
+}
+
+function Dfa({ states, transitions, caption }: { states: { id: string; accept?: boolean; start?: boolean }[]; transitions: { from: string; to: string; label: string }[]; caption?: string }) {
+  const n = states.length;
+  const cy = 90;
+  const X = (i: number) => (n === 1 ? 120 : 34 + (i * (240 - 68)) / (n - 1));
+  const idx = new Map(states.map((s, i) => [s.id, i]));
+  const r = 15;
+  const groups = new Map<string, string>();
+  for (const t of transitions) {
+    const k = `${t.from}->${t.to}`;
+    const prev = groups.get(k);
+    groups.set(k, prev ? `${prev}, ${t.label}` : t.label);
+  }
+  return (
+    <>
+      <CsCaption text={caption} />
+      {[...groups.entries()].map(([k, label], gi) => {
+        const [from, to] = k.split('->');
+        const i = idx.get(from) ?? 0;
+        const j = idx.get(to) ?? 0;
+        const xi = X(i), xj = X(j);
+        if (i === j) {
+          return (
+            <g key={gi}>
+              <path d={`M ${xi - 7} ${cy - r} C ${xi - 16} ${cy - r - 22}, ${xi + 16} ${cy - r - 22}, ${xi + 7} ${cy - r}`} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+              <polygon points={`${xi + 7},${cy - r} ${xi + 1},${cy - r - 6} ${xi + 12},${cy - r - 3}`} fill="currentColor" />
+              <Label x={xi} y={cy - r - 27} text={label} accent />
+            </g>
+          );
+        }
+        const dir = j > i ? 1 : -1;
+        const sx = xi + dir * r, ex = xj - dir * r;
+        const mx = (sx + ex) / 2, my = cy + dir * 26;
+        return (
+          <g key={gi}>
+            <path d={`M ${sx} ${cy} Q ${mx} ${my} ${ex} ${cy}`} fill="none" stroke="currentColor" strokeWidth={STROKE} />
+            <polygon points={`${ex},${cy} ${ex - dir * 7},${cy - 4} ${ex - dir * 7},${cy + 4}`} fill="currentColor" />
+            <Label x={mx} y={my + dir * 9} text={label} accent />
+          </g>
+        );
+      })}
+      {states.map((s, i) => (
+        <g key={s.id}>
+          {s.start && <Arrow x1={X(i) - r - 16} y1={cy} x2={X(i) - r - 1} y2={cy} />}
+          <circle cx={X(i)} cy={cy} r={r} fill="var(--bg, #fff)" stroke="currentColor" strokeWidth={STROKE} />
+          {s.accept && <circle cx={X(i)} cy={cy} r={r - 3.5} fill="none" stroke="currentColor" strokeWidth={STROKE} />}
+          <Label x={X(i)} y={cy} text={s.id} />
+        </g>
+      ))}
     </>
   );
 }
