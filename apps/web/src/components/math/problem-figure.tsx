@@ -119,7 +119,49 @@ function Figure({ spec }: { spec: FigureSpec }) {
         />
       );
     case 'triangleSides':
-      return <TriangleSides sides={spec.sides} />;
+      return <TriangleSides sides={spec.sides} rightAngleAt={spec.rightAngleAt} />;
+    case 'rect':
+      return <Rect w={spec.w} h={spec.h} square={spec.square} />;
+    case 'triangleBaseHeight':
+      return <TriangleBaseHeight base={spec.base} height={spec.height} />;
+    case 'rightTriangle':
+      return <RightTriangle legs={spec.legs} hyp={spec.hyp} />;
+    case 'parallelogram':
+      return <Parallelogram base={spec.base} height={spec.height} />;
+    case 'trapezoid':
+      return <Trapezoid base1={spec.base1} base2={spec.base2} height={spec.height} />;
+    case 'rhombus':
+      return <Rhombus diag1={spec.diag1} diag2={spec.diag2} />;
+    case 'circle':
+      return <CircleFig radius={spec.radius} diameter={spec.diameter} chord={spec.chord} shaded={spec.shaded} />;
+    case 'concentricCircles':
+      return <ConcentricCircles outer={spec.outer} inner={spec.inner} />;
+    case 'circleSector':
+      return <CircleSector angle={spec.angle} radius={spec.radius} mode={spec.mode} />;
+    case 'rectPlusTriangle':
+      return <RectPlusTriangle w={spec.w} h={spec.h} triBase={spec.triBase} triHeight={spec.triHeight} />;
+    case 'rectPlusSemicircle':
+      return <RectPlusSemicircle w={spec.w} h={spec.h} radius={spec.radius} />;
+    case 'lShape':
+      return <LShape outerW={spec.outerW} outerH={spec.outerH} cutW={spec.cutW} cutH={spec.cutH} />;
+    case 'inscribedCircleSquare':
+      return <InscribedCircleSquare side={spec.side} radius={spec.radius} />;
+    case 'stadium':
+      return <Stadium w={spec.w} h={spec.h} radius={spec.radius} />;
+    case 'borderedRect':
+      return <BorderedRect outerW={spec.outerW} outerH={spec.outerH} border={spec.border} />;
+    case 'coordinatePlane':
+      return (
+        <CoordinatePlane
+          points={spec.points}
+          segments={spec.segments}
+          polygon={spec.polygon}
+          highlightQuadrant={spec.highlightQuadrant}
+          range={spec.range}
+        />
+      );
+    case 'solid':
+      return <Solid kind={spec.kind} dims={spec.dims} open={spec.open} />;
     default:
       return null;
   }
@@ -444,8 +486,15 @@ function ExteriorAngle({ vertex, label }: { vertex: 0 | 1 | 2; label: string }) 
   );
 }
 
-function TriangleSides({ sides }: { sides: [string, string, string] }) {
+function TriangleSides({
+  sides,
+  rightAngleAt,
+}: {
+  sides: [string, string, string];
+  rightAngleAt?: 0 | 1 | 2;
+}) {
   // sides[0]=AB، sides[1]=BC (القاعدة)، sides[2]=CA
+  const V: [number, number][] = [TRI.A, TRI.B, TRI.C];
   const edges: [[number, number], [number, number]][] = [
     [TRI.A, TRI.B],
     [TRI.B, TRI.C],
@@ -458,11 +507,12 @@ function TriangleSides({ sides }: { sides: [string, string, string] }) {
   return (
     <>
       <polygon
-        points={[TRI.A, TRI.B, TRI.C].map((p) => p.join(',')).join(' ')}
+        points={V.map((p) => p.join(',')).join(' ')}
         fill="none"
         stroke="currentColor"
         strokeWidth={STROKE}
       />
+      {rightAngleAt != null && <RightAngleMark vertex={V[rightAngleAt]} center={cen} />}
       {edges.map(([p, q], i) => {
         const mx = (p[0] + q[0]) / 2;
         const my = (p[1] + q[1]) / 2;
@@ -474,6 +524,538 @@ function TriangleSides({ sides }: { sides: [string, string, string] }) {
         const ly = my + (dy / d) * 16;
         return <Label key={i} x={lx} y={ly} text={sides[i]} accent={isTarget(sides[i])} />;
       })}
+    </>
+  );
+}
+
+/* ---------------- shared helpers for batch-2 figures ---------------- */
+
+/** يستخرج أول عدد من نصّ التسمية (لتحجيم القطاع/القصّ)، وإلا القيمة الاحتياطية. */
+function num(s: string | undefined, fb: number): number {
+  if (!s) return fb;
+  const m = s.match(/-?\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : fb;
+}
+
+/** منطقة مظلّلة بلون الإبراز (للإجابة/الحلقة/الفجوة). */
+function Shade({ d, points }: { d?: string; points?: string }) {
+  return d ? (
+    <path d={d} fillRule="evenodd" fill="currentColor" fillOpacity={0.14} stroke="none" className="text-primary" />
+  ) : (
+    <polygon points={points} fill="currentColor" fillOpacity={0.14} stroke="none" className="text-primary" />
+  );
+}
+
+/** علامة زاوية قائمة محاذية للمحاور عند نقطة (الاتجاه: dx/dy = ±1). */
+function RightAngleBox({ x, y, dx, dy }: { x: number; y: number; dx: number; dy: number }) {
+  const s = 10;
+  return (
+    <path
+      d={`M ${x + dx * s} ${y} L ${x + dx * s} ${y + dy * s} L ${x} ${y + dy * s}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={STROKE}
+    />
+  );
+}
+
+/** خطّ متقطّع (ارتفاع/امتداد مساعد). */
+function Dashed({ x1, y1, x2, y2, muted }: { x1: number; y1: number; x2: number; y2: number; muted?: boolean }) {
+  return (
+    <line
+      x1={x1}
+      y1={y1}
+      x2={x2}
+      y2={y2}
+      stroke="currentColor"
+      strokeWidth={STROKE}
+      strokeDasharray="3 3"
+      className={muted ? 'text-muted-foreground' : undefined}
+    />
+  );
+}
+
+const outline = { fill: 'none', stroke: 'currentColor', strokeWidth: STROKE } as const;
+
+/* ---------------- polygons ---------------- */
+
+function Rect({ w, h, square }: { w: string; h: string; square?: boolean }) {
+  const cw = square ? 86 : 122;
+  const ch = square ? 86 : 74;
+  const x0 = 120 - cw / 2;
+  const y0 = 80 - ch / 2;
+  return (
+    <>
+      <rect x={x0} y={y0} width={cw} height={ch} {...outline} />
+      <Label x={120} y={y0 + ch + 14} text={w} accent={isTarget(w)} />
+      <Label x={x0 - 15} y={80} text={h} accent={isTarget(h)} />
+    </>
+  );
+}
+
+function TriangleBaseHeight({ base, height }: { base: string; height: string }) {
+  const A: [number, number] = [52, 122];
+  const B: [number, number] = [188, 122];
+  const apex: [number, number] = [138, 44];
+  const foot: [number, number] = [apex[0], 122];
+  return (
+    <>
+      <polygon points={`${A} ${B} ${apex}`} {...outline} />
+      <Dashed x1={apex[0]} y1={apex[1]} x2={foot[0]} y2={foot[1]} muted />
+      <RightAngleBox x={foot[0]} y={foot[1]} dx={-1} dy={-1} />
+      <Label x={120} y={136} text={base} accent={isTarget(base)} />
+      <Label x={foot[0] + 16} y={84} text={height} accent={isTarget(height)} />
+    </>
+  );
+}
+
+function RightTriangle({ legs, hyp }: { legs: [string, string]; hyp?: string }) {
+  const A: [number, number] = [60, 122]; // الزاوية القائمة
+  const B: [number, number] = [186, 122];
+  const C: [number, number] = [60, 46];
+  return (
+    <>
+      <polygon points={`${A} ${B} ${C}`} {...outline} />
+      <RightAngleBox x={A[0]} y={A[1]} dx={1} dy={-1} />
+      <Label x={(A[0] + B[0]) / 2} y={136} text={legs[0]} accent={isTarget(legs[0])} />
+      <Label x={A[0] - 15} y={(A[1] + C[1]) / 2} text={legs[1]} accent={isTarget(legs[1])} />
+      {hyp && <Label x={(B[0] + C[0]) / 2 + 20} y={(B[1] + C[1]) / 2 - 4} text={hyp} accent={isTarget(hyp)} />}
+    </>
+  );
+}
+
+function Parallelogram({ base, height }: { base: string; height: string }) {
+  const pts: [number, number][] = [
+    [55, 120],
+    [175, 120],
+    [205, 50],
+    [85, 50],
+  ];
+  return (
+    <>
+      <polygon points={pts.map((p) => p.join(',')).join(' ')} {...outline} />
+      <Dashed x1={110} y1={50} x2={110} y2={120} muted />
+      <RightAngleBox x={110} y={120} dx={1} dy={-1} />
+      <Label x={115} y={134} text={base} accent={isTarget(base)} />
+      <Label x={124} y={86} text={height} accent={isTarget(height)} />
+    </>
+  );
+}
+
+function Trapezoid({ base1, base2, height }: { base1: string; base2: string; height: string }) {
+  const pts: [number, number][] = [
+    [45, 120],
+    [195, 120],
+    [155, 52],
+    [85, 52],
+  ];
+  return (
+    <>
+      <polygon points={pts.map((p) => p.join(',')).join(' ')} {...outline} />
+      <Dashed x1={85} y1={52} x2={85} y2={120} muted />
+      <RightAngleBox x={85} y={120} dx={1} dy={-1} />
+      <Label x={120} y={134} text={base1} accent={isTarget(base1)} />
+      <Label x={120} y={42} text={base2} accent={isTarget(base2)} />
+      <Label x={99} y={86} text={height} accent={isTarget(height)} />
+    </>
+  );
+}
+
+function Rhombus({ diag1, diag2 }: { diag1: string; diag2: string }) {
+  const top: [number, number] = [120, 38];
+  const right: [number, number] = [182, 80];
+  const bottom: [number, number] = [120, 122];
+  const left: [number, number] = [58, 80];
+  return (
+    <>
+      <polygon points={`${top} ${right} ${bottom} ${left}`} {...outline} />
+      <line x1={left[0]} y1={left[1]} x2={right[0]} y2={right[1]} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
+      <line x1={top[0]} y1={top[1]} x2={bottom[0]} y2={bottom[1]} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
+      <Label x={152} y={72} text={diag1} accent={isTarget(diag1)} />
+      <Label x={106} y={102} text={diag2} accent={isTarget(diag2)} />
+    </>
+  );
+}
+
+/* ---------------- circle family ---------------- */
+
+const CC: [number, number] = [120, 80];
+
+function CircleFig({
+  radius,
+  diameter,
+  chord,
+  shaded,
+}: {
+  radius?: string;
+  diameter?: string;
+  chord?: string;
+  shaded?: boolean;
+}) {
+  const R = 55;
+  const [cx, cy] = CC;
+  const dLabel = diameter ?? chord;
+  return (
+    <>
+      {shaded && <circle cx={cx} cy={cy} r={R} fill="currentColor" fillOpacity={0.12} stroke="none" className="text-primary" />}
+      <circle cx={cx} cy={cy} r={R} {...outline} />
+      <circle cx={cx} cy={cy} r={2.4} fill="currentColor" />
+      {radius && (
+        <>
+          {(() => {
+            const [ex, ey] = polar(cx, cy, R, 35);
+            const [lx, ly] = polar(cx, cy, R * 0.55, 35);
+            return (
+              <>
+                <line x1={cx} y1={cy} x2={ex} y2={ey} stroke="currentColor" strokeWidth={STROKE} />
+                <Label x={lx} y={ly - 8} text={radius} accent={isTarget(radius)} />
+              </>
+            );
+          })()}
+        </>
+      )}
+      {dLabel && (
+        <>
+          <line x1={cx - R} y1={cy} x2={cx + R} y2={cy} stroke="currentColor" strokeWidth={STROKE} />
+          <Label x={cx} y={cy + 15} text={dLabel} accent={isTarget(dLabel)} />
+        </>
+      )}
+    </>
+  );
+}
+
+function ConcentricCircles({ outer, inner }: { outer: string; inner: string }) {
+  const [cx, cy] = CC;
+  const Ro = 58;
+  const Ri = 34;
+  const ring =
+    `M ${cx - Ro},${cy} a ${Ro},${Ro} 0 1,0 ${2 * Ro},0 a ${Ro},${Ro} 0 1,0 ${-2 * Ro},0 Z ` +
+    `M ${cx - Ri},${cy} a ${Ri},${Ri} 0 1,0 ${2 * Ri},0 a ${Ri},${Ri} 0 1,0 ${-2 * Ri},0 Z`;
+  const [ox, oy] = polar(cx, cy, Ro, 55);
+  const [ix, iy] = polar(cx, cy, Ri, 235);
+  return (
+    <>
+      <Shade d={ring} />
+      <circle cx={cx} cy={cy} r={Ro} {...outline} />
+      <circle cx={cx} cy={cy} r={Ri} {...outline} />
+      <line x1={cx} y1={cy} x2={ox} y2={oy} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={cx} y1={cy} x2={ix} y2={iy} stroke="currentColor" strokeWidth={STROKE} />
+      <Label x={polar(cx, cy, Ro * 0.6, 55)[0] + 8} y={polar(cx, cy, Ro * 0.6, 55)[1] - 6} text={outer} accent={isTarget(outer)} />
+      <Label x={polar(cx, cy, Ri * 0.6, 235)[0] - 8} y={polar(cx, cy, Ri * 0.6, 235)[1] + 10} text={inner} accent={isTarget(inner)} />
+      <circle cx={cx} cy={cy} r={2.4} fill="currentColor" />
+    </>
+  );
+}
+
+function CircleSector({ angle, radius, mode }: { angle: string; radius: string; mode: 'sector' | 'arc' | 'remaining' }) {
+  const [cx, cy] = CC;
+  const R = 55;
+  const theta = Math.min(350, Math.max(10, num(angle, 90)));
+  const wedge = `${cx},${cy} ${arcPoints(cx, cy, R, 0, theta)} ${cx},${cy}`;
+  const rest = `${cx},${cy} ${arcPoints(cx, cy, R, theta, 360)} ${cx},${cy}`;
+  const [r0x, r0y] = polar(cx, cy, R, 0);
+  const [rTx, rTy] = polar(cx, cy, R, theta);
+  const [aLx, aLy] = polar(cx, cy, 30, theta / 2);
+  const [radLx, radLy] = polar(cx, cy, R * 0.55, theta / 2);
+  return (
+    <>
+      {mode === 'remaining' ? (
+        <>
+          <Shade points={rest} />
+          <circle cx={cx} cy={cy} r={R} {...outline} />
+          <line x1={cx} y1={cy} x2={r0x} y2={r0y} stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" />
+          <line x1={cx} y1={cy} x2={rTx} y2={rTy} stroke="currentColor" strokeWidth={STROKE} strokeDasharray="3 3" className="text-muted-foreground" />
+        </>
+      ) : (
+        <>
+          {mode === 'sector' && <Shade points={wedge} />}
+          <circle cx={cx} cy={cy} r={R} {...outline} className={mode === 'arc' ? 'text-muted-foreground' : undefined} />
+          <line x1={cx} y1={cy} x2={r0x} y2={r0y} stroke="currentColor" strokeWidth={STROKE} />
+          <line x1={cx} y1={cy} x2={rTx} y2={rTy} stroke="currentColor" strokeWidth={STROKE} />
+          {mode === 'arc' && (
+            <polyline points={arcPoints(cx, cy, R, 0, theta)} fill="none" stroke="currentColor" strokeWidth={3} className="text-primary" />
+          )}
+        </>
+      )}
+      <Label x={aLx} y={aLy} text={angle} accent={isTarget(angle)} />
+      <Label x={radLx} y={radLy - 8} text={radius} accent={isTarget(radius)} />
+      <circle cx={cx} cy={cy} r={2.4} fill="currentColor" />
+    </>
+  );
+}
+
+/* ---------------- composites ---------------- */
+
+function RectPlusTriangle({ w, h, triBase, triHeight }: { w: string; h: string; triBase: string; triHeight: string }) {
+  const x0 = 72;
+  const x1 = 168;
+  const yTop = 82;
+  const yBot = 130;
+  const apex: [number, number] = [(x0 + x1) / 2, 44];
+  return (
+    <>
+      <rect x={x0} y={yTop} width={x1 - x0} height={yBot - yTop} {...outline} />
+      <polygon points={`${x0},${yTop} ${x1},${yTop} ${apex}`} {...outline} />
+      <Dashed x1={apex[0]} y1={apex[1]} x2={apex[0]} y2={yTop} muted />
+      <Label x={120} y={yBot + 14} text={w} accent={isTarget(w)} />
+      <Label x={x0 - 14} y={(yTop + yBot) / 2} text={h} accent={isTarget(h)} />
+      <Label x={apex[0] + 30} y={62} text={triHeight} accent={isTarget(triHeight)} />
+      <Label x={94} y={yTop - 8} text={triBase} accent={isTarget(triBase)} />
+    </>
+  );
+}
+
+function RectPlusSemicircle({ w, h, radius }: { w: string; h: string; radius: string }) {
+  const x0 = 66;
+  const x1 = 174;
+  const yTop = 80;
+  const yBot = 128;
+  const R = (x1 - x0) / 2;
+  const cx = (x0 + x1) / 2;
+  const [ex, ey] = polar(cx, yTop, R, 60);
+  return (
+    <>
+      <rect x={x0} y={yTop} width={x1 - x0} height={yBot - yTop} {...outline} />
+      <polyline points={arcPoints(cx, yTop, R, 0, 180)} {...outline} />
+      <line x1={cx} y1={yTop} x2={ex} y2={ey} stroke="currentColor" strokeWidth={STROKE} />
+      <Label x={(cx + ex) / 2 + 6} y={(yTop + ey) / 2} text={radius} accent={isTarget(radius)} />
+      <Label x={120} y={yBot + 14} text={w} accent={isTarget(w)} />
+      <Label x={x0 - 14} y={(yTop + yBot) / 2} text={h} accent={isTarget(h)} />
+    </>
+  );
+}
+
+function LShape({ outerW, outerH, cutW, cutH }: { outerW: string; outerH: string; cutW: string; cutH: string }) {
+  const OW = 122;
+  const OH = 92;
+  const x0 = 120 - OW / 2;
+  const y0 = 80 - OH / 2;
+  const cw = OW * Math.min(0.7, num(cutW, 4) / num(outerW, 10));
+  const ch = OH * Math.min(0.7, num(cutH, 3) / num(outerH, 8));
+  const pts: [number, number][] = [
+    [x0, y0],
+    [x0 + OW - cw, y0],
+    [x0 + OW - cw, y0 + ch],
+    [x0 + OW, y0 + ch],
+    [x0 + OW, y0 + OH],
+    [x0, y0 + OH],
+  ];
+  return (
+    <>
+      <polygon points={pts.map((p) => p.join(',')).join(' ')} {...outline} />
+      <Label x={x0 + (OW - cw) / 2} y={y0 + OH + 14} text={outerW} accent={isTarget(outerW)} />
+      <Label x={x0 - 14} y={y0 + OH / 2} text={outerH} accent={isTarget(outerH)} />
+      <Label x={x0 + OW - cw / 2} y={y0 - 8} text={cutW} accent={isTarget(cutW)} />
+      <Label x={x0 + OW + 12} y={y0 + ch / 2} text={cutH} accent={isTarget(cutH)} />
+    </>
+  );
+}
+
+function InscribedCircleSquare({ side, radius }: { side: string; radius: string }) {
+  const S = 104;
+  const x0 = 120 - S / 2;
+  const y0 = 80 - S / 2;
+  const [cx, cy] = [120, 80];
+  const R = S / 2;
+  const gap =
+    `M ${x0},${y0} h ${S} v ${S} h ${-S} Z ` +
+    `M ${cx - R},${cy} a ${R},${R} 0 1,0 ${2 * R},0 a ${R},${R} 0 1,0 ${-2 * R},0 Z`;
+  return (
+    <>
+      <Shade d={gap} />
+      <rect x={x0} y={y0} width={S} height={S} {...outline} />
+      <circle cx={cx} cy={cy} r={R} {...outline} />
+      <line x1={cx} y1={cy} x2={cx + R} y2={cy} stroke="currentColor" strokeWidth={STROKE} />
+      <Label x={cx + R / 2} y={cy - 9} text={radius} accent={isTarget(radius)} />
+      <Label x={120} y={y0 + S + 14} text={side} accent={isTarget(side)} />
+      <circle cx={cx} cy={cy} r={2.4} fill="currentColor" />
+    </>
+  );
+}
+
+function Stadium({ w, h, radius }: { w: string; h: string; radius: string }) {
+  const x0 = 82;
+  const x1 = 158;
+  const yTop = 52;
+  const yBot = 108;
+  const R = (yBot - yTop) / 2;
+  const cyc = (yTop + yBot) / 2;
+  return (
+    <>
+      <line x1={x0} y1={yTop} x2={x1} y2={yTop} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={x0} y1={yBot} x2={x1} y2={yBot} stroke="currentColor" strokeWidth={STROKE} />
+      <polyline points={arcPoints(x0, cyc, R, 90, 270)} {...outline} />
+      <polyline points={arcPoints(x1, cyc, R, -90, 90)} {...outline} />
+      <Label x={120} y={44} text={w} accent={isTarget(w)} />
+      <Label x={120} y={120} text={h} accent={isTarget(h)} />
+      <Label x={x0 - 22} y={cyc} text={radius} accent={isTarget(radius)} />
+    </>
+  );
+}
+
+function BorderedRect({ outerW, outerH, border }: { outerW: string; outerH: string; border: string }) {
+  const OW = 130;
+  const OH = 88;
+  const m = 15;
+  const x0 = 120 - OW / 2;
+  const y0 = 80 - OH / 2;
+  return (
+    <>
+      <rect x={x0} y={y0} width={OW} height={OH} {...outline} />
+      <rect x={x0 + m} y={y0 + m} width={OW - 2 * m} height={OH - 2 * m} fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+      <Label x={120} y={y0 + OH + 14} text={outerW} accent={isTarget(outerW)} />
+      <Label x={x0 - 15} y={80} text={outerH} accent={isTarget(outerH)} />
+      <Label x={120} y={y0 + m / 2 + 1} text={border} accent={isTarget(border)} />
+    </>
+  );
+}
+
+/* ---------------- coordinate plane ---------------- */
+
+function CoordinatePlane({
+  points = [],
+  segments = [],
+  polygon,
+  highlightQuadrant,
+  range,
+}: {
+  points?: { x: number; y: number; label?: string; target?: boolean }[];
+  segments?: [[number, number], [number, number]][];
+  polygon?: { x: number; y: number }[];
+  highlightQuadrant?: 1 | 2 | 3 | 4;
+  range?: number;
+}) {
+  const coords = [
+    ...points.map((p) => [p.x, p.y] as const),
+    ...segments.flat(),
+    ...(polygon ?? []).map((p) => [p.x, p.y] as const),
+  ];
+  const maxAbs = Math.max(5, ...coords.map(([x, y]) => Math.max(Math.abs(x), Math.abs(y))));
+  const R = range ?? maxAbs + 1;
+  const s = Math.min(102 / R, 62 / R);
+  const SX = (x: number) => 120 + x * s;
+  const SY = (y: number) => 80 - y * s;
+  const grid: number[] = [];
+  if (R <= 10) for (let i = -Math.floor(R); i <= Math.floor(R); i++) if (i !== 0) grid.push(i);
+  const quad: Record<number, [number, number]> = { 1: [1, 1], 2: [-1, 1], 3: [-1, -1], 4: [1, -1] };
+  return (
+    <>
+      {highlightQuadrant && (
+        <rect
+          x={quad[highlightQuadrant][0] > 0 ? 120 : 18}
+          y={quad[highlightQuadrant][1] > 0 ? 15 : 80}
+          width={102}
+          height={65}
+          fill="currentColor"
+          fillOpacity={0.08}
+          stroke="none"
+          className="text-primary"
+        />
+      )}
+      {grid.map((i) => (
+        <g key={i} className="text-muted-foreground">
+          <line x1={SX(i)} y1={15} x2={SX(i)} y2={145} stroke="currentColor" strokeWidth={0.5} opacity={0.4} />
+          <line x1={18} y1={SY(i)} x2={222} y2={SY(i)} stroke="currentColor" strokeWidth={0.5} opacity={0.4} />
+        </g>
+      ))}
+      {/* المحاور */}
+      <line x1={16} y1={80} x2={224} y2={80} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={120} y1={148} x2={120} y2={12} stroke="currentColor" strokeWidth={STROKE} />
+      <polygon points={`224,80 216,76 216,84`} fill="currentColor" />
+      <polygon points={`120,12 116,20 124,20`} fill="currentColor" />
+      {polygon && (
+        <polygon points={polygon.map((p) => `${SX(p.x)},${SY(p.y)}`).join(' ')} fill="currentColor" fillOpacity={0.1} stroke="currentColor" strokeWidth={STROKE} className="text-primary" />
+      )}
+      {segments.map(([a, b], i) => (
+        <g key={i} className="text-primary">
+          <line x1={SX(a[0])} y1={SY(a[1])} x2={SX(b[0])} y2={SY(b[1])} stroke="currentColor" strokeWidth={2} />
+          <circle cx={SX(a[0])} cy={SY(a[1])} r={2.6} fill="currentColor" />
+          <circle cx={SX(b[0])} cy={SY(b[1])} r={2.6} fill="currentColor" />
+        </g>
+      ))}
+      {points.map((p, i) => (
+        <g key={i} className={p.target ? 'text-primary' : undefined}>
+          <circle cx={SX(p.x)} cy={SY(p.y)} r={3} fill="currentColor" />
+          <Label x={SX(p.x) + (p.x < 0 ? -20 : 20)} y={SY(p.y) - 9} text={p.label ?? `(${p.x}, ${p.y})`} accent={p.target} />
+        </g>
+      ))}
+    </>
+  );
+}
+
+/* ---------------- 3D solids (isometric) ---------------- */
+
+// متجه العمق (للخلف-اليمين) للرسم متساوي القياس.
+const DEPTH: [number, number] = [30, -18];
+
+function Solid({ kind, dims, open }: { kind: 'box' | 'cube' | 'triangularPrism' | 'pentagonalPrism'; dims?: string[]; open?: boolean }) {
+  if (kind === 'triangularPrism') return <PrismSolid sides={3} />;
+  if (kind === 'pentagonalPrism') return <PrismSolid sides={5} />;
+  return <BoxSolid dims={dims} open={open} cube={kind === 'cube'} />;
+}
+
+function BoxSolid({ dims, open, cube }: { dims?: string[]; open?: boolean; cube?: boolean }) {
+  const W = cube ? 64 : 74;
+  const H = cube ? 64 : 60;
+  const [dx, dy] = DEPTH;
+  // الوجه الأمامي (F = أمامي-سفلي-يسار)
+  const Fx = 66;
+  const Fy = 122;
+  const add = (p: [number, number], q: [number, number]): [number, number] => [p[0] + q[0], p[1] + q[1]];
+  const FBL: [number, number] = [Fx, Fy];
+  const FBR: [number, number] = [Fx + W, Fy];
+  const FTL: [number, number] = [Fx, Fy - H];
+  const FTR: [number, number] = [Fx + W, Fy - H];
+  const BBL = add(FBL, [dx, dy]);
+  const BBR = add(FBR, [dx, dy]);
+  const BTL = add(FTL, [dx, dy]);
+  const BTR = add(FTR, [dx, dy]);
+  const faceFill = { fill: 'currentColor', fillOpacity: 0.08, stroke: 'none', className: 'text-muted-foreground' } as const;
+  const dimLabels = dims ?? [];
+  return (
+    <>
+      {/* أوجه خفيفة للعمق: العلوي والجانبي */}
+      {!open && <polygon points={`${FTL} ${FTR} ${BTR} ${BTL}`} {...faceFill} />}
+      <polygon points={`${FTR} ${FBR} ${BBR} ${BTR}`} {...faceFill} />
+      {/* الأحرف المخفيّة (من الرأس الخلفي-السفلي-اليسار) */}
+      <Dashed x1={BBL[0]} y1={BBL[1]} x2={FBL[0]} y2={FBL[1]} muted />
+      <Dashed x1={BBL[0]} y1={BBL[1]} x2={BBR[0]} y2={BBR[1]} muted />
+      <Dashed x1={BBL[0]} y1={BBL[1]} x2={BTL[0]} y2={BTL[1]} muted />
+      {/* الوجه الأمامي */}
+      <polygon points={`${FBL} ${FBR} ${FTR} ${FTL}`} {...outline} />
+      {/* الأحرف الظاهرة للخلف */}
+      <line x1={FTL[0]} y1={FTL[1]} x2={BTL[0]} y2={BTL[1]} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={FTR[0]} y1={FTR[1]} x2={BTR[0]} y2={BTR[1]} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={FBR[0]} y1={FBR[1]} x2={BBR[0]} y2={BBR[1]} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={BTL[0]} y1={BTL[1]} x2={BTR[0]} y2={BTR[1]} stroke="currentColor" strokeWidth={STROKE} />
+      <line x1={BTR[0]} y1={BTR[1]} x2={BBR[0]} y2={BBR[1]} stroke="currentColor" strokeWidth={STROKE} />
+      {open && (
+        <polygon points={`${FTL} ${FTR} ${BTR} ${BTL}`} fill="none" stroke="currentColor" strokeWidth={STROKE} strokeDasharray="2 2" className="text-muted-foreground" />
+      )}
+      {/* أبعاد */}
+      {dimLabels[0] && <Label x={(FBL[0] + FBR[0]) / 2} y={Fy + 14} text={dimLabels[0]} accent={isTarget(dimLabels[0])} />}
+      {dimLabels[1] && <Label x={FBL[0] - 14} y={(FBL[1] + FTL[1]) / 2} text={dimLabels[1]} accent={isTarget(dimLabels[1])} />}
+      {dimLabels[2] && <Label x={(FTR[0] + BTR[0]) / 2 + 10} y={(FTR[1] + BTR[1]) / 2 - 8} text={dimLabels[2]} accent={isTarget(dimLabels[2])} />}
+    </>
+  );
+}
+
+function PrismSolid({ sides }: { sides: 3 | 5 }) {
+  const [dx, dy] = DEPTH;
+  // قاعدة أمامية (مضلّع) ثم نسخة خلفية بإزاحة العمق.
+  const cx = 96;
+  const cy = 88;
+  const r = sides === 3 ? 46 : 40;
+  const startDeg = 90; // رأس للأعلى
+  const front: [number, number][] = Array.from({ length: sides }, (_, i) => polar(cx, cy, r, startDeg + (360 * i) / sides));
+  const back: [number, number][] = front.map((p) => [p[0] + dx, p[1] + dy]);
+  return (
+    <>
+      <polygon points={back.map((p) => p.join(',')).join(' ')} fill="currentColor" fillOpacity={0.08} stroke="currentColor" strokeWidth={STROKE} className="text-muted-foreground" />
+      {front.map((p, i) => (
+        <line key={i} x1={p[0]} y1={p[1]} x2={back[i][0]} y2={back[i][1]} stroke="currentColor" strokeWidth={STROKE} />
+      ))}
+      <polygon points={front.map((p) => p.join(',')).join(' ')} {...outline} />
     </>
   );
 }
