@@ -330,6 +330,7 @@ async function seedQuestionnaireContent(subjectId: string) {
                 question: p.question,
                 finalAnswer: p.finalAnswer,
                 difficulty: p.difficulty,
+                figure: (p.figure ?? undefined) as Prisma.InputJsonValue | undefined,
                 orderIndex: idx,
                 allowFreeMethod: true,
                 methods: {
