@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ListTree, LayoutGrid } from 'lucide-react';
+import { ListTree, LayoutGrid, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import {
   type Subject,
   type Grade,
@@ -23,7 +23,9 @@ import {
   Empty,
   useLazy,
   TopicNode,
+  ExpandBusProvider,
   type Ctx,
+  type ExpandBus,
   type ProgressMap,
 } from '@/components/courses/tree';
 import { HighSchoolTracks } from '@/components/courses/high-school-tracks';
@@ -38,6 +40,12 @@ export default function CoursesPage() {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>('tree');
+  const [bus, setBus] = useState<ExpandBus>({ allExpanded: false, expandTick: 0, collapseTick: 0 });
+
+  const expandAll = () =>
+    setBus((b) => ({ allExpanded: true, expandTick: b.expandTick + 1, collapseTick: b.collapseTick }));
+  const collapseAll = () =>
+    setBus((b) => ({ allExpanded: false, expandTick: b.expandTick, collapseTick: b.collapseTick + 1 }));
 
   useEffect(() => {
     getSubjects()
@@ -57,7 +65,22 @@ export default function CoursesPage() {
       <div className="mx-auto max-w-3xl space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h1 className="font-display text-2xl font-bold">الدروس</h1>
-          <ViewToggle view={view} onChange={setView} />
+          <div className="flex items-center gap-2">
+            {view === 'tree' && (
+              <button
+                onClick={bus.allExpanded ? collapseAll : expandAll}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {bus.allExpanded ? (
+                  <ChevronsDownUp className="h-4 w-4" />
+                ) : (
+                  <ChevronsUpDown className="h-4 w-4" />
+                )}
+                {bus.allExpanded ? 'طيّ الكل' : 'توسيع الكل'}
+              </button>
+            )}
+            <ViewToggle view={view} onChange={setView} />
+          </div>
         </div>
         {view === 'menu' ? (
           <MenuView ctx={ctx} />
@@ -68,7 +91,11 @@ export default function CoursesPage() {
             ) : subjects.length === 0 ? (
               <Empty text="لا توجد مواد متاحة بعد." />
             ) : (
-              subjects.map((s) => <SubjectNode key={s.id} subject={s} ctx={ctx} />)
+              <ExpandBusProvider value={bus}>
+                {subjects.map((s) => (
+                  <SubjectNode key={s.id} subject={s} ctx={ctx} />
+                ))}
+              </ExpandBusProvider>
             )}
           </div>
         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ChevronDown,
@@ -19,6 +19,33 @@ export type ProgressMap = Record<string, ProgressRow>;
 export interface Ctx {
   plan: string;
   progress: ProgressMap;
+}
+
+/* ---------------- expand-all bus ---------------- */
+
+export interface ExpandBus {
+  /** النودات التي تُركّب أثناء "توسيع الكل" تبدأ مفتوحة. */
+  allExpanded: boolean;
+  /** يزداد عند كل طلب "توسيع الكل" لإعادة فتح ما طواه المستخدم يدويًا. */
+  expandTick: number;
+  /** يزداد عند كل طلب "طيّ الكل". */
+  collapseTick: number;
+}
+
+const ExpandBusContext = createContext<ExpandBus>({
+  allExpanded: false,
+  expandTick: 0,
+  collapseTick: 0,
+});
+
+export function ExpandBusProvider({
+  value,
+  children,
+}: {
+  value: ExpandBus;
+  children: React.ReactNode;
+}) {
+  return <ExpandBusContext.Provider value={value}>{children}</ExpandBusContext.Provider>;
 }
 
 /* ---------------- generic expandable row ---------------- */
@@ -92,21 +119,59 @@ function formatDuration(seconds?: number | null, minutes?: number | null): strin
   return null;
 }
 
-/** hook: lazy-load children once on first expand */
+/** hook: lazy-load children once on first expand; obeys the expand-all/collapse-all bus */
 export function useLazy<T>(loader: () => Promise<T[]>) {
-  const [open, setOpen] = useState(false);
+  const bus = useContext(ExpandBusContext);
+  // نودة رُكّبت بينما "توسيع الكل" مفعّل تبدأ مفتوحة (لتتوسّع الشجرة تدريجيًا مع كل مستوى).
+  const [open, setOpen] = useState(bus.allExpanded);
   const [items, setItems] = useState<T[] | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // loader يُعاد إنشاؤه كل رندر؛ نحفظه في ref كي لا تعتمد التأثيرات على هويّته.
+  const loaderRef = useRef(loader);
+  loaderRef.current = loader;
+  const loadedRef = useRef(false);
+  const seenExpand = useRef(bus.expandTick);
+  const seenCollapse = useRef(bus.collapseTick);
+
+  function loadOnce() {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+    setBusy(true);
+    loaderRef
+      .current()
+      .then(setItems)
+      .catch(() => setItems([]))
+      .finally(() => setBusy(false));
+  }
+
+  // تُحمّل الأبناء إذا رُكّبت النودة مفتوحة أصلًا (بسبب allExpanded).
+  useEffect(() => {
+    if (open) loadOnce();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // توسيع الكل: افتح وحمّل.
+  useEffect(() => {
+    if (bus.expandTick > seenExpand.current) {
+      seenExpand.current = bus.expandTick;
+      setOpen(true);
+      loadOnce();
+    }
+  }, [bus.expandTick]);
+
+  // طيّ الكل: أغلق (نُبقي الأبناء محمّلين للفتح السريع لاحقًا).
+  useEffect(() => {
+    if (bus.collapseTick > seenCollapse.current) {
+      seenCollapse.current = bus.collapseTick;
+      setOpen(false);
+    }
+  }, [bus.collapseTick]);
+
   function toggle() {
     const next = !open;
     setOpen(next);
-    if (next && items === null) {
-      setBusy(true);
-      loader()
-        .then(setItems)
-        .catch(() => setItems([]))
-        .finally(() => setBusy(false));
-    }
+    if (next) loadOnce();
   }
   return { open, items, busy, toggle };
 }
@@ -118,10 +183,12 @@ export function TopicNode({ topic, ctx, depth = 3 }: { topic: Topic; ctx: Ctx; d
   const lessons = useLazy<Lesson>(() => getPublishedLessons(topic.id));
   const [problems, setProblems] = useState<ProblemListItem[] | null>(null);
 
-  function toggle() {
-    lessons.toggle();
-    if (problems === null) getProblems(topic.id).then(setProblems).catch(() => setProblems([]));
-  }
+  // حمّل المسائل أوّل مرة يُفتح فيها الموضوع — سواء يدويًا أو عبر "توسيع الكل".
+  useEffect(() => {
+    if (lessons.open && problems === null) {
+      getProblems(topic.id).then(setProblems).catch(() => setProblems([]));
+    }
+  }, [lessons.open, problems, topic.id]);
 
   return (
     <div>
@@ -129,7 +196,7 @@ export function TopicNode({ topic, ctx, depth = 3 }: { topic: Topic; ctx: Ctx; d
         depth={depth}
         expandable
         expanded={lessons.open}
-        onClick={toggle}
+        onClick={lessons.toggle}
         icon={<span className="h-4 w-1 rounded-full bg-primary" />}
         label={topic.nameAr}
         meta={topic._count ? `${topic._count.lessons} دروس` : undefined}
