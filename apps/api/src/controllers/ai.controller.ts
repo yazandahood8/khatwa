@@ -12,6 +12,7 @@ import {
   buildCodeHintPrompt,
   buildTraceTableJudgePrompt,
   buildTraceRecJudgePrompt,
+  buildExplanationJudgePrompt,
 } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
@@ -316,8 +317,9 @@ export async function judgeCode(req: Request, res: Response) {
     throw ApiError.badRequest('هذه ليست مسألة برمجة — استخدم المساعد التعليمي العادي');
   }
   const isTrace = problem.kind === 'trace_table' || problem.kind === 'trace_rec';
+  const isExplain = problem.kind === 'explain';
   if (!input.hint && !input.code.trim() && !input.image) {
-    throw ApiError.badRequest(isTrace ? 'اكتب تتبّعك أولاً' : 'اكتب كودك أولاً');
+    throw ApiError.badRequest(isTrace ? 'اكتب تتبّعك أولاً' : isExplain ? 'اكتب شرحك أولاً' : 'اكتب كودك أولاً');
   }
 
   // تحديد المعدل حسب الباقة — rate limit by plan
@@ -354,9 +356,11 @@ export async function judgeCode(req: Request, res: Response) {
       ? buildTraceTableJudgePrompt(ctx)
       : problem.kind === 'trace_rec'
         ? buildTraceRecJudgePrompt(ctx)
-        : buildCodeJudgePrompt(ctx);
+        : isExplain
+          ? buildExplanationJudgePrompt(ctx)
+          : buildCodeJudgePrompt(ctx);
 
-  const answerLabel = isTrace ? 'إجابة الطالب (تتبّع)' : 'كود الطالب';
+  const answerLabel = isTrace ? 'إجابة الطالب (تتبّع)' : isExplain ? 'شرح الطالب' : 'كود الطالب';
   const userText = input.hint
     ? input.code.trim()
       ? `${answerLabel} الحالية (قد تكون ناقصة):\n\n${input.code}\n\n(يطلب تلميحاً)`

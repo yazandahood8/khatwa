@@ -15,7 +15,7 @@ import { PrismaClient, Difficulty, type Prisma } from '@prisma/client';
 import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
 import { LESSON_PROBLEMS } from './generators';
 import { CS_PLAN } from './csLessonPlan';
-import { CS_PROBLEMS, CS_FIGURES } from './csGenerators';
+import { CS_PROBLEMS, CS_FIGURES, CS_EXPLAIN } from './csGenerators';
 import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
 import { QUESTIONNAIRE_PROBLEMS } from './questionnaireProblems';
 
@@ -395,7 +395,8 @@ async function seedCs(subjectId: string) {
       const gen = CS_PROBLEMS[`${t.level}|${t.name}|${l.order}`];
       if (gen) {
         for (const [idx, p] of gen().entries()) {
-          const csFig = CS_FIGURES[`${t.level}|${t.name}|${l.order}#${idx}`];
+          const csKey = `${t.level}|${t.name}|${l.order}#${idx}`;
+          const csFig = CS_FIGURES[csKey];
           await prisma.problem.create({
             data: {
               topicId: topic.id,
@@ -403,7 +404,8 @@ async function seedCs(subjectId: string) {
               question: p.question,
               finalAnswer: p.referenceSolution, // الحل المرجعي لتقييم AI
               language: 'csharp',
-              kind: p.kind ?? null, // null = اكتب كوداً؛ trace_table / trace_rec = تتبّع
+              // explain = سؤال مفاهيمي (شرح حرّ)؛ trace_* = تتبّع؛ null = اكتب كوداً
+              kind: CS_EXPLAIN.has(csKey) ? 'explain' : p.kind ?? null,
               starterCode: p.starterCode ?? null,
               figure: (csFig ?? undefined) as Prisma.InputJsonValue | undefined,
               difficulty: p.difficulty,

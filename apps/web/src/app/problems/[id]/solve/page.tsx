@@ -21,6 +21,7 @@ import { AiTutorPanel, type AiTutorHandle } from '@/components/solve/ai-tutor-pa
 import { PhotoCaptureButton, type PhotoCaptureHandle } from '@/components/solve/photo-capture-button';
 import { PhoneCaptureHandoff } from '@/components/solve/phone-capture-handoff';
 import { CodeSolve } from '@/components/solve/code-solve';
+import { ExplainSolve } from '@/components/solve/explain-solve';
 import { TraceTable } from '@/components/solve/trace-table';
 import { TraceRecursion } from '@/components/solve/trace-recursion';
 import { QuestionNav } from '@/components/solve/question-nav';
@@ -185,6 +186,11 @@ export default function SolvePage() {
   }
   if (problem.kind === 'trace_rec') {
     return <TraceRecursion problem={problem} sequence={sequence} />;
+  }
+
+  // سؤال مفاهيمي (شرح حرّ) — واجهة شرح نصّي يقيّمها الذكاء الاصطناعي بدل محرّر الكود
+  if (problem.kind === 'explain') {
+    return <ExplainSolve problem={problem} sequence={sequence} />;
   }
 
   // مسألة برمجة (علوم الحاسوب) — واجهة كتابة الكود + المصحّح الذكي بدل الخطوات
