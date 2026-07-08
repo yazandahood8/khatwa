@@ -278,3 +278,239 @@ export const ENGLISH_3UNIT: EnModule[] = [
     ],
   },
 ];
+
+// ================================================================
+//  مسار 4 وحدات (بجروت، Modules C/D/E) — مستوى B1 (Independent User I).
+//  المصدر: 4-point Bagrut Handbook (Feb 2025). Module C (016382) قراءة+كتابة،
+//  Module D (016483) أدب (3 قصص + 3 قصائد + 4 تقارير)، Module E (016471) قراءة (حتى 400 كلمة) + مفردات.
+//  الشفوي (COBE) والاستماع مؤجّلان (يحتاجان صوت/فيديو). النصوص الأدبية أصلية للتدريب.
+// ================================================================
+export const ENGLISH_4UNIT: EnModule[] = [
+  // ============================================================
+  //  Module C (016382) — Reading (70%) + Writing (30%)  [B1]
+  // ============================================================
+  {
+    number: 16382,
+    title: 'Module C — فهم مقروء وكتابة (016382)',
+    description: 'فهم مقروء (نصّ حتى 300 كلمة، 8-10 أسئلة) + تعبير كتابيّ (70-90 كلمة). مستوى B1.',
+    topics: [
+      {
+        order: 1,
+        name: 'الفهم المقروء (Reading Comprehension)',
+        lessons: [
+          {
+            order: 1,
+            title: 'نصّ: The Power of Volunteering',
+            skill: 'reading',
+            passage:
+              "THE POWER OF VOLUNTEERING. In recent years, more and more young people around the world have started to volunteer their free time to help others. Volunteering means working without payment to support a good cause, and it can take many forms. Some teenagers help elderly people in their neighbourhood, others clean beaches and parks, and some read to young children at the local library. At first, many students volunteer because their school asks them to, or because it looks good on a university application. However, most of them soon discover that volunteering gives them much more than they expected. Studies have shown that people who volunteer regularly feel happier and less stressed. When we help others, our brains release chemicals that improve our mood, so it is good for our mental health. Volunteering also helps young people develop useful skills, such as teamwork, communication and problem-solving. These skills are valuable in almost any future job. In addition, volunteers often make new friends and feel more connected to their community. Of course, volunteering is not always easy. It takes time and energy, and sometimes the work is difficult or even boring. But most volunteers agree that the rewards are worth the effort. As one seventeen-year-old volunteer said, 'When I see the smile on an old man's face, I know that my time was not wasted.' Perhaps that is the greatest reward of all: knowing that you have made a real difference in someone's life.",
+            exercises: [
+              { kind: 'mcq', question: "What does 'volunteering' mean, according to the text?", choices: ['working without payment to support a good cause', 'working to earn extra money', 'studying for university', 'playing sports with friends'], answer: 'working without payment to support a good cause' },
+              { kind: 'mcq', question: 'Why do many students start volunteering?', choices: ['because their school asks them to or it looks good for university', 'because they are paid well', 'because they have nothing else to do', 'because they want to travel'], answer: 'because their school asks them to or it looks good for university' },
+              { kind: 'reading', question: 'According to the text, why is volunteering good for our mental health?', answer: 'Because helping others makes our brains release chemicals that improve our mood, so we feel happier and less stressed.' },
+              { kind: 'reading', question: 'Name two useful skills that volunteering helps young people develop.', answer: 'Any two of: teamwork, communication, problem-solving.' },
+              { kind: 'mcq', question: 'What is one disadvantage of volunteering mentioned in the text?', choices: ['it takes time and energy and can be difficult or boring', 'it costs a lot of money', 'it is dangerous', 'it is illegal'], answer: 'it takes time and energy and can be difficult or boring' },
+              { kind: 'cloze', question: 'Complete from the text: The greatest reward is knowing you have made a real ___ in someone’s life.', answer: 'difference' },
+              { kind: 'mcq', question: 'What is the main idea of the text?', choices: ['volunteering has many benefits for young people and their communities', 'volunteering is a waste of time', 'only adults should volunteer', 'volunteering is only about money'], answer: 'volunteering has many benefits for young people and their communities' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'نصّ: From Refugee to Doctor',
+            skill: 'reading',
+            passage:
+              "FROM REFUGEE TO DOCTOR. Dr. Lena Haddad still remembers the day she arrived in a new country as a ten-year-old girl. She spoke no English, had no friends, and missed her old home terribly. Her family had left their country because of war, carrying only a few small bags. 'Those first months were the hardest of my life,' she says. 'I sat at the back of the classroom and understood nothing. I felt invisible.' But Lena was determined not to give up. Every evening, she studied English for hours, watching cartoons and copying words into a notebook. Slowly, she began to understand her teachers and make friends. Her science teacher, Mr. Cohen, noticed how hard she worked and encouraged her to dream big. 'He told me that one day I could become anything I wanted,' Lena recalls. 'I never forgot his words.' Twenty years later, Lena is now a respected doctor who helps sick children in a large hospital. In her free time, she volunteers at a centre for young refugees, teaching them English and giving them hope. 'I know exactly how they feel,' she explains. 'I want them to understand that their difficult start does not decide their future.' Lena's story is a powerful reminder that with hard work, courage and a little kindness from others, even the most difficult beginnings can lead to a bright future.",
+            exercises: [
+              { kind: 'mcq', question: "Why did Lena's family leave their country?", choices: ['because of war', 'to find a better job', 'to study abroad', 'for a holiday'], answer: 'because of war' },
+              { kind: 'mcq', question: 'How did Lena learn English?', choices: ['by studying every evening and watching cartoons', 'by taking private lessons', 'by travelling abroad', 'she already knew it'], answer: 'by studying every evening and watching cartoons' },
+              { kind: 'reading', question: 'How did Mr. Cohen help Lena?', answer: 'He noticed how hard she worked and encouraged her to dream big, telling her she could become anything she wanted.' },
+              { kind: 'mcq', question: "What is Lena's job now?", choices: ['a doctor', 'a teacher', 'a lawyer', 'a scientist'], answer: 'a doctor' },
+              { kind: 'reading', question: 'What does Lena do in her free time, and why?', answer: 'She volunteers at a centre for young refugees, teaching them English and giving them hope, because she knows how they feel.' },
+              { kind: 'cloze', question: 'Complete from the text: Lena wants the young refugees to understand that their difficult start does not decide their ___.', answer: 'future' },
+              { kind: 'mcq', question: "What is the message of Lena's story?", choices: ['difficult beginnings can lead to a bright future with hard work and kindness', 'it is impossible to succeed after a hard start', 'only rich people can become doctors', 'war has no effect on children'], answer: 'difficult beginnings can lead to a bright future with hard work and kindness' },
+            ],
+          },
+        ],
+      },
+      {
+        order: 2,
+        name: 'الكتابة (Writing — 70-90 words)',
+        lessons: [
+          {
+            order: 1,
+            title: 'كتابة: رأي (Opinion)',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: 'Write an opinion composition (70-90 words): Do you think social media has a positive or negative effect on teenagers? Give your opinion and two reasons.', answer: 'Module C rubric (B1): on topic; a clear opinion with two reasons; relevant, organized content; appropriate vocabulary and language chunks; correct tenses, word order, pronouns and prepositions; correct mechanics; 70-90 words.' },
+              { kind: 'writing', question: 'Write an opinion composition (70-90 words): Should students be allowed to use mobile phones in school? Explain your opinion with reasons.', answer: 'Clear opinion with reasons; organized (intro/body/conclusion); B1 vocabulary and accuracy; 70-90 words.' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'كتابة: وصف (Description)',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: 'Write a description (70-90 words) of a person who has influenced you (a role model). Describe who they are and why they are important to you.', answer: 'Describes a role model: who they are and why they matter; organized; descriptive vocabulary; 70-90 words.' },
+            ],
+          },
+          {
+            order: 3,
+            title: 'كتابة: رسالة غير رسمية (Informal Letter)',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: 'Write an informal letter (70-90 words) to a friend who is visiting your country for the first time. Tell them what to see and do.', answer: 'Informal letter format (greeting + closing); suggests places and activities; friendly tone; 70-90 words.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  //  Module D (016483) — Literature (internal)  [B1]
+  // ============================================================
+  {
+    number: 16483,
+    title: 'Module D — الأدب (016483)',
+    description: 'الأدب (تقييم داخلي): 3 قصص + 3 قصائد + 4 تقارير كتب. النصوص هنا أصلية للتدريب على المهارات؛ النصوص المعتمدة رسميًا يضيفها المعلّم.',
+    topics: [
+      {
+        order: 1,
+        name: 'قراءة الأدب (Reading Literature)',
+        lessons: [
+          {
+            order: 1,
+            title: 'قصّة قصيرة: The Painting',
+            skill: 'reading',
+            passage:
+              "THE PAINTING (a short story). Sara had always loved to paint, but she kept her paintings hidden under her bed. She was afraid that people would laugh at them. 'They are not good enough,' she told herself. One day, her art teacher, Mrs. Barak, asked the class to enter a painting in the school competition. Sara wanted to run away. That night, she looked at her favourite painting — a picture of the sea at sunset — and made a brave decision. The next morning, with shaking hands, she gave it to Mrs. Barak. For a whole week, Sara could not sleep. She was sure everyone would laugh. When the day of the results came, she almost stayed at home. But when she walked into the hall, she saw her painting hanging on the wall, with a golden ribbon beside it. She had won first prize. Around her, students were smiling and pointing. 'It's beautiful,' one girl whispered. Sara felt her cheeks turn red, but this time it was from happiness, not fear. Mrs. Barak walked over and put a hand on her shoulder. 'You had this talent all along,' she said gently. 'You just needed the courage to share it.' From that day on, Sara never hid her paintings again. She had learned that the biggest risk is sometimes not trying at all.",
+            exercises: [
+              { kind: 'mcq', question: 'Why did Sara hide her paintings?', choices: ['she was afraid people would laugh at them', 'she wanted to sell them', 'they were too big', 'she had lost them'], answer: 'she was afraid people would laugh at them' },
+              { kind: 'mcq', question: 'What did Sara win?', choices: ['first prize', 'a new set of paints', 'a trip abroad', 'nothing'], answer: 'first prize' },
+              { kind: 'reading', question: 'How did Sara feel before the results, and how did she feel after? Describe the change.', answer: 'Before, she felt afraid and could not sleep, sure everyone would laugh; after, she felt happy and proud when she saw she had won.' },
+              { kind: 'reading', question: 'What lesson did Sara learn? Do you agree with it? (personal response)', answer: 'She learned that the biggest risk is sometimes not trying at all / that you need courage to share your talent. Accept any reasoned personal opinion.' },
+              { kind: 'mcq', question: "Which word best describes Sara's decision to enter the competition?", choices: ['brave', 'lazy', 'cruel', 'foolish'], answer: 'brave' },
+              { kind: 'cloze', question: 'The message or lesson of a literary work is its main ___. (one word starting with i)', answer: 'idea' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'قصيدة: The Bridge',
+            skill: 'reading',
+            passage:
+              "THE BRIDGE\n\nBetween two lands there stands a bridge,\nAcross a river deep and wide.\nOne side is where I used to live,\nAnd new dreams wait on the other side.\n\nI stand upon the bridge and pause,\nMy old life calling me to stay.\nBut something stronger pulls me on —\nA quiet voice that says, 'This way.'\n\nSo step by step I cross the stones,\nWith fear and hope inside my chest.\nFor those who never cross the bridge\nWill never find what lies ahead.",
+            exercises: [
+              { kind: 'mcq', question: 'What does the bridge in the poem most likely represent?', choices: ['a change or a new beginning in life', 'a real river crossing only', 'a school building', 'a holiday trip'], answer: 'a change or a new beginning in life' },
+              { kind: 'reading', question: 'How does the speaker feel as they cross the bridge?', answer: "The speaker feels both fear and hope ('with fear and hope inside my chest')." },
+              { kind: 'mcq', question: 'What message does the last verse give?', choices: ['those who never take a chance will never find what lies ahead', 'bridges are dangerous', 'it is better to stay at home', 'rivers are beautiful'], answer: 'those who never take a chance will never find what lies ahead' },
+              { kind: 'cloze', question: "In poetry, a comparison that says one thing IS another (e.g. 'the bridge is a new life') is called a ___. (one word starting with m)", answer: 'metaphor' },
+              { kind: 'reading', question: "Have you ever had to make a big change (cross a 'bridge') in your life? (personal response)", answer: "Personal response — accept any relevant, reasoned answer that connects to the poem's theme of change or taking a chance." },
+            ],
+          },
+          {
+            order: 3,
+            title: 'مصطلحات أدبية (Literary Terms)',
+            skill: 'vocab',
+            exercises: [
+              { kind: 'mcq', question: "A comparison using 'like' or 'as' (e.g. 'brave as a lion') is called a ___.", choices: ['simile', 'metaphor', 'setting', 'plot'], answer: 'simile' },
+              { kind: 'mcq', question: 'The feeling or atmosphere a literary work creates is called the ___.', choices: ['mood', 'author', 'title', 'page'], answer: 'mood' },
+              { kind: 'cloze', question: 'The main character that a story is mostly about is called the ___. (the main hero; one word starting with p)', answer: 'protagonist' },
+              { kind: 'mcq', question: 'When we say what a character feels and why, we give a ___ response.', choices: ['personal', 'financial', 'grammatical', 'musical'], answer: 'personal' },
+            ],
+          },
+        ],
+      },
+      {
+        order: 2,
+        name: 'تقرير كتاب واستجابة شخصية (Book Report & Personal Response)',
+        lessons: [
+          {
+            order: 1,
+            title: 'كتابة: تقرير كتاب واستجابة',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: 'Write a book report (about 90 words) about a book you have read. Include the title, the author, a short summary, and your personal opinion with a reason.', answer: 'Book report (B1): title + author + short summary + personal opinion with a reason; organized; about 90 words.' },
+              { kind: 'writing', question: "Choose a character from a story you know. Write about 80 words describing the character's feelings at an important moment and explain the reasons for them.", answer: "Describes a character's feelings at a key moment and explains the reasons (Module D can-do statement); organized; about 80 words." },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  //  Module E (016471) — Reading (70%, ≤400 words) + Vocabulary (30%)  [B1]
+  // ============================================================
+  {
+    number: 16471,
+    title: 'Module E — فهم مقروء ومفردات (016471)',
+    description: 'فهم مقروء أصعب (نصّ حتى 400 كلمة، بلا قاموس، يشمل صح/خطأ مع تعليل) + مهمّة مفردات (Band I/II/III).',
+    topics: [
+      {
+        order: 1,
+        name: 'الفهم المقروء (Reading Comprehension — up to 400 words)',
+        lessons: [
+          {
+            order: 1,
+            title: 'نصّ: Should We Still Learn to Write by Hand?',
+            skill: 'reading',
+            passage:
+              "SHOULD WE STILL LEARN TO WRITE BY HAND? In a world full of computers, tablets and smartphones, some people ask whether children still need to learn to write by hand. After all, most adults now type far more than they write, and some schools have already reduced the number of handwriting lessons. However, many scientists believe that handwriting is still very important, especially for young learners. Research suggests that writing by hand helps the brain in ways that typing does not. When we form letters by hand, several areas of the brain work together, which helps us remember information better. In one well-known study, students who took notes by hand during a lecture remembered more than those who typed their notes on a laptop. This is because writing is slower, so students have to listen carefully and put ideas into their own words, instead of simply copying everything. Handwriting also helps young children learn to read. As they practise forming each letter, they begin to recognise letters more easily and understand how words are built. In addition, handwriting develops fine motor skills — the small, careful movements of the fingers — which are useful for many other tasks. Of course, typing has its advantages too. It is faster, easier to correct, and necessary in the modern workplace. Nobody is suggesting that we should stop using computers. The point is that handwriting and typing are different skills, and both are valuable. Most experts agree that children should learn both. So, the next time you pick up a pen, remember: you are not just writing words on paper — you are also giving your brain a healthy workout.",
+            exercises: [
+              { kind: 'mcq', question: 'Why do some people think children no longer need to learn handwriting?', choices: ['because most adults now type more than they write', 'because pens are too expensive', 'because handwriting is dangerous', 'because teachers are too busy'], answer: 'because most adults now type more than they write' },
+              { kind: 'reading', question: 'According to the text, how does writing by hand help the brain?', answer: 'Several areas of the brain work together when we form letters by hand, which helps us remember information better.' },
+              { kind: 'mcq', question: 'In the study mentioned, who remembered more?', choices: ['those who wrote notes by hand', 'those who typed their notes', 'both the same', 'neither remembered anything'], answer: 'those who wrote notes by hand' },
+              { kind: 'reading', question: 'TRUE or FALSE? The writer thinks we should stop using computers. Justify your answer from the text.', answer: "False. The text says 'Nobody is suggesting that we should stop using computers' and that both handwriting and typing are valuable." },
+              { kind: 'reading', question: 'Name one way handwriting helps young children, according to the text.', answer: 'It helps them learn to read (recognise letters and understand how words are built), or it develops fine motor skills.' },
+              { kind: 'mcq', question: "What are 'fine motor skills'?", choices: ['the small, careful movements of the fingers', 'the ability to run fast', 'a type of computer', 'a school subject'], answer: 'the small, careful movements of the fingers' },
+              { kind: 'cloze', question: 'Complete from the text: Most experts agree that children should learn ___ handwriting and typing.', answer: 'both' },
+              { kind: 'mcq', question: "What is the writer's main opinion?", choices: ['both handwriting and typing are valuable skills', 'handwriting is useless today', 'typing is bad for children', 'computers should be banned in schools'], answer: 'both handwriting and typing are valuable skills' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'نصّ (رسالة للمحرّر): Save Our Library',
+            skill: 'reading',
+            passage:
+              "LETTER TO THE EDITOR: SAVE OUR LIBRARY. Dear Editor, I am writing to express my concern about the town council's plan to close our local library next year. As a student, I believe this would be a serious mistake that would harm our whole community. First of all, the library is much more than a room full of books. For many students like me, it is a quiet, comfortable place to study, especially for those who do not have space at home. Every afternoon, the reading room is full of young people doing their homework. Where will they go if it closes? Secondly, the library offers free access to computers and the internet. Not every family can afford these at home, so the library helps to make sure that all children have equal opportunities. Closing it would increase the gap between rich and poor families. Some council members argue that the library is too expensive to run and that people can find everything online. However, this is simply not true for everyone. Elderly people, in particular, often depend on the library's help and friendly staff. I understand that the council must save money, but there are surely better ways to do this. Instead of closing the library, why not open it to volunteers, or organise events to raise funds? I urge the council to think again and to listen to the people who use this valuable service every day. Our library is the heart of our community, and once it is gone, we will never get it back. Yours sincerely, Rania Khoury",
+            exercises: [
+              { kind: 'mcq', question: 'Why is Rania writing this letter?', choices: ['to protest against the plan to close the library', 'to praise the town council', 'to ask for a new library', 'to sell books'], answer: 'to protest against the plan to close the library' },
+              { kind: 'mcq', question: 'According to Rania, why is the library important for students without space at home?', choices: ['it is a quiet, comfortable place to study', 'it sells cheap food', 'it is open all night', 'it gives out free money'], answer: 'it is a quiet, comfortable place to study' },
+              { kind: 'reading', question: 'How does the library help make opportunities more equal, according to the letter?', answer: 'It offers free access to computers and the internet, so children whose families cannot afford these at home still have access.' },
+              { kind: 'reading', question: 'What solutions does Rania suggest instead of closing the library?', answer: 'Opening it to volunteers, or organising events to raise funds.' },
+              { kind: 'mcq', question: "What does Rania mean by 'our library is the heart of our community'?", choices: ['it is very important and central to community life', 'it is in the town centre', 'it is shaped like a heart', 'it is a hospital'], answer: 'it is very important and central to community life' },
+            ],
+          },
+        ],
+      },
+      {
+        order: 2,
+        name: 'المفردات (Vocabulary — Band I/II/III)',
+        lessons: [
+          {
+            order: 1,
+            title: 'مفردات: كلمات في سياق',
+            skill: 'vocab',
+            exercises: [
+              { kind: 'mcq', question: 'The scientists made an important ___ about how the brain works. (a new fact found through research)', choices: ['discovery', 'mistake', 'holiday', 'argument'], answer: 'discovery' },
+              { kind: 'mcq', question: 'She gave a clear ___ for her decision, so everyone understood why. (a reason)', choices: ['explanation', 'invitation', 'celebration', 'decoration'], answer: 'explanation' },
+              { kind: 'mcq', question: 'The new law will have a big ___ on the environment. (an effect)', choices: ['impact', 'insect', 'island', 'income'], answer: 'impact' },
+              { kind: 'cloze', question: 'The evidence was so ___ that nobody could argue against it. (very strong/persuasive; adjective starting with c)', answer: 'convincing' },
+              { kind: 'mcq', question: "A synonym for 'important' is ___.", choices: ['significant', 'silent', 'similar', 'simple'], answer: 'significant' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'مفردات: مرادفات وأضداد واشتقاق',
+            skill: 'vocab',
+            exercises: [
+              { kind: 'mcq', question: "A person who is 'reliable' is someone you can ___.", choices: ['trust', 'ignore', 'fear', 'forget'], answer: 'trust' },
+              { kind: 'cloze', question: "Complete with the correct form: Success requires patience and ___. (noun form of 'determined')", answer: 'determination' },
+              { kind: 'mcq', question: "The opposite of 'increase' is ___.", choices: ['decrease', 'improve', 'continue', 'repeat'], answer: 'decrease' },
+              { kind: 'cloze', question: 'If you do not understand a word, you can look it up in a ___. (a book of word meanings)', answer: 'dictionary' },
+              { kind: 'mcq', question: "A synonym for 'happy' is ___.", choices: ['pleased', 'painful', 'patient', 'polite'], answer: 'pleased' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];

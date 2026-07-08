@@ -20,7 +20,7 @@ import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
 import { QUESTIONNAIRE_PROBLEMS } from './questionnaireProblems';
 import { seedEnglish, seedEnglishGrade, seedEnglishModules } from './englishSeed';
 import { ENGLISH_GRADE7, ENGLISH_GRADE8, ENGLISH_GRADE9 } from './englishContent';
-import { ENGLISH_3UNIT } from './englishHighSchool';
+import { ENGLISH_3UNIT, ENGLISH_4UNIT } from './englishHighSchool';
 
 const prisma = new PrismaClient();
 
@@ -521,6 +521,7 @@ async function main() {
   await seedEnglishGrade(prisma, english.id, 8, ENGLISH_GRADE8);
   await seedEnglishGrade(prisma, english.id, 9, ENGLISH_GRADE9);
   await seedEnglishModules(prisma, english.id, 3, ENGLISH_3UNIT); // ثانوي: مسار 3 وحدات (Modules A/B/C)
+  await seedEnglishModules(prisma, english.id, 4, ENGLISH_4UNIT); // ثانوي: مسار 4 وحدات (Modules C/D/E)
 
   const [topics, lessons, problems, lessonQ, codeQ] = await Promise.all([
     prisma.topic.count(),
