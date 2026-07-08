@@ -18,7 +18,7 @@ import { CS_PLAN } from './csLessonPlan';
 import { CS_PROBLEMS, CS_FIGURES, CS_EXPLAIN } from './csGenerators';
 import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
 import { QUESTIONNAIRE_PROBLEMS } from './questionnaireProblems';
-import { seedEnglish } from './englishSeed';
+import { seedEnglish, seedEnglishContent } from './englishSeed';
 
 const prisma = new PrismaClient();
 
@@ -512,9 +512,10 @@ async function main() {
   const cs = await ensureSubject('علوم الحاسوب', '💻', 1);
   await seedCs(cs.id);
 
-  // ---------- إنجليزي (هيكل فقط — المحتوى يُضاف لاحقاً) ----------
+  // ---------- إنجليزي (هيكل + محتوى الصف السابع) ----------
   const english = await ensureSubject('إنجليزي', '🔤', 2);
   await seedEnglish(prisma, english.id);
+  await seedEnglishContent(prisma, english.id); // وحدات الصف السابع
 
   const [topics, lessons, problems, lessonQ, codeQ] = await Promise.all([
     prisma.topic.count(),
