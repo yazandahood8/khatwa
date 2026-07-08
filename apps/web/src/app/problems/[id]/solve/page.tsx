@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { X, Plus, CheckCircle2, Pencil, MessageCircle, RotateCcw, Keyboard } from 'lucide-react';
+import { X, Plus, CheckCircle2, Pencil, MessageCircle, RotateCcw, Keyboard, ArrowLeftRight } from 'lucide-react';
 import {
   getProblem,
   getProblems,
@@ -50,6 +50,8 @@ export default function SolvePage() {
   const [checking, setChecking] = useState(false);
   const [shake, setShake] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  // اتجاه نصّ السؤال — يختاره القارئ: تلقائي/يمين↦يسار/يسار↦يمين، محفوظ محلياً
+  const [questionDir, setQuestionDir] = useState<'auto' | 'rtl' | 'ltr'>('auto');
   const aiRef = useRef<AiTutorHandle>(null);
   const photoRef = useRef<PhotoCaptureHandle>(null);
   const photoAutoOpened = useRef(false);
@@ -60,6 +62,21 @@ export default function SolvePage() {
     setShowChat(true);
     aiRef.current?.sendPhoto(base64, mediaType);
   }, []);
+
+  // استرجاع اتجاه السؤال المحفوظ محلياً عند أول تحميل (مثل كتم الصوت)
+  useEffect(() => {
+    const saved = typeof localStorage !== 'undefined' && localStorage.getItem('khatwa_question_dir');
+    if (saved === 'rtl' || saved === 'ltr' || saved === 'auto') setQuestionDir(saved);
+  }, []);
+
+  // يدوّر الاتجاه: تلقائي → يمين↦يسار → يسار↦يمين، ويحفظ الاختيار
+  const cycleDir = () => {
+    setQuestionDir((d) => {
+      const next = d === 'auto' ? 'rtl' : d === 'rtl' ? 'ltr' : 'auto';
+      if (typeof localStorage !== 'undefined') localStorage.setItem('khatwa_question_dir', next);
+      return next;
+    });
+  };
 
   const reset = () => {
     setCurrent('');
@@ -228,10 +245,23 @@ export default function SolvePage() {
           <div className="mx-auto w-full max-w-2xl space-y-4">
             {/* بطاقة المسألة — problem card */}
             <div className="rounded-2xl border-r-4 border-primary bg-card p-5 shadow-card">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                المسألة
-              </p>
-              <div className="text-xl leading-relaxed" dir="auto">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  المسألة
+                </p>
+                {/* اتجاه نص السؤال — للقارئ أن يبدّله إن ظهر النص معكوساً */}
+                <button
+                  type="button"
+                  onClick={cycleDir}
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  title="اتجاه نص السؤال"
+                  aria-label="اتجاه نص السؤال"
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {questionDir === 'auto' ? 'تلقائي' : questionDir === 'rtl' ? 'يمين ← يسار' : 'يسار → يمين'}
+                </button>
+              </div>
+              <div className="text-xl leading-relaxed" dir={questionDir}>
                 {problem ? problem.question : 'جارٍ التحميل…'}
               </div>
               {problem?.figure && <ProblemFigure spec={problem.figure} />}
