@@ -514,3 +514,207 @@ export const ENGLISH_4UNIT: EnModule[] = [
     ],
   },
 ];
+
+// ================================================================
+//  مسار 5 وحدات (بجروت، Modules E/F/G) — مستوى B2 (Independent User II).
+//  المصدر: 5-point Bagrut Handbook (Feb 2025). Module E (016471) قراءة+مفردات (نفس 4 وحدات، B1)،
+//  Module F (016583) أدب (رواية/مسرحية + 3 قصص + قصيدتان + 4 تقارير)،
+//  Module G (016582) قراءة (450-500 كلمة، B2) + كتابة (120-140 كلمة).
+//  الشفوي (COBE) مؤجّل. النصوص الأدبية أصلية للتدريب.
+// ================================================================
+export const ENGLISH_5UNIT: EnModule[] = [
+  // ============================================================
+  //  Module E (016471) — Reading (70%) + Vocabulary (30%)  [B1]
+  // ============================================================
+  {
+    number: 16471,
+    title: 'Module E — فهم مقروء ومفردات (016471)',
+    description: 'فهم مقروء (نصّ حتى 400 كلمة، بلا قاموس، يشمل صح/خطأ مع تعليل) + مهمّة مفردات (Band I/II/III).',
+    topics: [
+      {
+        order: 1,
+        name: 'الفهم المقروء (Reading Comprehension)',
+        lessons: [
+          {
+            order: 1,
+            title: 'نصّ: The Rise of Electric Cars',
+            skill: 'reading',
+            passage:
+              'THE RISE OF ELECTRIC CARS. Only a few years ago, electric cars were quite rare on our roads. Today, however, they are becoming a common sight, and many experts believe that they will soon replace petrol cars completely. But what has caused this change, and is it really good news? One of the main reasons for the growth of electric cars is concern about the environment. Petrol and diesel cars release harmful gases that pollute the air and contribute to climate change. Electric cars, on the other hand, produce no exhaust gases at all. In cities where thousands of cars drive every day, switching to electric vehicles could greatly improve the quality of the air we breathe. Another reason is cost. Although electric cars are often more expensive to buy, they are much cheaper to run. Electricity costs less than petrol, and electric cars have fewer moving parts, so they need less repair. Over several years, a driver can save a large amount of money. Of course, electric cars are not perfect. One common complaint is that they cannot travel very far before their batteries need charging. In addition, there are still not enough charging stations, especially in the countryside. However, technology is improving quickly. Newer models can travel further on a single charge, and governments around the world are building more charging stations every year. Some countries have even announced that they will ban the sale of new petrol cars in the near future. It seems clear that the age of the electric car has arrived. While there are still problems to solve, the benefits for our health, our environment and our wallets are simply too great to ignore.',
+            exercises: [
+              { kind: 'mcq', question: 'What is one of the main reasons for the growth of electric cars?', choices: ['concern about the environment', 'they are cheaper to buy', 'they are faster', 'they look better'], answer: 'concern about the environment' },
+              { kind: 'reading', question: 'According to the text, why are electric cars cheaper to run than petrol cars?', answer: 'Electricity costs less than petrol, and electric cars have fewer moving parts, so they need less repair.' },
+              { kind: 'mcq', question: 'What is one disadvantage of electric cars mentioned in the text?', choices: ['they cannot travel far before charging', 'they pollute the air', 'they are very cheap', 'they are too fast'], answer: 'they cannot travel far before charging' },
+              { kind: 'reading', question: 'TRUE or FALSE? There are enough charging stations everywhere. Justify your answer from the text.', answer: "False. The text says 'there are still not enough charging stations, especially in the countryside.'" },
+              { kind: 'mcq', question: 'How is technology changing electric cars, according to the text?', choices: ['newer models can travel further on a single charge', 'they are becoming more expensive', 'they produce more gases', 'they are getting slower'], answer: 'newer models can travel further on a single charge' },
+              { kind: 'reading', question: 'What have some countries announced about petrol cars?', answer: 'They will ban the sale of new petrol cars in the near future.' },
+              { kind: 'cloze', question: 'Complete from the text: Switching to electric vehicles could greatly improve the quality of the ___ we breathe.', answer: 'air' },
+              { kind: 'mcq', question: "What is the writer's overall opinion of electric cars?", choices: ['their benefits are too great to ignore', 'they are a bad idea', 'they should be banned', 'they make no difference'], answer: 'their benefits are too great to ignore' },
+            ],
+          },
+        ],
+      },
+      {
+        order: 2,
+        name: 'المفردات (Vocabulary — Band I/II/III)',
+        lessons: [
+          {
+            order: 1,
+            title: 'مفردات: كلمات في سياق',
+            skill: 'vocab',
+            exercises: [
+              { kind: 'mcq', question: 'The government introduced a new ___ to reduce pollution. (an official plan or rule)', choices: ['policy', 'picnic', 'planet', 'parade'], answer: 'policy' },
+              { kind: 'mcq', question: 'Solar and wind power are examples of ___ energy. (energy that will not run out)', choices: ['renewable', 'removable', 'reasonable', 'responsible'], answer: 'renewable' },
+              { kind: 'cloze', question: 'We must reduce the ___ of plastic we use. (how much of something; noun starting with a)', answer: 'amount' },
+              { kind: 'mcq', question: "A synonym for 'harmful' is ___.", choices: ['damaging', 'helpful', 'healthy', 'harmless'], answer: 'damaging' },
+              { kind: 'cloze', question: 'Complete with the correct form: The company is trying to ___ its carbon emissions. (make lower; verb starting with r)', answer: 'reduce' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  //  Module F (016583) — Literature (internal)  [B2]
+  // ============================================================
+  {
+    number: 16583,
+    title: 'Module F — الأدب (016583)',
+    description: 'الأدب (تقييم داخلي): رواية/مسرحية + 3 قصص + قصيدتان + 4 تقارير كتب. النصوص هنا أصلية للتدريب؛ النصوص المعتمدة رسميًا يضيفها المعلّم.',
+    topics: [
+      {
+        order: 1,
+        name: 'قراءة الأدب (Reading Literature)',
+        lessons: [
+          {
+            order: 1,
+            title: 'قصّة قصيرة: The Lighthouse Keeper',
+            skill: 'reading',
+            passage:
+              "THE LIGHTHOUSE KEEPER (a short story). For thirty years, Elias had lived alone in the lighthouse on the edge of the cliffs. Every night, he climbed the two hundred steps to light the great lamp, so that ships could find their way safely home. The villagers rarely saw him, and some of the children believed he was a ghost. But Elias was not lonely. He had the sea, the wind, and the stars for company, and he was proud of his important work. One stormy winter night, the wind howled like a wild animal. Through the rain, Elias saw a small fishing boat struggling against the enormous waves. He knew at once that the men would drown unless someone helped them. Without hesitating, he ran down to the shore, pushed out his own tiny boat, and rowed into the darkness. The sea threw him up and down, and more than once he thought he would not survive. But at last he reached the fishermen and pulled them, one by one, into his boat. When the exhausted men reached the shore, the whole village was waiting. The next morning, the mayor came to thank Elias, but the old keeper only shook his head. 'A lighthouse is not just a lamp,' he said quietly. 'It is a promise. And I have never broken a promise in my life.' From that day on, the children no longer spoke of ghosts. Instead, they spoke of the brave old man who guarded their village from the top of the cliffs.",
+            exercises: [
+              { kind: 'mcq', question: "What was Elias's job?", choices: ['a lighthouse keeper', 'a fisherman', 'the village mayor', 'a teacher'], answer: 'a lighthouse keeper' },
+              { kind: 'mcq', question: 'What did Elias do on the stormy night?', choices: ['he rowed out to rescue fishermen', 'he stayed inside the lighthouse', 'he called the police', 'he lit a bigger lamp'], answer: 'he rowed out to rescue fishermen' },
+              { kind: 'reading', question: 'Why did the children stop speaking of ghosts?', answer: 'Because after the rescue they saw Elias as a brave old man who guarded their village, not a ghost.' },
+              { kind: 'reading', question: "What did Elias mean when he said 'a lighthouse is a promise'? (personal response)", answer: "He meant that keeping the light on to protect ships is a duty he must never break. Accept any reasoned interpretation about duty, responsibility or keeping one's word." },
+              { kind: 'mcq', question: 'Which word best describes Elias?', choices: ['brave', 'cruel', 'lazy', 'dishonest'], answer: 'brave' },
+              { kind: 'cloze', question: 'The struggle in a story between opposing forces (e.g. Elias against the storm) is called the ___. (one word starting with c)', answer: 'conflict' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'قصيدة: The Old Oak',
+            skill: 'reading',
+            passage:
+              "THE OLD OAK\n\nI have stood a hundred years or more,\nBeside this quiet country lane.\nI've watched the children of the past\nGrow old, and young ones come again.\n\nI've given shade in summer's heat,\nAnd shelter from the winter storm.\nBeneath my arms the lovers met;\nWithin my leaves the birds kept warm.\n\nThey say that soon a road will come,\nAnd I must fall so cars can pass.\nBut will they miss my whispered song,\nWhen all that's left is stone and glass?",
+            exercises: [
+              { kind: 'mcq', question: 'Who is the speaker of the poem?', choices: ['an old oak tree', 'a child', 'a farmer', 'a bird'], answer: 'an old oak tree' },
+              { kind: 'reading', question: 'What has the tree given to people over the years?', answer: 'It has given shade in summer, shelter from winter storms, a meeting place for lovers and a home for birds.' },
+              { kind: 'mcq', question: 'What is going to happen to the tree?', choices: ['it must fall to make way for a road', 'it will grow taller', 'it will be moved to a park', 'nothing will change'], answer: 'it must fall to make way for a road' },
+              { kind: 'cloze', question: "Giving human qualities to a tree (letting it 'speak' and 'sing') is called ___. (one word starting with p)", answer: 'personification' },
+              { kind: 'reading', question: 'What question does the tree ask at the end, and what does it suggest? (personal response)', answer: "It asks whether people will miss its song when only 'stone and glass' remain — suggesting that progress can destroy nature and something valuable may be lost. Accept any reasoned personal response." },
+            ],
+          },
+          {
+            order: 3,
+            title: 'مصطلحات أدبية (Literary Terms)',
+            skill: 'vocab',
+            exercises: [
+              { kind: 'mcq', question: 'A long story in book form, usually with many characters and events, is a ___.', choices: ['novel', 'poem', 'letter', 'review'], answer: 'novel' },
+              { kind: 'mcq', question: 'A play is a story written to be ___.', choices: ['performed on a stage', 'sung', 'painted', 'eaten'], answer: 'performed on a stage' },
+              { kind: 'cloze', question: 'The turning point of a story, its moment of highest tension, is called the ___. (one word starting with c)', answer: 'climax' },
+              { kind: 'mcq', question: "The narrator who says 'I' and takes part in the story uses the ___ point of view.", choices: ['first-person', 'third-person', 'future', 'passive'], answer: 'first-person' },
+            ],
+          },
+        ],
+      },
+      {
+        order: 2,
+        name: 'تقرير كتاب واستجابة شخصية (Book Report & Personal Response)',
+        lessons: [
+          {
+            order: 1,
+            title: 'كتابة: تقرير كتاب واستجابة',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: 'Write a book report (about 100 words) about a novel or story you have read. Include the title, the author, a summary, and explain which character you most identified with and why.', answer: 'Book report (B2): title + author + summary + which character the student identified with and why (Module F can-do); organized; about 100 words.' },
+              { kind: 'writing', question: 'Choose a literary work you know. In about 90 words, describe the emotions a character experiences at an important moment and relate them to something in your own life.', answer: "Describes a character's emotions and relates them to the student's own experience (Module F personal response / bridging); about 90 words." },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  //  Module G (016582) — Reading (60%, 450-500 words) + Writing (40%)  [B2]
+  // ============================================================
+  {
+    number: 16582,
+    title: 'Module G — فهم مقروء وكتابة (016582)',
+    description: 'فهم مقروء متقدّم (نصّ 450-500 كلمة، B2) + تعبير كتابيّ (120-140 كلمة: رأي/مع وضدّ/قصّة/رسالة رسمية).',
+    topics: [
+      {
+        order: 1,
+        name: 'الفهم المقروء (Reading Comprehension — 450-500 words)',
+        lessons: [
+          {
+            order: 1,
+            title: 'نصّ: Should Zoos Exist?',
+            skill: 'reading',
+            passage:
+              'SHOULD ZOOS EXIST? Few places attract families more than a zoo. Children press their faces against the glass to watch a sleeping tiger or laugh at the tricks of a clever monkey. Yet in recent years, more and more people have begun to question whether zoos should exist at all. The debate is not a simple one, and there are strong arguments on both sides. Those who support zoos point out that modern zoos are very different from the cruel animal prisons of the past. Today, good zoos play an important role in protecting endangered species. When an animal is close to extinction in the wild, zoos can breed it safely and, in some cases, return its young to their natural habitat. Zoos also carry out valuable scientific research and teach millions of visitors to care about wildlife. For many children who live in cities, a zoo is the only place where they will ever see a real elephant or lion, and this experience may inspire them to protect nature in the future. Critics, however, argue that no cage, however large, can replace the freedom of the wild. Many animals, they say, suffer from boredom and stress when they are kept in enclosures far smaller than their natural territory. Large animals such as elephants and polar bears, which naturally travel great distances, are particularly affected. Some critics also claim that zoos exist mainly to make money, and that education and conservation are simply excuses. They believe that the money spent on keeping animals in captivity would be better used to protect them in their natural homes. So who is right? Perhaps the answer lies not in closing all zoos, but in improving them. A well-run zoo that puts the welfare of its animals first, supports genuine conservation projects and educates the public can do a great deal of good. A badly run zoo that treats animals as mere entertainment cannot be defended. In the end, the question may not be whether zoos should exist, but what kind of zoos we are willing to accept.',
+            exercises: [
+              { kind: 'mcq', question: 'What is one argument in favour of zoos?', choices: ['they help protect endangered species', 'they make animals unhappy', 'they are cheap to run', 'they have no visitors'], answer: 'they help protect endangered species' },
+              { kind: 'reading', question: 'According to the text, why might a zoo be especially valuable for children who live in cities?', answer: 'Because a zoo may be the only place where they will ever see a real elephant or lion, which may inspire them to protect nature.' },
+              { kind: 'mcq', question: 'What is the main argument AGAINST zoos?', choices: ['no cage can replace the freedom of the wild', 'zoos are too small for visitors', 'animals live too long in zoos', 'zoos are boring for children'], answer: 'no cage can replace the freedom of the wild' },
+              { kind: 'reading', question: 'TRUE or FALSE? The writer believes all zoos should be closed. Justify your answer from the text.', answer: "False. The writer says the answer 'lies not in closing all zoos, but in improving them.'" },
+              { kind: 'mcq', question: 'Which animals do critics say are particularly affected by life in a zoo?', choices: ['large animals such as elephants and polar bears', 'small birds', 'fish', 'insects'], answer: 'large animals such as elephants and polar bears' },
+              { kind: 'reading', question: 'According to the writer, what is the difference between a good zoo and a bad zoo?', answer: 'A good zoo puts animal welfare first, supports genuine conservation and educates the public; a bad zoo treats animals as mere entertainment.' },
+              { kind: 'cloze', question: 'Complete from the text: The real question is not whether zoos should exist, but what ___ of zoos we are willing to accept.', answer: 'kind' },
+              { kind: 'mcq', question: "How would you describe the writer's approach to the topic?", choices: ['balanced — he presents both sides', 'completely against zoos', 'completely in favour of zoos', 'not interested in the topic'], answer: 'balanced — he presents both sides' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'نصّ: The Woman Who Planted a Forest',
+            skill: 'reading',
+            passage:
+              "THE WOMAN WHO PLANTED A FOREST. When Aisha first returned to her home village after many years in the city, she could hardly believe her eyes. The green hills she remembered from her childhood had turned into a dry, brown desert. The trees had been cut down for firewood and to make space for farming, and without them, the soil had blown away in the wind. The wells had dried up, and many families had left, unable to grow enough food to survive. Most people would have shaken their heads sadly and returned to the city. Aisha, however, decided to act. She had read that trees could bring life back to damaged land, and she was determined to try. With almost no money, she began to collect seeds and plant them, one by one, on the empty hillsides. At first, the villagers laughed at her. 'One woman cannot grow a forest,' they said. But Aisha did not give up. Every morning, before the sun grew too hot, she watered her young trees and protected them from hungry goats. Slowly, the tiny plants grew stronger. As the years passed, something remarkable happened. The first few trees became hundreds, and then thousands. Their roots held the soil in place, and their leaves gave shade and shelter. Birds and insects returned, and the water slowly came back to the wells. Seeing the change, the villagers stopped laughing and began to help. Together, they planted even more trees, until the brown hills were green once again. Today, Aisha's forest covers the land where nothing once grew, and families who had left have started to return. Scientists come from far away to study how one determined person brought a dead landscape back to life. When they ask Aisha for the secret of her success, she simply smiles. 'I did not plant a forest,' she tells them. 'I planted one tree, and then I planted another. That is all anyone can ever do.'",
+            exercises: [
+              { kind: 'mcq', question: 'What had happened to Aisha’s village while she was away?', choices: ['the green hills had turned into a dry desert', 'it had become a big city', 'it had been flooded', 'nothing had changed'], answer: 'the green hills had turned into a dry desert' },
+              { kind: 'reading', question: 'Why had the soil blown away, according to the text?', answer: 'Because the trees had been cut down (for firewood and farming), and without them the soil blew away in the wind.' },
+              { kind: 'mcq', question: 'How did the villagers react to Aisha at first?', choices: ['they laughed at her', 'they immediately helped her', 'they were angry with her', 'they paid her'], answer: 'they laughed at her' },
+              { kind: 'reading', question: 'What remarkable change happened as the years passed?', answer: 'The few trees became thousands; their roots held the soil, birds and insects returned, and water came back to the wells, turning the brown hills green again.' },
+              { kind: 'mcq', question: 'What is the main message of Aisha’s story?', choices: ['one determined person can make a huge difference', 'it is impossible to change nature', 'cities are better than villages', 'money is the key to success'], answer: 'one determined person can make a huge difference' },
+              { kind: 'reading', question: "Explain what Aisha means by 'I planted one tree, and then I planted another.' (personal response)", answer: 'She means big change comes from small, patient, repeated actions — anyone can start by doing one small thing. Accept any reasoned personal response.' },
+            ],
+          },
+        ],
+      },
+      {
+        order: 2,
+        name: 'الكتابة (Writing — 120-140 words)',
+        lessons: [
+          {
+            order: 1,
+            title: 'كتابة: رأي / مع وضدّ (Opinion / For and Against)',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: "Write a 'for and against' composition (120-140 words): the advantages and disadvantages of studying online. Present both sides and give your own conclusion.", answer: 'Module G rubric (B2): fully on topic; presents advantages AND disadvantages with a conclusion; well-organized and coherent; varied vocabulary, connecting words and appropriate register; correct basic and advanced structures; correct mechanics; 120-140 words.' },
+              { kind: 'writing', question: "Write an opinion composition (120-140 words): 'Money is the most important thing in life.' Do you agree or disagree? Give reasons and examples.", answer: 'Clear opinion with reasons and examples; fully developed and organized; B2 vocabulary and structures; 120-140 words.' },
+            ],
+          },
+          {
+            order: 2,
+            title: 'كتابة: قصّة / رسالة رسمية (Story / Formal Letter)',
+            skill: 'writing',
+            exercises: [
+              { kind: 'writing', question: "Write a story (120-140 words) that begins with the sentence: 'I will never forget the day everything changed.'", answer: 'A coherent narrative (past tenses) developing from the given opening, with a clear beginning, middle and end; descriptive B2 vocabulary; 120-140 words.' },
+              { kind: 'writing', question: 'Write a formal letter (120-140 words) to the mayor of your town suggesting a change that would improve your community. Explain the problem and your suggestion.', answer: 'Formal letter conventions (formal greeting and closing, formal register); explains a problem and a suggestion with reasons; organized; 120-140 words.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
