@@ -680,3 +680,323 @@ export const ENGLISH_GRADE8: EnUnit[] = [
     ],
   },
 ];
+
+// ================================================================
+//  الصف التاسع (Grade 9) — CEFR A2 (exit / نهاية الإعدادي، مدخل بجروت 3 وحدات).
+//  ترسيخ + قواعد جديدة: المبني للمجهول المستقبل، الشرط الثالث، الكلام المنقول،
+//  الجمل الموصولة، أدوات الربط (سبب/نتيجة)، صفات ful-/less-، متلازمات (get/take).
+// ================================================================
+export const ENGLISH_GRADE9: EnUnit[] = [
+  // ============================================================
+  {
+    order: 1,
+    name: 'الوحدة 1: الطموحات والمستقبل (Ambitions & the Future)',
+    description: 'المهن والطموحات + صيغ المستقبل والمبني للمجهول في المستقبل (Future Passive).',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: المهن والطموحات',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A person who designs buildings is an ___.', choices: ['architect', 'author', 'athlete', 'actor'], answer: 'architect' },
+          { kind: 'mcq', question: 'Someone who studies the stars and planets is an ___.', choices: ['astronomer', 'engineer', 'artist', 'electrician'], answer: 'astronomer' },
+          { kind: 'cloze', question: 'When I grow up, I want to have a good ___ and earn money. (job/profession, starts with c)', answer: 'career' },
+          { kind: 'cloze', question: 'She has a big ___ to become a doctor one day. (a strong wish, starts with d)', answer: 'dream' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: المستقبل والمبني للمجهول المستقبلي (Future & Future Passive)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'The new stadium ___ next year.', choices: ['will be built', 'will build', 'builds', 'is building'], answer: 'will be built' },
+          { kind: 'mcq', question: 'I think robots ___ many jobs in the future.', choices: ['will do', 'will be done', 'do', 'are doing'], answer: 'will do' },
+          { kind: 'cloze', question: 'The exam results ___ (announce) tomorrow. (future passive: will be + past participle, three words)', answer: 'will be announced' },
+          { kind: 'cloze', question: 'By 2050, many cars ___ (drive) by computers. (future passive, three words)', answer: 'will be driven' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: الحياة في المستقبل',
+        skill: 'reading',
+        passage:
+          'What will life be like in fifty years? Many scientists believe that our world will be very different. Most cars will be driven by computers, and they will be powered by clean energy instead of petrol. Homes will be controlled by smart machines that turn on the lights and cook our food. Some experts think that many jobs will be done by robots, so people will have more free time. However, new jobs will also be created, especially in science and technology. One thing is certain: the future will be full of surprises.',
+        exercises: [
+          { kind: 'mcq', question: 'How will most cars be driven in the future, according to the text?', choices: ['by computers', 'by petrol', 'by robots', 'by people'], answer: 'by computers' },
+          { kind: 'mcq', question: 'What will homes be controlled by?', choices: ['smart machines', 'robots', 'computers in cars', 'clean energy'], answer: 'smart machines' },
+          { kind: 'reading', question: 'Why will people have more free time?', answer: 'Because many jobs will be done by robots.' },
+          { kind: 'reading', question: 'What kind of new jobs will be created?', answer: 'New jobs will be created, especially in science and technology.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: طموحاتي المستقبلية',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short paragraph (about 60 words) about your ambitions. What job would you like to have in the future, and why? What will you do to reach your goal?', answer: 'States a future ambition/job with reasons and steps; uses future forms (will / going to); about 60 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences predicting how schools will change in the future. Use the future passive where you can (for example: Lessons will be taught by…).', answer: 'Predicts future changes to schools using future forms and at least one future passive (will be + past participle). 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 2,
+    name: 'الوحدة 2: أحلام وندم (Dreams & Regrets)',
+    description: 'المشاعر والقرارات + الشرط الثاني والثالث (Second & Third Conditional).',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: المشاعر والقرارات',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'If you feel sorry about something you did, you feel ___.', choices: ['regret', 'joy', 'pride', 'relief'], answer: 'regret' },
+          { kind: 'mcq', question: 'A ___ is a choice between two or more things.', choices: ['decision', 'question', 'mistake', 'reason'], answer: 'decision' },
+          { kind: 'cloze', question: 'I had to ___ between two schools; it was a hard choice. (to decide, verb, starts with c)', answer: 'choose' },
+          { kind: 'cloze', question: 'If I could have one ___ come true, I would be happy. (a desire, starts with w)', answer: 'wish' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: الشرط الثاني والثالث (Second & Third Conditional)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'If I had more time, I ___ a new language.', choices: ['would learn', 'will learn', 'learn', 'learned'], answer: 'would learn' },
+          { kind: 'mcq', question: 'If she had studied harder, she ___ the exam.', choices: ['would have passed', 'would pass', 'passed', 'will pass'], answer: 'would have passed' },
+          { kind: 'cloze', question: 'If I ___ (be) you, I would apologize. (second conditional; use "were")', answer: 'were' },
+          { kind: 'cloze', question: 'If we had known about the party, we ___ (come). (third conditional: would have + past participle, three words)', answer: 'would have come' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: قصة عن الندم',
+        skill: 'reading',
+        passage:
+          "Sam looked at the empty football field and felt sad. Last year, his coach had asked him to join the school team, but Sam said no because he wanted more time to play video games. Now his friends were all on the team, and they had just won an important match. Sam thought to himself: 'If I had joined the team, I would be playing with them now. If I hadn't spent so much time on games, I would have become a good player.' Sam decided that this year he would make a better choice.",
+        exercises: [
+          { kind: 'mcq', question: 'Why did Sam say no to the team last year?', choices: ['he wanted to play video games', 'he was ill', "he didn't like football", 'he had no time for school'], answer: 'he wanted to play video games' },
+          { kind: 'mcq', question: 'How does Sam feel at the beginning?', choices: ['sad', 'happy', 'proud', 'angry'], answer: 'sad' },
+          { kind: 'reading', question: 'What did Sam decide to do this year?', answer: 'He decided to make a better choice (and join the team).' },
+          { kind: 'reading', question: 'According to Sam, what would have happened if he had joined the team?', answer: 'He would be playing with his friends now, and he would have become a good player.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: لو كانت الأمور مختلفة',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short paragraph (about 60 words) about something you would do if you had more free time. Use the second conditional (If I had…, I would…).', answer: 'Uses the second conditional correctly (If + past, would + verb); describes what they would do with more free time; about 60 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about a decision you regret. What would you have done differently? Use the third conditional.', answer: 'Uses the third conditional (If + past perfect, would have + past participle) to describe a past regret. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 3,
+    name: 'الوحدة 3: في الأخبار (In the News)',
+    description: 'الأخبار والإعلام + الكلام المنقول (Reported Speech) مع تغيير الأزمنة.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: الأخبار والإعلام',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A person who reports the news on TV is a ___.', choices: ['journalist', 'farmer', 'dentist', 'plumber'], answer: 'journalist' },
+          { kind: 'mcq', question: 'A short piece of writing in a newspaper is an ___.', choices: ['article', 'envelope', 'invoice', 'exam'], answer: 'article' },
+          { kind: 'cloze', question: 'The reporter asked the minister a difficult ___. (something you ask, starts with q)', answer: 'question' },
+          { kind: 'cloze', question: 'Breaking news is information about a very recent ___. (something that happens, starts with e)', answer: 'event' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: الكلام المنقول (Reported Speech)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'Direct: "I am tired." → She said that she ___ tired.', choices: ['was', 'is', 'will be', 'been'], answer: 'was' },
+          { kind: 'mcq', question: 'Direct: "We will win." → They said that they ___ win.', choices: ['would', 'will', 'are', 'were'], answer: 'would' },
+          { kind: 'cloze', question: 'Direct: "I like coffee." → He said that he ___ coffee. (report: like → past)', answer: 'liked' },
+          { kind: 'cloze', question: 'Direct: "She lives in Haifa." → He told me that she ___ in Haifa. (lives → past)', answer: 'lived' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: مقال إخباري',
+        skill: 'reading',
+        passage:
+          'YOUNG INVENTOR WINS NATIONAL PRIZE. A fourteen-year-old student from Haifa has won first prize in a national science competition. Lena Cohen invented a small device that saves water in the home. In an interview, Lena said that she had worked on her invention for over a year. She explained that she had built it from cheap, recycled materials. The judges said that her idea was clever, useful and good for the environment. Lena told reporters that she wanted to become an engineer. She added that she would use the prize money to study science.',
+        exercises: [
+          { kind: 'mcq', question: 'What did Lena invent?', choices: ['a device that saves water', 'a new computer', 'a clean car', 'a robot'], answer: 'a device that saves water' },
+          { kind: 'mcq', question: 'What did Lena say she wanted to become?', choices: ['an engineer', 'a journalist', 'a teacher', 'a doctor'], answer: 'an engineer' },
+          { kind: 'reading', question: 'How long did Lena say she had worked on her invention?', answer: 'She said that she had worked on it for over a year.' },
+          { kind: 'reading', question: 'What did the judges say about her idea?', answer: 'They said that her idea was clever, useful and good for the environment.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: تقرير إخباري',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Imagine you interviewed a famous person. Write a short paragraph (about 60 words) reporting what they said. Use reported speech (He said that…, She told me that…).', answer: 'Reports an interview using reported speech correctly (say/tell + tense backshift); about 60 words.' },
+          { kind: 'writing', question: 'Write a short news report (3–4 sentences) about an event at your school. What happened, and what did people say?', answer: 'Reports a school event; includes at least one reported-speech sentence; 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 4,
+    name: 'الوحدة 4: اكتشافات عظيمة (Great Discoveries)',
+    description: 'العلوم والاكتشافات + الجمل الموصولة (Relative Clauses) + نصّ سيرة ذاتية.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: العلوم والاكتشاف',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A person who does experiments in a laboratory is a ___.', choices: ['scientist', 'singer', 'soldier', 'sailor'], answer: 'scientist' },
+          { kind: 'mcq', question: 'Penicillin was an important medical ___ that saved millions of lives.', choices: ['discovery', 'question', 'mistake', 'holiday'], answer: 'discovery' },
+          { kind: 'cloze', question: 'Scientists do ___ to test their ideas. (plural: careful tests, starts with e)', answer: 'experiments' },
+          { kind: 'cloze', question: 'Thomas Edison was a famous ___ who created the light bulb. (a person who invents things, starts with i)', answer: 'inventor' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: الجمل الموصولة (Relative Clauses: who/which/where)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'Marie Curie was a scientist ___ discovered radium.', choices: ['who', 'which', 'where', 'when'], answer: 'who' },
+          { kind: 'mcq', question: 'The laboratory ___ they worked was very small.', choices: ['where', 'who', 'which', 'whose'], answer: 'where' },
+          { kind: 'cloze', question: 'The telephone, ___ was invented in 1876, changed the world. (relative pronoun for things)', answer: 'which' },
+          { kind: 'cloze', question: 'That is the scientist ___ won the Nobel Prize. (relative pronoun for people)', answer: 'who' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: سيرة آندي وارهول (Andy Warhol)',
+        skill: 'reading',
+        passage:
+          "Andy Warhol was an American artist who became famous in the 1960s. He was born in 1928 to a poor family. Warhol, who studied art at university, started his career by drawing pictures for advertisements. Later, he created colourful paintings of everyday objects, such as soup cans and bottles, and pictures of famous people. His studio, which was called 'The Factory', became a meeting place for artists and musicians. Warhol believed that art should be for everyone, not only for rich people. Today, his works are shown in museums around the world, and he is remembered as one of the most important artists of the twentieth century.",
+        exercises: [
+          { kind: 'mcq', question: 'When did Andy Warhol become famous?', choices: ['in the 1960s', 'in 1928', 'in the 1990s', 'in the year 2000'], answer: 'in the 1960s' },
+          { kind: 'mcq', question: 'What did Warhol paint?', choices: ['everyday objects and famous people', 'only landscapes', 'only animals', 'cars and planes'], answer: 'everyday objects and famous people' },
+          { kind: 'reading', question: "What was Warhol's studio called?", answer: "His studio was called 'The Factory'." },
+          { kind: 'reading', question: 'What did Warhol believe about art?', answer: 'He believed that art should be for everyone, not only for rich people.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: سيرة شخص أُعجب به',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short biography (about 60 words) of a person you admire. Use relative clauses (…, who…, …, which…). Include who they are and why they are important.', answer: 'Writes a short biography using relative clauses (who/which/where); includes identity and importance; about 60 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences describing an important invention. Use relative clauses (for example: The car, which was invented…, changed…).', answer: 'Describes an invention using at least one relative clause correctly. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 5,
+    name: 'الوحدة 5: الناس والمجتمع (People & Society)',
+    description: 'صفات ful-/less- والمجتمع + أدوات ربط السبب والنتيجة (Cause & Result).',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: الصفات (ful-/less-)',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A person who helps others and cares about them is ___.', choices: ['helpful', 'careless', 'useless', 'harmful'], answer: 'helpful' },
+          { kind: 'mcq', question: 'If something has no use, it is ___.', choices: ['useless', 'useful', 'careful', 'colourful'], answer: 'useless' },
+          { kind: 'cloze', question: 'Be ___ when you cross the road! (full of care, -ful adjective)', answer: 'careful' },
+          { kind: 'cloze', question: 'Smoking is ___ to your health. (it causes harm, -ful adjective)', answer: 'harmful' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: أدوات ربط السبب والنتيجة (Connectors: Cause & Result)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'It was raining, ___ we stayed at home.', choices: ['so', 'but', 'although', 'or'], answer: 'so' },
+          { kind: 'mcq', question: 'She was tired ___ she had worked all day.', choices: ['because', 'so', 'but', 'or'], answer: 'because' },
+          { kind: 'cloze', question: 'The roads were icy. ___, many schools were closed. (a result connector, one word starting with T)', answer: 'Therefore' },
+          { kind: 'cloze', question: "He didn't study, ___ he failed the test. (a result connector, one word)", answer: 'so' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: التطوّع في المجتمع',
+        skill: 'reading',
+        passage:
+          'Volunteering is becoming more popular among young people, and this is a very positive change. When teenagers volunteer, they help their community and also learn important skills. For example, some students visit old people who live alone, because these people are often lonely. Others clean parks and beaches, so their towns become cleaner and more beautiful. Volunteering is not always easy; it takes time and energy. However, most young volunteers say that it makes them feel useful and happy. As a result, many schools now encourage their students to volunteer at least once a month.',
+        exercises: [
+          { kind: 'mcq', question: 'Why do some students visit old people?', choices: ['because these people are often lonely', 'because they want money', 'because it is easy', 'because their teachers pay them'], answer: 'because these people are often lonely' },
+          { kind: 'mcq', question: 'How do most young volunteers feel?', choices: ['useful and happy', 'tired and bored', 'sad and lonely', 'angry and worried'], answer: 'useful and happy' },
+          { kind: 'reading', question: 'What do many schools now encourage their students to do?', answer: 'They encourage their students to volunteer at least once a month.' },
+          { kind: 'reading', question: 'Name one thing that volunteers do in the text.', answer: 'They visit old people who live alone, or they clean parks and beaches (either).' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: رأي حول التطوّع',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short opinion paragraph (about 60 words): Should young people do volunteer work? Give two reasons and use connectors (because, so, therefore).', answer: 'States an opinion with two reasons; uses cause/result connectors (because, so, therefore) correctly; about 60 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about a problem in your town and its result. Use connectors of cause and result.', answer: 'Describes a problem and its result using cause/result connectors. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 6,
+    name: 'الوحدة 6: الفنون والترفيه (Arts & Entertainment)',
+    description: 'الفنون والمتلازمات (get/take) + مراجعة الأزمنة والمبني للمجهول + كتابة مراجعة.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: الفنون والمتلازمات (Collocations)',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A person who acts in films is an ___.', choices: ['actor', 'author', 'athlete', 'architect'], answer: 'actor' },
+          { kind: 'mcq', question: 'We watched an exciting ___ at the cinema last night.', choices: ['film', 'fridge', 'forest', 'factory'], answer: 'film' },
+          { kind: 'cloze', question: "Let's ___ a photo of the sunset. (collocation: ___ a photo, verb)", answer: 'take' },
+          { kind: 'cloze', question: 'I need to ___ ready before we go out. (collocation: ___ ready, verb)', answer: 'get' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: مراجعة (Review: Passive, Tenses, Conditionals)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'The film ___ by a famous director in 2019.', choices: ['was made', 'makes', 'is making', 'make'], answer: 'was made' },
+          { kind: 'mcq', question: 'If I ___ tickets, I will invite you.', choices: ['get', 'will get', 'got', 'getting'], answer: 'get' },
+          { kind: 'cloze', question: 'The Mona Lisa ___ (paint) by Leonardo da Vinci. (past passive, two words)', answer: 'was painted' },
+          { kind: 'cloze', question: 'I have ___ (see) that film three times. (present perfect: past participle)', answer: 'seen' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: مراجعة فيلم',
+        skill: 'reading',
+        passage:
+          "Last weekend, I watched a film called 'The Journey', and I really enjoyed it. The film, which was directed by Maya Stone, tells the story of a girl who travels across the country to find her lost brother. The acting was excellent, and the beautiful pictures of mountains and deserts made the film special. The music was also wonderful. The only problem was that the film was a little too long. However, I would still recommend it to anyone who loves adventure stories. I give it four stars out of five.",
+        exercises: [
+          { kind: 'mcq', question: 'Who directed the film?', choices: ['Maya Stone', 'the lost brother', 'a famous actor', 'the writer'], answer: 'Maya Stone' },
+          { kind: 'mcq', question: 'What was the only problem with the film?', choices: ['it was a little too long', 'the acting was bad', 'the music was boring', 'the story was sad'], answer: 'it was a little too long' },
+          { kind: 'reading', question: 'What is the film about?', answer: 'It is about a girl who travels across the country to find her lost brother.' },
+          { kind: 'reading', question: 'Would the writer recommend the film? To whom?', answer: 'Yes, the writer would recommend it to anyone who loves adventure stories.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: اكتب مراجعة (Review)',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short review (about 60 words) of a film or book you like. Include what it is about, what is good about it, and your recommendation.', answer: 'Writes a review with a summary, positive points, and a recommendation; about 60 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about your favourite kind of music or films, and why you like it.', answer: 'Describes a preference in music/films with reasons; present simple; 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+];
