@@ -25,11 +25,24 @@ const LITERATURE_NOTICE: Notice = {
     '📌 اطلب من معلّمك النصوص المعتمدة لمدرستك، أو راجع القائمة الرسمية على بوابة الإنجليزية — ثم درّب مهاراتك هنا.',
 };
 
+// ملاحظة موديول E — قواعد امتحان مهمّة (بلا قاموس + تعليل صح/خطأ).
+const MODULE_E_NOTICE: Notice = {
+  title: 'ملاحظة مهمّة — موديول E (Module E)',
+  body:
+    'قبل أن تبدأ، انتبه لقواعد موديول E (الفهم المقروء المتقدّم):\n\n' +
+    '• لا يُسمح باستخدام القاموس في الامتحان — تُرفق قائمة كلمات (glossary) للكلمات الصعبة فقط.\n\n' +
+    '• أسئلة «صح/خطأ» تتطلّب تعليلًا من النصّ (True/False with justification): لا يكفي أن تكتب صح أو خطأ، بل عليك إثبات إجابتك بجملة من القطعة.\n\n' +
+    '• النصوص أطول وأصعب (حتى 400 كلمة): مقالات، مقابلات، رسائل للمحرّر، ومراجعات.\n\n' +
+    '• هناك أيضًا مهمّة مفردات (Vocabulary) من قوائم Band I / II / III.\n\n' +
+    'التمارين هنا تدريبية بصيغة البجروت لتقوية مهاراتك.',
+};
+
 // ملاحظات حسب رقم الموديول (Questionnaire.number). قابلة للتوسّع لاحقًا.
 const MODULE_NOTICES: Record<number, Notice> = {
   16383: LITERATURE_NOTICE, // Module B (3 وحدات)
   16483: LITERATURE_NOTICE, // Module D (4 وحدات)
   16583: LITERATURE_NOTICE, // Module F (5 وحدات — مستقبلاً)
+  16471: MODULE_E_NOTICE, // Module E (4 وحدات — بلا قاموس + تعليل صح/خطأ)
 };
 
 export function ModuleNotice({ number }: { number: number | null }) {
@@ -60,7 +73,7 @@ export function ModuleNotice({ number }: { number: number | null }) {
         className="flex w-full items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-2.5 text-start text-sm font-medium text-warning transition-colors hover:bg-warning/20"
       >
         <BookMarked className="h-4 w-4 shrink-0" />
-        <span className="flex-1">ملاحظة عن نصوص الأدب — اضغط للتفاصيل</span>
+        <span className="flex-1">ملاحظة مهمّة عن هذا الموديول — اضغط للتفاصيل</span>
         <Info className="h-4 w-4 shrink-0 opacity-70" />
       </button>
 
