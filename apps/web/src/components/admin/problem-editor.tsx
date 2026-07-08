@@ -38,6 +38,17 @@ const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: Difficulty.HARD, label: 'صعب' },
 ];
 
+// نوع المسألة — رياضيات (طرق/خطوات) أو أنواع الإنجليزية.
+type EditorKind = 'math' | 'mcq' | 'cloze' | 'reading' | 'writing';
+const ENGLISH_KINDS = ['mcq', 'cloze', 'reading', 'writing'] as const;
+const KINDS: { value: EditorKind; label: string }[] = [
+  { value: 'math', label: 'رياضيات (طرق وخطوات)' },
+  { value: 'mcq', label: 'إنجليزي — اختيار من متعدّد' },
+  { value: 'cloze', label: 'إنجليزي — إكمال فراغ' },
+  { value: 'reading', label: 'إنجليزي — فهم مقروء' },
+  { value: 'writing', label: 'إنجليزي — كتابة' },
+];
+
 export function ProblemEditor({
   topicId,
   existing,
@@ -73,8 +84,24 @@ export function ProblemEditor({
       correction: m.correction,
     })) ?? [],
   );
+  const initialKind: EditorKind = ENGLISH_KINDS.includes(existing?.kind as (typeof ENGLISH_KINDS)[number])
+    ? (existing!.kind as EditorKind)
+    : 'math';
+  const [kind, setKind] = useState<EditorKind>(initialKind);
+  const [choices, setChoices] = useState<string[]>(
+    existing?.choices?.map((c) => c.text) ?? ['', '', '', ''],
+  );
+  const [correctIndex, setCorrectIndex] = useState<number>(() => {
+    const idx = existing?.choices?.findIndex((c) => c.text === existing.finalAnswer) ?? -1;
+    return idx >= 0 ? idx : 0;
+  });
+  const [passage, setPassage] = useState(existing?.passage ?? '');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const isMath = kind === 'math';
+  const isMcq = kind === 'mcq';
+  const showPassage = kind === 'reading' || kind === 'writing' || kind === 'mcq';
 
   // ----- method helpers -----
   const updateMethod = (i: number, patch: Partial<MethodForm>) =>
@@ -101,22 +128,32 @@ export function ProblemEditor({
 
   async function save() {
     setError(null);
+
+    // الجواب النهائي: لِـ mcq مشتقّ من الخيار الصحيح؛ لغيرها الحقل النصّي.
+    const cleanedChoices = choices.map((c) => c.trim()).filter(Boolean);
+    const derivedAnswer = isMcq ? (choices[correctIndex]?.trim() ?? '') : finalAnswer.trim();
+
     const payload = {
       ...(existing ? {} : { topicId }),
       code: code.trim() || undefined,
       question: question.trim(),
-      finalAnswer: finalAnswer.trim(),
+      finalAnswer: derivedAnswer,
       difficulty,
-      methods: methods.map((m) => ({
-        name: m.name.trim(),
-        isRecommended: m.isRecommended,
-        steps: m.steps.map((s, i) => ({
-          stepNumber: i + 1,
-          description: s.description.trim(),
-          expression: s.expression.trim(),
-          hint: s.hint.trim(),
-        })),
-      })),
+      ...(isMath ? {} : { language: 'english', kind }),
+      ...(isMcq ? { choices: cleanedChoices.map((text) => ({ text })) } : {}),
+      ...(showPassage && passage.trim() ? { passage: passage.trim() } : {}),
+      methods: isMath
+        ? methods.map((m) => ({
+            name: m.name.trim(),
+            isRecommended: m.isRecommended,
+            steps: m.steps.map((s, i) => ({
+              stepNumber: i + 1,
+              description: s.description.trim(),
+              expression: s.expression.trim(),
+              hint: s.hint.trim(),
+            })),
+          }))
+        : [],
       commonMistakes: mistakes.map((m) => ({
         description: m.description.trim(),
         wrongExample: m.wrongExample.trim(),
@@ -125,11 +162,15 @@ export function ProblemEditor({
     };
     // basic client checks
     if (!payload.question || !payload.finalAnswer) {
-      setError('السؤال والجواب النهائي مطلوبان');
+      setError(isMcq ? 'السؤال مطلوب، وحدّد الخيار الصحيح' : 'السؤال والجواب النهائي مطلوبان');
       return;
     }
-    if (payload.methods.some((m) => !m.name || m.steps.some((s) => !s.description || !s.expression || !s.hint))) {
+    if (isMath && payload.methods.some((m) => !m.name || m.steps.some((s) => !s.description || !s.expression || !s.hint))) {
       setError('أكمل كل حقول الطرق والخطوات (الوصف + التعبير + التلميح)');
+      return;
+    }
+    if (isMcq && cleanedChoices.length < 2) {
+      setError('أضف خيارين على الأقل وحدّد الصحيح منها');
       return;
     }
     setSaving(true);
@@ -150,6 +191,22 @@ export function ProblemEditor({
         <CardTitle>{existing ? 'تعديل مسألة' : 'مسألة جديدة'}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
+        {/* نوع المسألة */}
+        <div className="space-y-1">
+          <Label>نوع المسألة</Label>
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as EditorKind)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            {KINDS.map((k) => (
+              <option key={k.value} value={k.value}>
+                {k.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* basics */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
@@ -158,14 +215,22 @@ export function ProblemEditor({
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               rows={2}
-              placeholder="مثال: حل المعادلة x² + 5x + 6 = 0"
+              dir="auto"
+              placeholder={isMath ? 'مثال: حل المعادلة x² + 5x + 6 = 0' : 'نصّ السؤال / التعليمات'}
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             />
           </div>
-          <div className="space-y-1">
-            <Label>الجواب النهائي</Label>
-            <Input value={finalAnswer} onChange={(e) => setFinalAnswer(e.target.value)} placeholder="x = -2 أو x = -3" />
-          </div>
+          {!isMcq && (
+            <div className="space-y-1">
+              <Label>{isMath ? 'الجواب النهائي' : 'الإجابة / النقاط المرجعية (سرّية)'}</Label>
+              <Input
+                value={finalAnswer}
+                onChange={(e) => setFinalAnswer(e.target.value)}
+                dir="auto"
+                placeholder={isMath ? 'x = -2 أو x = -3' : 'الإجابة النموذجية أو أهمّ النقاط المطلوبة'}
+              />
+            </div>
+          )}
           <div className="space-y-1">
             <Label>الصعوبة</Label>
             <select
@@ -186,7 +251,66 @@ export function ProblemEditor({
           </div>
         </div>
 
-        {/* methods */}
+        {/* القطعة / موجز المهمّة (فهم مقروء / كتابة / اختيار بقطعة) */}
+        {showPassage && (
+          <div className="space-y-1">
+            <Label>{kind === 'writing' ? 'موجز المهمّة (Task) — اختياري' : 'القطعة (Passage) — اختياري لأسئلة الاختيار'}</Label>
+            <textarea
+              value={passage}
+              onChange={(e) => setPassage(e.target.value)}
+              rows={kind === 'reading' ? 6 : 3}
+              dir="ltr"
+              placeholder={kind === 'writing' ? 'Write a letter to… (150 words)' : 'Paste the reading passage here…'}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+        )}
+
+        {/* خيارات الاختيار من متعدّد */}
+        {isMcq && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">الخيارات (حدّد الصحيح)</h3>
+              {choices.length < 6 && (
+                <Button size="sm" variant="outline" onClick={() => setChoices((c) => [...c, ''])}>
+                  + خيار
+                </Button>
+              )}
+            </div>
+            {choices.map((c, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="correct-choice"
+                  checked={correctIndex === i}
+                  onChange={() => setCorrectIndex(i)}
+                  title="الإجابة الصحيحة"
+                />
+                <Input
+                  value={c}
+                  onChange={(e) => setChoices((cs) => cs.map((x, idx) => (idx === i ? e.target.value : x)))}
+                  dir="ltr"
+                  placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                />
+                {choices.length > 2 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      setChoices((cs) => cs.filter((_, idx) => idx !== i))
+                    }
+                  >
+                    ✕
+                  </Button>
+                )}
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">الزرّ الدائري يحدّد الخيار الصحيح (يُخزَّن كالجواب النهائي).</p>
+          </div>
+        )}
+
+        {/* methods (رياضيات فقط) */}
+        {isMath && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">طرق الحل</h3>
@@ -249,6 +373,7 @@ export function ProblemEditor({
             </Card>
           ))}
         </div>
+        )}
 
         {/* common mistakes */}
         <div className="space-y-3">

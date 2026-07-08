@@ -206,7 +206,54 @@ const MATH: RefSection[] = [
   },
 ];
 
-export const SUBJECT_REFERENCE: Record<'csharp' | 'math', RefSection[]> = {
+const ENGLISH: RefSection[] = [
+  {
+    title: 'Verb Tenses — الأزمنة',
+    items: [
+      { label: 'مضارع بسيط', code: 'She works every day.' },
+      { label: 'مضارع مستمر', code: 'She is working now.' },
+      { label: 'ماضٍ بسيط', code: 'She worked yesterday.' },
+      { label: 'مضارع تام', code: 'She has worked here for a year.' },
+      { label: 'مستقبل', code: 'She will work / is going to work.' },
+    ],
+  },
+  {
+    title: 'Connectors — أدوات الربط',
+    items: [
+      { label: 'إضافة', code: 'and, also, in addition, moreover' },
+      { label: 'تضاد', code: 'but, however, although, on the other hand' },
+      { label: 'سبب/نتيجة', code: 'because, so, therefore, as a result' },
+      { label: 'ترتيب', code: 'first, then, after that, finally' },
+    ],
+  },
+  {
+    title: 'Prepositions — حروف الجر',
+    items: [
+      { label: 'زمن', code: 'at 5 o’clock · on Monday · in July / 2026' },
+      { label: 'مكان', code: 'at home · on the table · in the room' },
+      { label: 'حركة', code: 'to, into, from, through, across' },
+    ],
+  },
+  {
+    title: 'Essay / Letter — بنية الكتابة',
+    items: [
+      { label: 'مقال', code: 'Introduction → Body (2–3 paragraphs) → Conclusion' },
+      { label: 'رسالة رسمية', code: 'Dear Sir/Madam, … Yours faithfully,' },
+      { label: 'رسالة ودّية', code: 'Dear Sam, … Best wishes, / Love,' },
+    ],
+  },
+  {
+    title: 'Reading tips — الفهم المقروء',
+    items: [
+      { label: 'Skim', code: 'اقرأ العنوان والجملة الأولى من كل فقرة لفكرة عامة.' },
+      { label: 'Scan', code: 'ابحث عن الكلمة المفتاحية في السؤال داخل النصّ.' },
+      { label: 'In your own words', code: 'أعد الصياغة، لا تنسخ الجملة كما هي.' },
+    ],
+  },
+];
+
+export const SUBJECT_REFERENCE: Record<'csharp' | 'math' | 'english', RefSection[]> = {
   csharp: CSHARP,
   math: MATH,
+  english: ENGLISH,
 };

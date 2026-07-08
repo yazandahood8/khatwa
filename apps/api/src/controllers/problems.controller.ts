@@ -1,7 +1,23 @@
 import type { Request, Response } from 'express';
+import type { Prisma } from '@prisma/client';
 import { createProblemSchema, updateProblemSchema } from '@khatwa/shared';
 import { prisma } from '../services/prisma';
 import { ApiError } from '../utils/ApiError';
+
+// حقول التخصّص المشتركة (إنجليزي/برمجة) — تُكتب كما هي، مع choices كـ JSON.
+const specializationData = (input: {
+  language?: string;
+  kind?: string;
+  passage?: string;
+  starterCode?: string;
+  choices?: { text: string }[];
+}) => ({
+  language: input.language ?? null,
+  kind: input.kind ?? null,
+  passage: input.passage ?? null,
+  starterCode: input.starterCode ?? null,
+  choices: (input.choices ?? undefined) as Prisma.InputJsonValue | undefined,
+});
 
 const ok = <T>(res: Response, data: T, status = 200) =>
   res.status(status).json({ success: true, data });
@@ -79,6 +95,7 @@ export async function createProblem(req: Request, res: Response) {
       difficulty: input.difficulty,
       allowFreeMethod: input.allowFreeMethod ?? true,
       orderIndex: input.orderIndex ?? 0,
+      ...specializationData(input),
       methods: {
         create: input.methods.map((m) => ({
           name: m.name,
@@ -124,6 +141,7 @@ export async function updateProblem(req: Request, res: Response) {
         difficulty: input.difficulty,
         allowFreeMethod: input.allowFreeMethod ?? true,
         orderIndex: input.orderIndex ?? 0,
+        ...specializationData(input),
         methods: {
           create: input.methods.map((m) => ({
             name: m.name,

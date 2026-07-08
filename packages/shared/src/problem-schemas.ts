@@ -25,7 +25,11 @@ export const commonMistakeSchema = z.object({
   correction: z.string().trim().min(1, 'التصحيح مطلوب'),
 });
 
-export const createProblemSchema = z.object({
+// خيار سؤال اختيار من متعدّد/إكمال — MCQ/cloze option
+export const choiceSchema = z.object({ text: z.string().trim().min(1, 'نص الخيار مطلوب').max(500) });
+
+// الحقول المشتركة للمسألة — مسائل الرياضيات تتطلّب طرقاً؛ الإنجليزي/البرمجة لا.
+const problemBase = z.object({
   topicId: z.string().min(1),
   code: z.string().trim().max(60).optional(),
   question: z.string().trim().min(2, 'نص السؤال مطلوب'),
@@ -34,13 +38,27 @@ export const createProblemSchema = z.object({
   difficulty: z.nativeEnum(Difficulty).default(Difficulty.MEDIUM),
   allowFreeMethod: z.boolean().optional(),
   orderIndex: z.coerce.number().int().min(0).optional(),
-  methods: z.array(solutionMethodSchema).min(1, 'أضف طريقة حل واحدة على الأقل'),
+  // نوع المسألة وتخصّصها — null/undefined = رياضيات عادية
+  language: z.string().trim().max(20).optional(), // "english" | "csharp"
+  kind: z.string().trim().max(20).optional(), // "mcq" | "cloze" | "reading" | "writing" | "explain" | "trace_*"
+  choices: z.array(choiceSchema).max(10).optional(), // MCQ/cloze
+  passage: z.string().trim().max(8000).optional(), // قطعة القراءة أو موجز الكتابة
+  starterCode: z.string().trim().max(4000).optional(),
+  methods: z.array(solutionMethodSchema).optional().default([]),
   commonMistakes: z.array(commonMistakeSchema).optional(),
 });
 
-// التحديث: نفس الحقول بدون topicId (المسألة تبقى في موضوعها)
-export const updateProblemSchema = createProblemSchema.omit({ topicId: true });
+// الرياضيات العادية (بلا language/kind) تتطلّب طريقة حل واحدة على الأقل؛ غيرها لا.
+const requireMethodsForMath = (d: { language?: string; kind?: string; methods?: unknown[] }) =>
+  !!d.language || !!d.kind || (d.methods?.length ?? 0) >= 1;
+const methodsError = { message: 'أضف طريقة حل واحدة على الأقل', path: ['methods'] };
 
+export const createProblemSchema = problemBase.refine(requireMethodsForMath, methodsError);
+
+// التحديث: نفس الحقول بدون topicId (المسألة تبقى في موضوعها)
+export const updateProblemSchema = problemBase.omit({ topicId: true }).refine(requireMethodsForMath, methodsError);
+
+export type Choice = z.infer<typeof choiceSchema>;
 export type SolutionStepInput = z.infer<typeof solutionStepSchema>;
 export type SolutionMethodInput = z.infer<typeof solutionMethodSchema>;
 export type CommonMistakeInput = z.infer<typeof commonMistakeSchema>;

@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 /**
  * زرّ "قواعد" — يفتح لوحة مرجع سريع لأوامر/قوانين المادة (C# أو الرياضيات).
  */
-export function ReferenceButton({ subject }: { subject: 'csharp' | 'math' }) {
+export function ReferenceButton({ subject }: { subject: 'csharp' | 'math' | 'english' }) {
   const [open, setOpen] = useState(false);
   const sections = SUBJECT_REFERENCE[subject];
-  const title = subject === 'csharp' ? 'أوامر C#' : 'قوانين وصيغ';
+  const title = subject === 'csharp' ? 'أوامر C#' : subject === 'english' ? 'قواعد الإنجليزية' : 'قوانين وصيغ';
 
   return (
     <>

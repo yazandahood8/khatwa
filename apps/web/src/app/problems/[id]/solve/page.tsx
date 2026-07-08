@@ -22,6 +22,9 @@ import { PhotoCaptureButton, type PhotoCaptureHandle } from '@/components/solve/
 import { PhoneCaptureHandoff } from '@/components/solve/phone-capture-handoff';
 import { CodeSolve } from '@/components/solve/code-solve';
 import { ExplainSolve } from '@/components/solve/explain-solve';
+import { McqSolve } from '@/components/solve/mcq-solve';
+import { ReadingSolve } from '@/components/solve/reading-solve';
+import { WritingSolve } from '@/components/solve/writing-solve';
 import { TraceTable } from '@/components/solve/trace-table';
 import { TraceRecursion } from '@/components/solve/trace-recursion';
 import { QuestionNav } from '@/components/solve/question-nav';
@@ -192,6 +195,17 @@ export default function SolvePage() {
   // سؤال مفاهيمي (شرح حرّ) — واجهة شرح نصّي يقيّمها الذكاء الاصطناعي بدل محرّر الكود
   if (problem.kind === 'explain') {
     return <ExplainSolve problem={problem} sequence={sequence} />;
+  }
+
+  // مسائل الإنجليزية — واجهات مخصّصة (اختيار/إكمال، فهم مقروء، كتابة) قبل فرع البرمجة
+  if (problem.kind === 'mcq' || problem.kind === 'cloze') {
+    return <McqSolve problem={problem} sequence={sequence} />;
+  }
+  if (problem.kind === 'reading') {
+    return <ReadingSolve problem={problem} sequence={sequence} />;
+  }
+  if (problem.kind === 'writing') {
+    return <WritingSolve problem={problem} sequence={sequence} />;
   }
 
   // مسألة برمجة (علوم الحاسوب) — واجهة كتابة الكود + المصحّح الذكي بدل الخطوات

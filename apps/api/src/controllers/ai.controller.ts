@@ -13,6 +13,9 @@ import {
   buildTraceTableJudgePrompt,
   buildTraceRecJudgePrompt,
   buildExplanationJudgePrompt,
+  buildEnglishWritingJudgePrompt,
+  buildEnglishReadingJudgePrompt,
+  buildEnglishHintPrompt,
 } from '../utils/aiPrompt';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
@@ -316,10 +319,22 @@ export async function judgeCode(req: Request, res: Response) {
   if (!problem.language) {
     throw ApiError.badRequest('هذه ليست مسألة برمجة — استخدم المساعد التعليمي العادي');
   }
+  const isEnglish = problem.language === 'english';
+  const isWriting = problem.kind === 'writing';
   const isTrace = problem.kind === 'trace_table' || problem.kind === 'trace_rec';
   const isExplain = problem.kind === 'explain';
   if (!input.hint && !input.code.trim() && !input.image) {
-    throw ApiError.badRequest(isTrace ? 'اكتب تتبّعك أولاً' : isExplain ? 'اكتب شرحك أولاً' : 'اكتب كودك أولاً');
+    throw ApiError.badRequest(
+      isEnglish
+        ? isWriting
+          ? 'اكتب نصّك أولاً'
+          : 'اكتب إجابتك أولاً'
+        : isTrace
+          ? 'اكتب تتبّعك أولاً'
+          : isExplain
+            ? 'اكتب شرحك أولاً'
+            : 'اكتب كودك أولاً',
+    );
   }
 
   // تحديد المعدل حسب الباقة — rate limit by plan
@@ -337,6 +352,11 @@ export async function judgeCode(req: Request, res: Response) {
     throw e;
   }
 
+  const commonMistakes = problem.commonMistakes.map((m) => ({
+    description: m.description,
+    wrongExample: m.wrongExample,
+    correction: m.correction,
+  }));
   const ctx = {
     subject: deriveTopicContext(problem.topic).subject,
     topic: problem.topic.nameAr,
@@ -344,23 +364,46 @@ export async function judgeCode(req: Request, res: Response) {
     language: problem.language,
     starterCode: problem.starterCode,
     referenceSolution: problem.finalAnswer,
-    commonMistakes: problem.commonMistakes.map((m) => ({
-      description: m.description,
-      wrongExample: m.wrongExample,
-      correction: m.correction,
-    })),
+    commonMistakes,
   };
-  const systemPrompt = input.hint
-    ? buildCodeHintPrompt(ctx)
-    : problem.kind === 'trace_table'
-      ? buildTraceTableJudgePrompt(ctx)
-      : problem.kind === 'trace_rec'
-        ? buildTraceRecJudgePrompt(ctx)
-        : isExplain
-          ? buildExplanationJudgePrompt(ctx)
-          : buildCodeJudgePrompt(ctx);
 
-  const answerLabel = isTrace ? 'إجابة الطالب (تتبّع)' : isExplain ? 'شرح الطالب' : 'كود الطالب';
+  let systemPrompt: string;
+  if (isEnglish) {
+    // سياق الإنجليزية يضمّ القطعة/الموجز (passage) بدل كود البداية
+    const enCtx = {
+      subject: ctx.subject,
+      topic: ctx.topic,
+      question: problem.question,
+      passage: problem.passage,
+      referenceSolution: problem.finalAnswer,
+      commonMistakes,
+    };
+    systemPrompt = input.hint
+      ? buildEnglishHintPrompt(enCtx)
+      : isWriting
+        ? buildEnglishWritingJudgePrompt(enCtx)
+        : buildEnglishReadingJudgePrompt(enCtx);
+  } else {
+    systemPrompt = input.hint
+      ? buildCodeHintPrompt(ctx)
+      : problem.kind === 'trace_table'
+        ? buildTraceTableJudgePrompt(ctx)
+        : problem.kind === 'trace_rec'
+          ? buildTraceRecJudgePrompt(ctx)
+          : isExplain
+            ? buildExplanationJudgePrompt(ctx)
+            : buildCodeJudgePrompt(ctx);
+  }
+
+  const answerLabel = isEnglish
+    ? isWriting
+      ? 'نصّ الطالب'
+      : 'إجابة الطالب'
+    : isTrace
+      ? 'إجابة الطالب (تتبّع)'
+      : isExplain
+        ? 'شرح الطالب'
+        : 'كود الطالب';
   const userText = input.hint
     ? input.code.trim()
       ? `${answerLabel} الحالية (قد تكون ناقصة):\n\n${input.code}\n\n(يطلب تلميحاً)`

@@ -216,9 +216,11 @@ model Problem {
   difficulty      Difficulty @default(medium)
   topicId         String     @map("topic_id")
   lessonId        String?    @map("lesson_id") // مسائل تدريب الدرس (اختياري)
-  language        String? // null = رياضيات؛ "csharp" = مسألة برمجة يقيّمها AI
-  kind            String? // null = عادي؛ "trace_table" = جدول تتبّع؛ "trace_rec" = صناديق عودية
+  language        String? // null = رياضيات؛ "csharp" = برمجة؛ "english" = إنجليزي (كتابة/قراءة يقيّمها AI)
+  kind            String? // null = عادي؛ "trace_table"/"trace_rec"/"explain"؛ إنجليزي: "mcq"/"cloze"/"reading"/"writing"
   starterCode     String?    @map("starter_code") // كود بداية اختياري لمسائل البرمجة
+  choices         Json? // خيارات سؤال اختيار من متعدّد/إكمال — MCQ/cloze options ([{ text }]؛ finalAnswer = الصحيح)
+  passage         String? // نصّ القطعة لأسئلة الفهم/القراءة، أو موجز مهمّة الكتابة — reading passage / writing brief
   figure          Json? // مخطط هندسي اختياري للسؤال — optional geometry diagram spec (FigureSpec)
   allowFreeMethod Boolean    @default(true) @map("allow_free_method")
   orderIndex      Int        @default(0) @map("order_index")
