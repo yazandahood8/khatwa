@@ -24,6 +24,7 @@ import {
   useLazy,
   TopicNode,
   ExpandBusProvider,
+  useSubtreeBus,
   type Ctx,
   type ExpandBus,
   type ProgressMap,
@@ -140,7 +141,17 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
 /* ---------------- nodes ---------------- */
 
 function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
-  const { open, items, busy, toggle } = useLazy<Grade>(() => getGrades(subject.id));
+  const { open, items, busy, toggle, expand, collapse } = useLazy<Grade>(() => getGrades(subject.id));
+  const sub = useSubtreeBus();
+  const toggleSubtree = () => {
+    if (sub.subtreeExpanded) {
+      collapse();
+      sub.collapseSubtree();
+    } else {
+      expand();
+      sub.expandSubtree();
+    }
+  };
   // 7-9 فقط في الشجرة؛ المرحلة الثانوية (10-12) تُعرض حسب مسارات الوحدات.
   const middleGrades = items?.filter((g) => g.gradeNumber <= 9);
   return (
@@ -152,36 +163,94 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
         onClick={toggle}
         icon={<span className="text-lg">{subject.icon ?? '📘'}</span>}
         label={subject.nameAr}
+        onToggleSubtree={toggleSubtree}
+        subtreeExpanded={sub.subtreeExpanded}
       />
       {open &&
         (busy ? (
           <Loading />
         ) : (
-          <>
+          <ExpandBusProvider value={sub.bus}>
             {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
             <HighSchoolTracks subjectId={subject.id} ctx={ctx} />
-          </>
+          </ExpandBusProvider>
         ))}
     </div>
   );
 }
 
 function GradeNode({ grade, ctx }: { grade: Grade; ctx: Ctx }) {
-  const { open, items, busy, toggle } = useLazy<Level>(() => getLevels(grade.id));
+  const { open, items, busy, toggle, expand, collapse } = useLazy<Level>(() => getLevels(grade.id));
+  const sub = useSubtreeBus();
+  const toggleSubtree = () => {
+    if (sub.subtreeExpanded) {
+      collapse();
+      sub.collapseSubtree();
+    } else {
+      expand();
+      sub.expandSubtree();
+    }
+  };
   return (
     <div>
-      <Row depth={1} expandable expanded={open} onClick={toggle} icon="🎓" label={`صف ${grade.gradeNumber}`} />
-      {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا مستويات." /> : items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />))}
+      <Row
+        depth={1}
+        expandable
+        expanded={open}
+        onClick={toggle}
+        icon="🎓"
+        label={`صف ${grade.gradeNumber}`}
+        onToggleSubtree={toggleSubtree}
+        subtreeExpanded={sub.subtreeExpanded}
+      />
+      {open &&
+        (busy ? (
+          <Loading />
+        ) : items?.length === 0 ? (
+          <Empty text="لا مستويات." />
+        ) : (
+          <ExpandBusProvider value={sub.bus}>
+            {items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />)}
+          </ExpandBusProvider>
+        ))}
     </div>
   );
 }
 
 function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
-  const { open, items, busy, toggle } = useLazy<Topic>(() => getTopics(level.id));
+  const { open, items, busy, toggle, expand, collapse } = useLazy<Topic>(() => getTopics(level.id));
+  const sub = useSubtreeBus();
+  const toggleSubtree = () => {
+    if (sub.subtreeExpanded) {
+      collapse();
+      sub.collapseSubtree();
+    } else {
+      expand();
+      sub.expandSubtree();
+    }
+  };
   return (
     <div>
-      <Row depth={2} expandable expanded={open} onClick={toggle} icon="📗" label={level.name} />
-      {open && (busy ? <Loading /> : items?.length === 0 ? <Empty text="لا مواضيع." /> : items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />))}
+      <Row
+        depth={2}
+        expandable
+        expanded={open}
+        onClick={toggle}
+        icon="📗"
+        label={level.name}
+        onToggleSubtree={toggleSubtree}
+        subtreeExpanded={sub.subtreeExpanded}
+      />
+      {open &&
+        (busy ? (
+          <Loading />
+        ) : items?.length === 0 ? (
+          <Empty text="لا مواضيع." />
+        ) : (
+          <ExpandBusProvider value={sub.bus}>
+            {items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />)}
+          </ExpandBusProvider>
+        ))}
     </div>
   );
 }

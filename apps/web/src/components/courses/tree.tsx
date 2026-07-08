@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import {
   ChevronDown,
   ChevronLeft,
+  ChevronsUpDown,
+  ChevronsDownUp,
   Lock,
   CheckCircle2,
   CirclePlay,
@@ -60,6 +62,8 @@ export function Row({
   meta,
   locked,
   accent,
+  onToggleSubtree,
+  subtreeExpanded,
 }: {
   depth: number;
   expandable?: boolean;
@@ -70,30 +74,49 @@ export function Row({
   meta?: string;
   locked?: boolean;
   accent?: boolean;
+  /** يظهر زر توسيع/طيّ الفرع كامل عند هذه النودة. */
+  onToggleSubtree?: () => void;
+  subtreeExpanded?: boolean;
 }) {
   return (
-    <button
-      onClick={onClick}
-      style={{ paddingInlineStart: depth * 18 + 10 }}
-      className={cn(
-        'flex w-full items-center gap-2 rounded-lg py-2.5 pe-3 text-start transition-colors hover:bg-accent',
-        accent && 'text-primary',
-      )}
-    >
-      {expandable ? (
-        expanded ? (
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+    <div className="flex items-center rounded-lg transition-colors hover:bg-accent">
+      <button
+        onClick={onClick}
+        style={{ paddingInlineStart: depth * 18 + 10 }}
+        className={cn(
+          'flex min-w-0 flex-1 items-center gap-2 py-2.5 pe-1 text-start',
+          accent && 'text-primary',
+        )}
+      >
+        {expandable ? (
+          expanded ? (
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+          )
         ) : (
-          <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
-        )
-      ) : (
-        <span className="w-4 shrink-0" />
+          <span className="w-4 shrink-0" />
+        )}
+        <span className="shrink-0">{icon}</span>
+        <span className="flex-1 truncate font-medium">{label}</span>
+        {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+        {meta && <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>}
+      </button>
+      {onToggleSubtree && (
+        <button
+          onClick={onToggleSubtree}
+          aria-label={subtreeExpanded ? 'طيّ الفرع' : 'توسيع الفرع'}
+          title={subtreeExpanded ? 'طيّ الفرع' : 'توسيع الفرع'}
+          className="me-2 shrink-0 rounded-md p-1.5 text-muted-foreground/60 transition-colors hover:bg-background hover:text-foreground"
+        >
+          {subtreeExpanded ? (
+            <ChevronsDownUp className="h-4 w-4" />
+          ) : (
+            <ChevronsUpDown className="h-4 w-4" />
+          )}
+        </button>
       )}
-      <span className="shrink-0">{icon}</span>
-      <span className="flex-1 truncate font-medium">{label}</span>
-      {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-      {meta && <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>}
-    </button>
+    </div>
   );
 }
 
@@ -173,7 +196,45 @@ export function useLazy<T>(loader: () => Promise<T[]>) {
     setOpen(next);
     if (next) loadOnce();
   }
-  return { open, items, busy, toggle };
+  function expand() {
+    setOpen(true);
+    loadOnce();
+  }
+  function collapse() {
+    setOpen(false);
+  }
+  return { open, items, busy, toggle, expand, collapse };
+}
+
+/**
+ * حافلة توسيع مقصورة على فرع واحد: ترث تكّات الأب (كي يبقى "توسيع الكل" العام نافذاً)
+ * وتضيف تكّاتها الخاصة، فيتتالى أمر التوسيع/الطيّ إلى أحفاد هذه النودة فقط.
+ * كل نودة فرعية تلفّ أبناءها بـ <ExpandBusProvider value={bus}> لتمرير الحافلة.
+ */
+export function useSubtreeBus() {
+  const parent = useContext(ExpandBusContext);
+  const [local, setLocal] = useState({ e: 0, c: 0 });
+  const [expanded, setExpanded] = useState(false);
+
+  const bus: ExpandBus = {
+    allExpanded: expanded || parent.allExpanded,
+    expandTick: parent.expandTick + local.e,
+    collapseTick: parent.collapseTick + local.c,
+  };
+  const expandSubtree = () => {
+    setExpanded(true);
+    setLocal((s) => ({ ...s, e: s.e + 1 }));
+  };
+  const collapseSubtree = () => {
+    setExpanded(false);
+    setLocal((s) => ({ ...s, c: s.c + 1 }));
+  };
+  return {
+    bus,
+    subtreeExpanded: expanded || parent.allExpanded,
+    expandSubtree,
+    collapseSubtree,
+  };
 }
 
 /* ---------------- topic node (lessons + problems) ---------------- */
@@ -200,6 +261,8 @@ export function TopicNode({ topic, ctx, depth = 3 }: { topic: Topic; ctx: Ctx; d
         icon={<span className="h-4 w-1 rounded-full bg-primary" />}
         label={topic.nameAr}
         meta={topic._count ? `${topic._count.lessons} دروس` : undefined}
+        onToggleSubtree={lessons.toggle}
+        subtreeExpanded={lessons.open}
       />
       {lessons.open && (
         <>
