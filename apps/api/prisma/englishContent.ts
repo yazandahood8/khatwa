@@ -251,7 +251,7 @@ export const ENGLISH_GRADE7: EnUnit[] = [
   {
     order: 5,
     name: 'الوحدة 5: العالم من حولنا (The World Around Us)',
-    description: 'الحيوانات والطبيعة والطقس + الماضي البسيط وصيغ التفضيل والمقارنة.',
+    description: 'الحيوانات والطبيعة والطقس + الماضي البسيط والمستمر وصيغ المقارنة/التفضيل.',
     lessons: [
       {
         order: 1,
@@ -266,12 +266,14 @@ export const ENGLISH_GRADE7: EnUnit[] = [
       },
       {
         order: 2,
-        title: 'قواعد: الماضي البسيط والمقارنة (Past Simple, Comparatives)',
+        title: 'قواعد: الماضي البسيط والمستمر والمقارنة (Past Simple, Past Progressive, Comparatives)',
         skill: 'grammar',
         exercises: [
           { kind: 'mcq', question: 'Yesterday we ___ to the zoo.', choices: ['went', 'go', 'goes', 'going'], answer: 'went' },
+          { kind: 'mcq', question: 'While I ___ in the park, I saw a rabbit.', choices: ['was walking', 'walked', 'walk', 'am walking'], answer: 'was walking' },
+          { kind: 'cloze', question: 'Last week she ___ (visit) her grandmother. (past simple)', answer: 'visited' },
+          { kind: 'cloze', question: 'They ___ (play) football when it started to rain. (past progressive, two words)', answer: 'were playing' },
           { kind: 'mcq', question: 'An elephant is ___ than a dog.', choices: ['bigger', 'big', 'biggest', 'more big'], answer: 'bigger' },
-          { kind: 'cloze', question: 'Last week she ___ (visit) her grandmother.', answer: 'visited' },
           { kind: 'cloze', question: 'Mount Everest is the ___ (high) mountain in the world.', answer: 'highest' },
         ],
       },
@@ -363,7 +365,7 @@ export const ENGLISH_GRADE8: EnUnit[] = [
   {
     order: 1,
     name: 'الوحدة 1: حياتي الآن (My Life Now)',
-    description: 'الشخصية والمشاعر + زمن المضارع التام (Present Perfect) مع for/since.',
+    description: 'الشخصية والمشاعر + المضارع التام والمضارع التام المستمر (for/since).',
     lessons: [
       {
         order: 1,
@@ -378,13 +380,15 @@ export const ENGLISH_GRADE8: EnUnit[] = [
       },
       {
         order: 2,
-        title: 'قواعد: المضارع التام (Present Perfect, for/since)',
+        title: 'قواعد: المضارع التام والمضارع التام المستمر (Present Perfect & Present Perfect Progressive)',
         skill: 'grammar',
         exercises: [
           { kind: 'mcq', question: 'I ___ my homework, so I can play now.', choices: ['have finished', 'finish', 'finished', 'am finishing'], answer: 'have finished' },
           { kind: 'mcq', question: 'She ___ lived in Haifa for five years.', choices: ['has', 'have', 'is', 'was'], answer: 'has' },
+          { kind: 'mcq', question: 'She is tired because she ___ all day.', choices: ['has been working', 'works', 'worked', 'is working'], answer: 'has been working' },
           { kind: 'cloze', question: 'We have known each other ___ 2019. (for/since)', answer: 'since' },
           { kind: 'cloze', question: 'He has ___ (see) that film before. (past participle)', answer: 'seen' },
+          { kind: 'cloze', question: 'They ___ (wait) for the bus for twenty minutes. (present perfect progressive: have been + -ing)', answer: 'have been waiting' },
         ],
       },
       {
@@ -415,7 +419,7 @@ export const ENGLISH_GRADE8: EnUnit[] = [
   {
     order: 2,
     name: 'الوحدة 2: نحكي قصص (Telling Stories)',
-    description: 'الأحداث وتعابير الزمن + الماضي البسيط مقابل الماضي المستمر (while/when).',
+    description: 'الأحداث وتعابير الزمن + الماضي التام (Past Perfect) لسرد ما حدث قبل حدث آخر.',
     lessons: [
       {
         order: 1,
@@ -430,13 +434,13 @@ export const ENGLISH_GRADE8: EnUnit[] = [
       },
       {
         order: 2,
-        title: 'قواعد: الماضي البسيط والماضي المستمر (Past Simple vs Past Progressive)',
+        title: 'قواعد: الماضي التام (Past Perfect)',
         skill: 'grammar',
         exercises: [
-          { kind: 'mcq', question: 'While I ___ TV, the phone rang.', choices: ['was watching', 'watched', 'watch', 'am watching'], answer: 'was watching' },
-          { kind: 'mcq', question: 'When the teacher came in, the students ___ loudly.', choices: ['were talking', 'talked', 'talk', 'are talking'], answer: 'were talking' },
-          { kind: 'cloze', question: 'She ___ (cook) dinner when the lights went out. (past progressive)', answer: 'was cooking' },
-          { kind: 'cloze', question: 'While we were playing outside, it ___ (start) to rain. (past simple)', answer: 'started' },
+          { kind: 'mcq', question: 'By the time I got home, my mother ___ dinner.', choices: ['had cooked', 'cooks', 'is cooking', 'cook'], answer: 'had cooked' },
+          { kind: 'mcq', question: "She couldn't get into her house because she ___ her keys.", choices: ['had lost', 'loses', 'is losing', 'lose'], answer: 'had lost' },
+          { kind: 'cloze', question: 'When I arrived at the station, the train had already ___ (leave). (past participle)', answer: 'left' },
+          { kind: 'cloze', question: 'By the time the film started, we ___ (buy) our tickets. (past perfect: had + past participle, two words)', answer: 'had bought' },
         ],
       },
       {
@@ -519,7 +523,7 @@ export const ENGLISH_GRADE8: EnUnit[] = [
   {
     order: 4,
     name: 'الوحدة 4: التكنولوجيا والتواصل (Tech & Communication)',
-    description: 'التكنولوجيا ووسائل الإعلام + الشرط الأول (First Conditional) و might/may.',
+    description: 'التكنولوجيا ووسائل الإعلام + الشرط الأول والثاني (Conditionals) و might/may.',
     lessons: [
       {
         order: 1,
@@ -534,13 +538,15 @@ export const ENGLISH_GRADE8: EnUnit[] = [
       },
       {
         order: 2,
-        title: 'قواعد: الشرط الأول والأفعال الناقصة (First Conditional, might/may)',
+        title: 'قواعد: الشرط الأول والثاني و might/may (First & Second Conditional)',
         skill: 'grammar',
         exercises: [
           { kind: 'mcq', question: 'If it rains tomorrow, we ___ at home.', choices: ['will stay', 'stay', 'stayed', 'are staying'], answer: 'will stay' },
-          { kind: 'mcq', question: "If you don't hurry, you ___ the bus.", choices: ['will miss', 'miss', 'missed', 'are missing'], answer: 'will miss' },
+          { kind: 'mcq', question: 'If I ___ a million dollars, I would travel the world. (second conditional)', choices: ['had', 'have', 'will have', 'am having'], answer: 'had' },
           { kind: 'cloze', question: 'It is very cloudy. It ___ (might / rain) later. (possibility, two words)', answer: 'might rain' },
           { kind: 'cloze', question: 'If you study hard, you ___ (pass) the test. (first conditional result, two words)', answer: 'will pass' },
+          { kind: 'mcq', question: "If you don't hurry, you ___ the bus.", choices: ['will miss', 'miss', 'missed', 'are missing'], answer: 'will miss' },
+          { kind: 'cloze', question: 'If I were you, I ___ (buy) that phone. (second conditional: would + verb, two words)', answer: 'would buy' },
         ],
       },
       {
@@ -623,7 +629,7 @@ export const ENGLISH_GRADE8: EnUnit[] = [
   {
     order: 6,
     name: 'الوحدة 6: العالم والثقافة (World & Culture)',
-    description: 'الدول والمهرجانات والمهن + ترسيخ المقارنة/التفضيل و (be) able to.',
+    description: 'الدول والمهرجانات والمهن + الجمل الموصولة (who/which/where) و (be) able to.',
     lessons: [
       {
         order: 1,
@@ -638,12 +644,14 @@ export const ENGLISH_GRADE8: EnUnit[] = [
       },
       {
         order: 2,
-        title: 'قواعد: المقارنة والتفضيل و able to (Comparatives, be able to)',
+        title: 'قواعد: الجمل الموصولة و able to (Relative Clauses)',
         skill: 'grammar',
         exercises: [
-          { kind: 'mcq', question: 'Russia is ___ country in the world.', choices: ['the biggest', 'bigger', 'big', 'more big'], answer: 'the biggest' },
+          { kind: 'mcq', question: 'A doctor is a person ___ helps sick people.', choices: ['who', 'which', 'where', 'when'], answer: 'who' },
+          { kind: 'mcq', question: 'A museum is a place ___ you can see old objects.', choices: ['where', 'who', 'which', 'when'], answer: 'where' },
+          { kind: 'cloze', question: 'The man ___ lives next door is a doctor. (relative pronoun for people)', answer: 'who' },
+          { kind: 'cloze', question: 'Japan is a country ___ is famous for its technology. (relative pronoun for things)', answer: 'which' },
           { kind: 'mcq', question: 'This book is ___ than that one.', choices: ['more interesting', 'interesting', 'most interesting', 'interestinger'], answer: 'more interesting' },
-          { kind: 'cloze', question: 'A cheetah is ___ (fast) than a lion. (comparative)', answer: 'faster' },
           { kind: 'cloze', question: 'After a lot of practice, she was ___ to swim across the lake. (be ___ to, one word)', answer: 'able' },
         ],
       },
