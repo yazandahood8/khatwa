@@ -20,6 +20,7 @@ export default function QuestionnairePage() {
   const router = useRouter();
   const id = params.id;
   const number = search.get('n');
+  const titleParam = search.get('t'); // عنوان الموديول/النموذج (إنجليزي: "Module A …")
 
   const [topics, setTopics] = useState<Topic[] | null>(null);
   const [plan, setPlan] = useState('free');
@@ -38,7 +39,7 @@ export default function QuestionnairePage() {
   }, [id]);
 
   const ctx: Ctx = { plan, progress };
-  const title = number ? `نموذج ${number}` : 'الدورة';
+  const title = titleParam || (number ? `نموذج ${number}` : 'الدورة');
 
   return (
     <AppShell nav={studentNav} title={title}>

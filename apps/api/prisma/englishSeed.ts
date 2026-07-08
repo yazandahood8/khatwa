@@ -9,6 +9,7 @@
  */
 import type { PrismaClient, Prisma } from '@prisma/client';
 import type { EnExercise, EnSkill, EnUnit } from './englishContent';
+import type { EnModule } from './englishHighSchool';
 
 // صفوف التعليم الإعدادي — مستوى موحّد (مثل الرياضيات).
 const ENGLISH_GRADES = [7, 8, 9];
@@ -128,4 +129,83 @@ export async function seedEnglishGrade(
     }
   }
   console.log(`  ↳ English grade ${gradeNumber} content: ${topics} units, ${lessons} lessons, ${problems} exercises`);
+}
+
+/**
+ * يزرع محتوى الثانوي (مسار وحدات): موديولات (Questionnaires) → مواضيع → دروس → تمارين.
+ * يعكس نمط الرياضيات (seedUnitTracks + seedQuestionnaireContent). المسار (Level) مُنشأ مسبقاً من seedEnglish.
+ * idempotent: يحدّث/ينشئ الموديول، ويتخطّى الموضوع الذي له دروس مسبقاً.
+ */
+export async function seedEnglishModules(
+  prisma: PrismaClient,
+  subjectId: string,
+  unitLevel: number,
+  modules: EnModule[],
+) {
+  const level = await prisma.level.findFirst({ where: { subjectId, unitLevel } });
+  if (!level) {
+    console.log(`  ↳ ⚠ English ${unitLevel}-unit track غير موجود — شغّل seedEnglish أولاً`);
+    return;
+  }
+
+  let mods = 0;
+  let topics = 0;
+  let lessons = 0;
+  let problems = 0;
+  for (const [mi, m] of modules.entries()) {
+    const q = await prisma.questionnaire.upsert({
+      where: { levelId_number: { levelId: level.id, number: m.number } },
+      update: { title: m.title, orderIndex: mi },
+      create: { levelId: level.id, number: m.number, title: m.title, orderIndex: mi },
+    });
+    mods++;
+
+    for (const t of m.topics) {
+      let topic = await prisma.topic.findFirst({ where: { questionnaireId: q.id, nameAr: t.name } });
+      if (!topic) {
+        topic = await prisma.topic.create({
+          data: { questionnaireId: q.id, nameAr: t.name, orderIndex: t.order },
+        });
+      }
+      topics++;
+      if ((await prisma.lesson.count({ where: { topicId: topic.id } })) > 0) continue; // idempotent
+
+      let order = 0; // ترتيب متسلسل داخل الموضوع
+      for (const l of t.lessons) {
+        const lesson = await prisma.lesson.create({
+          data: {
+            topicId: topic.id,
+            title: l.title,
+            description: SKILL_LABEL[l.skill],
+            orderIndex: l.order,
+            isPublished: true,
+          },
+        });
+        lessons++;
+
+        for (const ex of l.exercises) {
+          const passage = ex.passage ?? (l.skill === 'reading' ? l.passage ?? null : null);
+          await prisma.problem.create({
+            data: {
+              topicId: topic.id,
+              lessonId: lesson.id,
+              question: ex.question,
+              finalAnswer: ex.answer,
+              language: 'english',
+              kind: ex.kind,
+              choices: (ex.choices ? ex.choices.map((text) => ({ text })) : undefined) as
+                | Prisma.InputJsonValue
+                | undefined,
+              passage,
+              difficulty: difficultyFor(ex.kind),
+              orderIndex: order++,
+              allowFreeMethod: true,
+            },
+          });
+          problems++;
+        }
+      }
+    }
+  }
+  console.log(`  ↳ English ${unitLevel}-unit: ${mods} modules, ${topics} topics, ${lessons} lessons, ${problems} exercises`);
 }

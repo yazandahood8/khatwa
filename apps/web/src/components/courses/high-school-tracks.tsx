@@ -138,7 +138,11 @@ function QuestionnaireCard({ q }: { q: Questionnaire }) {
   return (
     <Card
       interactive
-      onClick={() => router.push(`/courses/questionnaire/${q.id}?n=${q.number}`)}
+      onClick={() =>
+        router.push(
+          `/courses/questionnaire/${q.id}?n=${q.number}${q.title ? `&t=${encodeURIComponent(q.title)}` : ''}`,
+        )
+      }
       className="flex flex-col p-5"
     >
       <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 font-display text-lg font-bold italic text-primary">
