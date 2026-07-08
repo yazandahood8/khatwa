@@ -8,7 +8,7 @@
  * يُستدعى من seed.ts مع تمرير عميل Prisma (لأن seed.ts يشغّل main() عند الاستيراد).
  */
 import type { PrismaClient, Prisma } from '@prisma/client';
-import { ENGLISH_GRADE7, type EnExercise, type EnSkill } from './englishContent';
+import type { EnExercise, EnSkill, EnUnit } from './englishContent';
 
 // صفوف التعليم الإعدادي — مستوى موحّد (مثل الرياضيات).
 const ENGLISH_GRADES = [7, 8, 9];
@@ -57,16 +57,21 @@ const difficultyFor = (kind: EnExercise['kind']): 'easy' | 'medium' =>
   kind === 'reading' || kind === 'writing' ? 'medium' : 'easy';
 
 /**
- * يزرع محتوى الصف السابع (وحدات موضوعية → دروس → تمارين) من englishContent.
+ * يزرع محتوى صفّ (7/8/9) كوحدات موضوعية → دروس → تمارين من englishContent.
  * idempotent: يتخطّى الموضوع الذي له دروس مسبقاً (مثل بذور الرياضيات).
  * كل تمرين يصبح Problem بـ language='english' والنوع المناسب (mcq/cloze/reading/writing).
  */
-export async function seedEnglishContent(prisma: PrismaClient, subjectId: string) {
+export async function seedEnglishGrade(
+  prisma: PrismaClient,
+  subjectId: string,
+  gradeNumber: number,
+  units: EnUnit[],
+) {
   const grade = await prisma.grade.findUnique({
-    where: { subjectId_gradeNumber: { subjectId, gradeNumber: 7 } },
+    where: { subjectId_gradeNumber: { subjectId, gradeNumber } },
   });
   if (!grade) {
-    console.log('  ↳ ⚠ English grade 7 غير موجود — شغّل seedEnglish أولاً');
+    console.log(`  ↳ ⚠ English grade ${gradeNumber} غير موجود — شغّل seedEnglish أولاً`);
     return;
   }
   let level = await prisma.level.findFirst({ where: { gradeId: grade.id, name: 'موحّد' } });
@@ -75,7 +80,7 @@ export async function seedEnglishContent(prisma: PrismaClient, subjectId: string
   let topics = 0;
   let lessons = 0;
   let problems = 0;
-  for (const unit of ENGLISH_GRADE7) {
+  for (const unit of units) {
     let topic = await prisma.topic.findFirst({ where: { levelId: level.id, nameAr: unit.name } });
     if (!topic) {
       topic = await prisma.topic.create({
@@ -122,5 +127,5 @@ export async function seedEnglishContent(prisma: PrismaClient, subjectId: string
       }
     }
   }
-  console.log(`  ↳ English grade 7 content: ${topics} units, ${lessons} lessons, ${problems} exercises`);
+  console.log(`  ↳ English grade ${gradeNumber} content: ${topics} units, ${lessons} lessons, ${problems} exercises`);
 }

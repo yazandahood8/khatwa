@@ -18,7 +18,8 @@ import { CS_PLAN } from './csLessonPlan';
 import { CS_PROBLEMS, CS_FIGURES, CS_EXPLAIN } from './csGenerators';
 import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
 import { QUESTIONNAIRE_PROBLEMS } from './questionnaireProblems';
-import { seedEnglish, seedEnglishContent } from './englishSeed';
+import { seedEnglish, seedEnglishGrade } from './englishSeed';
+import { ENGLISH_GRADE7, ENGLISH_GRADE8 } from './englishContent';
 
 const prisma = new PrismaClient();
 
@@ -512,10 +513,11 @@ async function main() {
   const cs = await ensureSubject('علوم الحاسوب', '💻', 1);
   await seedCs(cs.id);
 
-  // ---------- إنجليزي (هيكل + محتوى الصف السابع) ----------
+  // ---------- إنجليزي (هيكل + محتوى الصفوف 7-8) ----------
   const english = await ensureSubject('إنجليزي', '🔤', 2);
   await seedEnglish(prisma, english.id);
-  await seedEnglishContent(prisma, english.id); // وحدات الصف السابع
+  await seedEnglishGrade(prisma, english.id, 7, ENGLISH_GRADE7);
+  await seedEnglishGrade(prisma, english.id, 8, ENGLISH_GRADE8);
 
   const [topics, lessons, problems, lessonQ, codeQ] = await Promise.all([
     prisma.topic.count(),

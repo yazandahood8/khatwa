@@ -352,3 +352,323 @@ export const ENGLISH_GRADE7: EnUnit[] = [
     ],
   },
 ];
+
+// ================================================================
+//  الصف الثامن (Grade 8) — CEFR A2 (mid), يبني على الصف السابع.
+//  قواعد جديدة: المضارع التام، الماضي المستمر، الشرط الأول، المبني للمجهول،
+//  أفعال ناقصة موسّعة (might/may/have to/able to)، ترسيخ المقارنة/التفضيل.
+// ================================================================
+export const ENGLISH_GRADE8: EnUnit[] = [
+  // ============================================================
+  {
+    order: 1,
+    name: 'الوحدة 1: حياتي الآن (My Life Now)',
+    description: 'الشخصية والمشاعر + زمن المضارع التام (Present Perfect) مع for/since.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: الشخصية والمشاعر',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'Someone who is not afraid is ___.', choices: ['brave', 'shy', 'lazy', 'rude'], answer: 'brave' },
+          { kind: 'mcq', question: 'When you feel happy about a trip tomorrow, you feel ___.', choices: ['excited', 'bored', 'tired', 'angry'], answer: 'excited' },
+          { kind: 'cloze', question: "The opposite of 'happy' is ___.", answer: 'sad' },
+          { kind: 'cloze', question: 'He never shouts and is always relaxed. He is a very ___ person. (relaxed, starts with c)', answer: 'calm' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: المضارع التام (Present Perfect, for/since)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'I ___ my homework, so I can play now.', choices: ['have finished', 'finish', 'finished', 'am finishing'], answer: 'have finished' },
+          { kind: 'mcq', question: 'She ___ lived in Haifa for five years.', choices: ['has', 'have', 'is', 'was'], answer: 'has' },
+          { kind: 'cloze', question: 'We have known each other ___ 2019. (for/since)', answer: 'since' },
+          { kind: 'cloze', question: 'He has ___ (see) that film before. (past participle)', answer: 'seen' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: حياة مايا حتى الآن',
+        skill: 'reading',
+        passage:
+          'Maya is fifteen years old and she lives in Tel Aviv. She has had an interesting life. She was born in Canada, but her family moved to Israel when she was six. Maya has learned three languages: English, Hebrew and French. She has played the violin since she was eight, and last year she won a music prize. She has never been to Europe, but she really wants to visit Italy one day. In the future, she hopes to become a music teacher.',
+        exercises: [
+          { kind: 'mcq', question: 'Where was Maya born?', choices: ['Canada', 'Israel', 'Italy', 'France'], answer: 'Canada' },
+          { kind: 'mcq', question: 'How long has Maya played the violin?', choices: ['since she was eight', 'for two years', 'since last year', 'for five years'], answer: 'since she was eight' },
+          { kind: 'reading', question: 'How many languages has Maya learned? Name them.', answer: 'She has learned three languages: English, Hebrew and French.' },
+          { kind: 'reading', question: 'What does Maya want to do in the future?', answer: 'She hopes to become a music teacher.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: ماذا فعلت هذا العام',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short paragraph (about 50 words) about what you have done this year. Use the present perfect (for example: I have learned…, I have visited…). Mention at least three things.', answer: 'Uses present perfect (have/has + past participle) correctly for at least three experiences this year. About 50 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about a hobby you have done for a long time. How long have you done it? Use for/since.', answer: 'Describes a long-term hobby using present perfect with for/since correctly. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 2,
+    name: 'الوحدة 2: نحكي قصص (Telling Stories)',
+    description: 'الأحداث وتعابير الزمن + الماضي البسيط مقابل الماضي المستمر (while/when).',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: القصص والأحداث',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A story that is not true and has magic is a ___.', choices: ['fairy tale', 'newspaper', 'recipe', 'timetable'], answer: 'fairy tale' },
+          { kind: 'mcq', question: 'The person who writes a book is the ___.', choices: ['author', 'actor', 'reader', 'painter'], answer: 'author' },
+          { kind: 'cloze', question: 'The story happened a long time ___. (in the past)', answer: 'ago' },
+          { kind: 'cloze', question: '___ upon a time, there was a little girl. (story opening, starts with O)', answer: 'Once' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: الماضي البسيط والماضي المستمر (Past Simple vs Past Progressive)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'While I ___ TV, the phone rang.', choices: ['was watching', 'watched', 'watch', 'am watching'], answer: 'was watching' },
+          { kind: 'mcq', question: 'When the teacher came in, the students ___ loudly.', choices: ['were talking', 'talked', 'talk', 'are talking'], answer: 'were talking' },
+          { kind: 'cloze', question: 'She ___ (cook) dinner when the lights went out. (past progressive)', answer: 'was cooking' },
+          { kind: 'cloze', question: 'While we were playing outside, it ___ (start) to rain. (past simple)', answer: 'started' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: قصة قصيرة',
+        skill: 'reading',
+        passage:
+          'It was a dark and rainy night. Tom was reading a book in his room when he heard a strange noise. He got up and looked out of the window. While he was looking, he saw a small cat under a tree. The cat was crying because it was cold and wet. Tom ran outside and picked up the cat. He gave it some warm milk and a soft blanket. From that night, the cat lived happily with Tom.',
+        exercises: [
+          { kind: 'mcq', question: 'What was Tom doing when he heard the noise?', choices: ['reading a book', 'sleeping', 'cooking', 'playing'], answer: 'reading a book' },
+          { kind: 'mcq', question: 'Why was the cat crying?', choices: ['it was cold and wet', 'it was hungry', 'it was lost', 'it was afraid of Tom'], answer: 'it was cold and wet' },
+          { kind: 'reading', question: 'What did Tom give the cat?', answer: 'He gave it some warm milk and a soft blanket.' },
+          { kind: 'reading', question: 'What did Tom see while he was looking out of the window?', answer: 'He saw a small cat under a tree.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: احكِ حدثاً من الماضي',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short story (about 50 words) about something that happened to you. Use the past simple and past progressive (for example: While I was walking, I saw…).', answer: 'Narrates a past event using both past simple and past progressive correctly. About 50 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about what you were doing yesterday at 6 p.m. Use the past progressive.', answer: 'Describes an action in progress yesterday at 6 p.m. using past progressive (was/were + -ing). 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 3,
+    name: 'الوحدة 3: ابقَ بصحة جيدة (Stay Healthy)',
+    description: 'الصحة والجسم + المضارع التام (ever/never/already/yet) و have to/must.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: الصحة والجسم',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'When you are ill, you go to see a ___.', choices: ['doctor', 'teacher', 'driver', 'waiter'], answer: 'doctor' },
+          { kind: 'mcq', question: 'You use your ___ to smell things.', choices: ['nose', 'ear', 'hand', 'knee'], answer: 'nose' },
+          { kind: 'cloze', question: 'Eating fruit and vegetables is good for your ___. (opposite of illness)', answer: 'health' },
+          { kind: 'cloze', question: 'When you are ill and your body is very hot, you have a ___. (high temperature)', answer: 'fever' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: المضارع التام والأفعال الناقصة (ever/never/already/yet, must)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'Have you ___ eaten sushi?', choices: ['ever', 'yet', 'since', 'for'], answer: 'ever' },
+          { kind: 'mcq', question: "You ___ wear a helmet when you ride a bike. It's important for safety.", choices: ['must', 'can', 'might', 'would'], answer: 'must' },
+          { kind: 'cloze', question: 'I have ___ finished my exercise. (already/yet — affirmative)', answer: 'already' },
+          { kind: 'cloze', question: "She hasn't taken her medicine ___. (already/yet — negative)", answer: 'yet' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: مقال عن الصحة',
+        skill: 'reading',
+        passage:
+          'Do you want to stay healthy? Here are some simple tips. First, you must eat a good breakfast every morning. Never skip it! Second, you should drink a lot of water — about eight glasses a day. Third, you have to sleep at least eight hours every night, because sleep helps your body and your brain. Finally, try to exercise for thirty minutes a day. You can walk, run or play a sport. If you follow these tips, you will feel better and have more energy.',
+        exercises: [
+          { kind: 'mcq', question: 'How many glasses of water should you drink a day?', choices: ['about eight', 'about two', 'about twelve', 'about five'], answer: 'about eight' },
+          { kind: 'mcq', question: 'Why is sleep important?', choices: ['it helps your body and brain', 'it makes you hungry', 'it wastes time', 'it makes you tired'], answer: 'it helps your body and brain' },
+          { kind: 'reading', question: 'How long should you exercise every day?', answer: 'You should exercise for thirty minutes a day.' },
+          { kind: 'reading', question: 'What is the first tip in the article?', answer: 'The first tip is to eat a good breakfast every morning (and never skip it).' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: فقرة نصائح',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Your friend wants to be healthier. Write a short paragraph (about 50 words) giving three pieces of advice. Use should, must or have to.', answer: 'Gives three health tips using should/must/have to correctly. About 50 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about your eating habits. What healthy or unhealthy food do you eat?', answer: 'Describes eating habits with correct present simple; mentions healthy/unhealthy foods. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 4,
+    name: 'الوحدة 4: التكنولوجيا والتواصل (Tech & Communication)',
+    description: 'التكنولوجيا ووسائل الإعلام + الشرط الأول (First Conditional) و might/may.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: التكنولوجيا',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'You use a ___ to search for information on the internet.', choices: ['search engine', 'fridge', 'hammer', 'blanket'], answer: 'search engine' },
+          { kind: 'mcq', question: 'A short message you send from your phone is a ___.', choices: ['text message', 'letter', 'poster', 'newspaper'], answer: 'text message' },
+          { kind: 'cloze', question: 'I need to ___ my phone; the battery is empty. (put electricity in it)', answer: 'charge' },
+          { kind: 'cloze', question: 'Please ___ (send) me an email when you arrive.', answer: 'send' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: الشرط الأول والأفعال الناقصة (First Conditional, might/may)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'If it rains tomorrow, we ___ at home.', choices: ['will stay', 'stay', 'stayed', 'are staying'], answer: 'will stay' },
+          { kind: 'mcq', question: "If you don't hurry, you ___ the bus.", choices: ['will miss', 'miss', 'missed', 'are missing'], answer: 'will miss' },
+          { kind: 'cloze', question: 'It is very cloudy. It ___ (might / rain) later. (possibility, two words)', answer: 'might rain' },
+          { kind: 'cloze', question: 'If you study hard, you ___ (pass) the test. (first conditional result, two words)', answer: 'will pass' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: رأي حول الشاشات',
+        skill: 'reading',
+        passage:
+          'These days, most young people spend many hours in front of a screen. Some people think this is a big problem. They say that too much screen time is bad for our eyes and our sleep. However, other people believe that phones and computers are very useful. If we use them well, they can help us learn new things and talk to friends far away. In my opinion, technology is neither good nor bad. If we use it carefully, it will help us. But if we use it too much, it may cause problems.',
+        exercises: [
+          { kind: 'mcq', question: 'What do some people say is bad about screen time?', choices: ['it is bad for our eyes and sleep', 'it is too expensive', 'it is boring', 'it is too slow'], answer: 'it is bad for our eyes and sleep' },
+          { kind: 'mcq', question: 'What can technology help us do, according to the text?', choices: ['learn new things and talk to friends', 'cook dinner', 'clean the house', 'drive a car'], answer: 'learn new things and talk to friends' },
+          { kind: 'reading', question: "What is the writer's opinion about technology?", answer: 'The writer thinks technology is neither good nor bad; it helps us if we use it carefully but may cause problems if we use it too much.' },
+          { kind: 'reading', question: 'What may happen if we use technology too much?', answer: 'It may cause problems.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: رأي',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short opinion paragraph (about 50 words): Is technology good or bad for students? Give two reasons for your opinion.', answer: 'States a clear opinion and gives two reasons; uses linking words and present simple/modals; about 50 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences: What will you do this weekend if the weather is good? Use the first conditional.', answer: 'Uses first conditional (If + present, will + verb) correctly about weekend plans. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 5,
+    name: 'الوحدة 5: كوكبنا (Our Planet)',
+    description: 'البيئة والطبيعة وإعادة التدوير + المبني للمجهول (Passive: present/past simple).',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: البيئة',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'We should put plastic bottles in the ___ bin.', choices: ['recycling', 'sleeping', 'cooking', 'shopping'], answer: 'recycling' },
+          { kind: 'mcq', question: 'Cutting down too many trees harms the ___.', choices: ['environment', 'homework', 'breakfast', 'timetable'], answer: 'environment' },
+          { kind: 'cloze', question: 'We must save water and not ___ it. (opposite of save, starts with w)', answer: 'waste' },
+          { kind: 'cloze', question: 'The air in big cities is often dirty because of ___. (dirty air, starts with p)', answer: 'pollution' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: المبني للمجهول (Passive Voice)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'Paper ___ from wood.', choices: ['is made', 'makes', 'made', 'is making'], answer: 'is made' },
+          { kind: 'mcq', question: 'The classroom ___ every morning by the cleaner.', choices: ['is cleaned', 'cleans', 'cleaning', 'clean'], answer: 'is cleaned' },
+          { kind: 'cloze', question: 'Millions of trees ___ (cut) down every year. (present simple passive, two words)', answer: 'are cut' },
+          { kind: 'cloze', question: 'The telephone ___ (invent) by Alexander Graham Bell. (past simple passive, two words)', answer: 'was invented' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: كيف يُعاد تدوير الورق',
+        skill: 'reading',
+        passage:
+          'Have you ever wondered what happens to old paper? Every year, millions of tonnes of paper are used around the world. Luckily, paper can be recycled. First, the old paper is collected from homes and schools. Then it is taken to a factory. At the factory, the paper is mixed with water to make a soft grey material. After that, the material is cleaned and pressed into thin sheets. Finally, the sheets are dried and new paper is made. Recycling paper saves trees and energy, so it is very good for our planet.',
+        exercises: [
+          { kind: 'mcq', question: 'Where is the old paper taken?', choices: ['to a factory', 'to a school', 'to the sea', 'to a shop'], answer: 'to a factory' },
+          { kind: 'mcq', question: 'Why is recycling paper good?', choices: ['it saves trees and energy', 'it makes paper dirty', 'it costs a lot of money', 'it uses more water'], answer: 'it saves trees and energy' },
+          { kind: 'reading', question: 'What is the paper mixed with at the factory?', answer: 'The paper is mixed with water.' },
+          { kind: 'reading', question: 'Where is the old paper collected from?', answer: 'It is collected from homes and schools.' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: صف عملية أو نصيحة بيئية',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Write a short paragraph (about 50 words) about how you can help the environment. Give three ideas (for example: Water should be saved…). Try to use the passive voice.', answer: 'Gives three ways to help the environment; attempts passive voice correctly; about 50 words.' },
+          { kind: 'writing', question: 'Describe how something is made or done in 3–4 sentences (for example, how bread is made). Use the passive voice.', answer: 'Describes a simple process using present simple passive (is/are + past participle) correctly. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+  // ============================================================
+  {
+    order: 6,
+    name: 'الوحدة 6: العالم والثقافة (World & Culture)',
+    description: 'الدول والمهرجانات والمهن + ترسيخ المقارنة/التفضيل و (be) able to.',
+    lessons: [
+      {
+        order: 1,
+        title: 'مفردات: الدول والمهن',
+        skill: 'vocab',
+        exercises: [
+          { kind: 'mcq', question: 'A big celebration with music and food is a ___.', choices: ['festival', 'hospital', 'factory', 'library'], answer: 'festival' },
+          { kind: 'mcq', question: 'A person who cooks food in a restaurant is a ___.', choices: ['chef', 'pilot', 'farmer', 'dentist'], answer: 'chef' },
+          { kind: 'cloze', question: 'People who live in France speak ___. (the language of France)', answer: 'French' },
+          { kind: 'cloze', question: 'The capital ___ of Japan is Tokyo. (a large town)', answer: 'city' },
+        ],
+      },
+      {
+        order: 2,
+        title: 'قواعد: المقارنة والتفضيل و able to (Comparatives, be able to)',
+        skill: 'grammar',
+        exercises: [
+          { kind: 'mcq', question: 'Russia is ___ country in the world.', choices: ['the biggest', 'bigger', 'big', 'more big'], answer: 'the biggest' },
+          { kind: 'mcq', question: 'This book is ___ than that one.', choices: ['more interesting', 'interesting', 'most interesting', 'interestinger'], answer: 'more interesting' },
+          { kind: 'cloze', question: 'A cheetah is ___ (fast) than a lion. (comparative)', answer: 'faster' },
+          { kind: 'cloze', question: 'After a lot of practice, she was ___ to swim across the lake. (be ___ to, one word)', answer: 'able' },
+        ],
+      },
+      {
+        order: 3,
+        title: 'فهم مقروء: المدينة مقابل القرية',
+        skill: 'reading',
+        passage:
+          'Dan lives in a big city, and his cousin Noa lives in a small village. Life in the city is busier and noisier than life in the village. In the city, there are more shops, cinemas and restaurants, and the buses run all night. However, the village is quieter and cleaner. The air is fresher, and people are friendlier because everyone knows each other. Dan thinks the city is more exciting, but Noa believes the village is the best place to live. They are both happy in their own homes.',
+        exercises: [
+          { kind: 'mcq', question: 'How is life in the city compared to the village?', choices: ['busier and noisier', 'quieter and cleaner', 'smaller and slower', 'colder and darker'], answer: 'busier and noisier' },
+          { kind: 'mcq', question: 'Why are people in the village friendlier?', choices: ['everyone knows each other', 'there are more shops', 'the buses run all night', 'it is very big'], answer: 'everyone knows each other' },
+          { kind: 'reading', question: 'What does Dan think about the city?', answer: 'Dan thinks the city is more exciting.' },
+          { kind: 'reading', question: 'Name two things you can find in the city but not in the village.', answer: 'In the city there are more shops, cinemas and restaurants, and buses that run all night (any two).' },
+        ],
+      },
+      {
+        order: 4,
+        title: 'كتابة: قارن مكانين أو صف مهرجاناً',
+        skill: 'writing',
+        exercises: [
+          { kind: 'writing', question: 'Compare two places you know (for example, two cities, or your town and another) in a short paragraph (about 50 words). Use comparatives and superlatives.', answer: 'Compares two places using comparative and superlative forms correctly; about 50 words.' },
+          { kind: 'writing', question: 'Write 3–4 sentences about a festival or holiday you like. What do people do? What do they eat?', answer: 'Describes a festival/holiday with present simple; mentions activities and food. 3–4 sentences.' },
+        ],
+      },
+    ],
+  },
+];
