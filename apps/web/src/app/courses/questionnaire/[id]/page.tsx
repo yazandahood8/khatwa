@@ -13,6 +13,7 @@ import { getCurrentSubscription } from '@/lib/subscription-api';
 import { AppShell } from '@/components/app-shell';
 import { studentNav } from '@/components/nav-items';
 import { TopicNode, Loading, Empty, type Ctx, type ProgressMap } from '@/components/courses/tree';
+import { ModuleNotice } from '@/components/courses/module-notice';
 
 export default function QuestionnairePage() {
   const params = useParams<{ id: string }>();
@@ -51,6 +52,7 @@ export default function QuestionnairePage() {
           <ArrowRight className="h-4 w-4" /> رجوع للدروس
         </button>
         <h1 className="font-display text-2xl font-bold">{title}</h1>
+        <ModuleNotice number={number ? Number(number) : null} />
         <div className="rounded-2xl border border-border bg-card p-2 shadow-card">
           {topics === null ? (
             <Loading />
