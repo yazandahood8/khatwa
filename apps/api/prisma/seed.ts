@@ -11,9 +11,12 @@
  * Idempotent: المواضيع upsert حسب (المستوى + الاسم)؛ الدروس/المسائل تُتخطّى إذا وُجدت.
  * تشغيل: npm run seed --workspace=apps/api
  */
+import { readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { PrismaClient, Difficulty, type Prisma } from '@prisma/client';
 import { LESSON_PLAN, type TopicPlan } from './lessonPlan';
-import { LESSON_PROBLEMS } from './generators';
+import { LESSON_PROBLEMS, type GenStep } from './generators';
+import { hintKey } from './hintKey';
 import { CS_PLAN } from './csLessonPlan';
 import { CS_PROBLEMS, CS_FIGURES, CS_EXPLAIN } from './csGenerators';
 import { QUESTIONNAIRE_CONTENT } from './questionnaireContent';
@@ -23,6 +26,25 @@ import { ENGLISH_GRADE7, ENGLISH_GRADE8, ENGLISH_GRADE9 } from './englishContent
 import { ENGLISH_3UNIT, ENGLISH_4UNIT, ENGLISH_5UNIT } from './englishHighSchool';
 
 const prisma = new PrismaClient();
+
+// تلميحات البداية المولّدة — generated first-step hints (source of truth for empty hints).
+const GENERATED_HINTS: Record<string, string> = (() => {
+  const p = join(__dirname, 'generatedHints.json');
+  return existsSync(p) ? (JSON.parse(readFileSync(p, 'utf8')) as Record<string, string>) : {};
+})();
+
+/**
+ * يبني خطوات الإنشاء ويعبّئ التلميحات الفارغة من الملف المولّد — fills empty step hints
+ * from GENERATED_HINTS by stable key so seeded rows carry real hints.
+ */
+function stepCreate(question: string, steps: GenStep[]) {
+  return steps.map((s, i) => ({
+    stepNumber: i + 1,
+    description: s.description,
+    expression: s.expression,
+    hint: s.hint.trim() || GENERATED_HINTS[hintKey(question, s.description, s.expression)] || s.hint,
+  }));
+}
 
 // ============================================================
 //  مسائل تجريبية كاملة — fully-worked demo problems
@@ -191,7 +213,7 @@ async function ensureLessons(gradeNum: number, topicName: string, topicId: strin
                 name: p.method.name,
                 isRecommended: true,
                 isApproved: true,
-                steps: { create: p.method.steps.map((s, i) => ({ stepNumber: i + 1, ...s })) },
+                steps: { create: stepCreate(p.question, p.method.steps) },
               },
             },
             commonMistakes: { create: p.commonMistakes },
@@ -341,7 +363,7 @@ async function seedQuestionnaireContent(subjectId: string) {
                     name: p.method.name,
                     isRecommended: true,
                     isApproved: true,
-                    steps: { create: p.method.steps.map((s, i) => ({ stepNumber: i + 1, ...s })) },
+                    steps: { create: stepCreate(p.question, p.method.steps) },
                   },
                 },
                 commonMistakes: { create: p.commonMistakes },
@@ -463,7 +485,7 @@ async function seedProblems(topicId: string, problems: ProblemSeed[]) {
             name: m.name,
             isRecommended: m.isRecommended,
             isApproved: true,
-            steps: { create: m.steps.map((s, i) => ({ stepNumber: i + 1, ...s })) },
+            steps: { create: stepCreate(p.question, m.steps) },
           })),
         },
         commonMistakes: { create: p.commonMistakes },

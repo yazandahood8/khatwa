@@ -15,7 +15,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
-    "db:backfill-figures": "tsx prisma/backfillFigures.ts"
+    "db:backfill-figures": "tsx prisma/backfillFigures.ts",
+    "hints:generate": "tsx prisma/generateHints.ts",
+    "hints:backfill": "tsx prisma/backfillHints.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
