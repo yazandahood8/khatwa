@@ -24,6 +24,7 @@ export function primeVoices(): void {
 /** ينظّف النص للقراءة — strip tags, emojis, and markdown (الحركات تبقى للنطق). */
 function stripForSpeech(text: string): string {
   return text
+    .replace(/\[OPTIONS\][^\n]*/g, '') // سطر الخيارات السريعة — لا يُقرأ بصوت
     .replace(/\[(SOLVED|NEW_METHOD|CORRECT|PARTIAL|INCORRECT)\]/g, '')
     .replace(/\p{Extended_Pictographic}/gu, '') // إزالة الإيموجي
     .replace(/[*_`#>]/g, '')

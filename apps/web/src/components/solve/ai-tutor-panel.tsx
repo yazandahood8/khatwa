@@ -19,6 +19,17 @@ interface Props {
   onSolved?: () => void;
 }
 
+/** يستخرج الخيارات السريعة من وسم [OPTIONS] — parses quick-choice options from the reply. */
+function parseOptions(content: string): string[] {
+  const m = content.match(/\[OPTIONS\]([^\n]*)/);
+  if (!m) return [];
+  return m[1]
+    .split('|')
+    .map((s) => s.replace(/[ؐ-ًؚ-ٰٟـ]/g, '').trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
 export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPanel(
   { problemId, getState, onSolved },
   ref,
@@ -156,6 +167,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
           // أزل الوسوم والحركات من العرض — strip tags + harakat (kept only for speech)
           const text = m.content
             .replace(/\s*\[(NEW_METHOD|SOLVED)\]\s*/g, '')
+            .replace(/\s*\[OPTIONS\][^\n]*/g, '')
             .replace(/[ؐ-ًؚ-ٰٟـ]/g, '');
           const isAssistant = m.role === 'assistant';
           const isEmptyStreaming = isAssistant && !text && busy && i === messages.length - 1;
@@ -176,6 +188,27 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
             </div>
           );
         })}
+        {/* خيارات سريعة — clickable quick-choice pills for the last tutor turn */}
+        {(() => {
+          const last = messages[messages.length - 1];
+          if (busy || !last || last.role !== 'assistant') return null;
+          const options = parseOptions(last.content);
+          if (!options.length) return null;
+          return (
+            <div className="flex flex-wrap justify-start gap-2 pt-1 animate-fade-slide-up">
+              {options.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => void send(opt)}
+                  disabled={busy || !configured}
+                  className="rounded-full border border-primary/40 bg-white px-3.5 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
         {error && (
           <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
         )}
