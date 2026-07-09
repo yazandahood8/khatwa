@@ -45,6 +45,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   const mutedRef = useRef(false);
   const speakerRef = useRef<Speaker | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const starterHintIndexRef = useRef(0); // فهرس تلميح البداية المتدرّج (يُصفَّر مع كل مسألة)
 
   useEffect(() => {
     primeVoices();
@@ -60,6 +61,11 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     return () => stopSpeaking();
   }, []);
 
+  // مسألة جديدة — ابدأ تلميحات البداية من الأول
+  useEffect(() => {
+    starterHintIndexRef.current = 0;
+  }, [problemId]);
+
   function toggleMute() {
     setMuted((prev) => {
       const next = !prev;
@@ -74,7 +80,12 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  async function send(userMessage: string, image?: string, mediaType?: 'image/png' | 'image/jpeg') {
+  async function send(
+    userMessage: string,
+    image?: string,
+    mediaType?: 'image/png' | 'image/jpeg',
+    starterHintIndex?: number,
+  ) {
     if (busy) return;
     setError(null);
     const history = messages.filter((m) => m.content.trim()).slice(-10);
@@ -88,7 +99,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     try {
       const { remaining: rem } = await streamTutor(
         problemId,
-        { message: userMessage, attemptsCount: getState().attemptsCount, history, image, mediaType },
+        { message: userMessage, attemptsCount: getState().attemptsCount, history, image, mediaType, starterHintIndex },
         (chunk) => {
           acc += chunk;
           speaker?.feed(chunk); // ينطق فور اكتمال كل جملة
@@ -129,7 +140,14 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
 
   function askHint() {
     const { current } = getState();
-    void send(current.trim() ? `أنا عند: ${current} — ممكن تلميح؟` : 'ممكن تلميح للبداية؟');
+    if (current.trim()) {
+      void send(`أنا عند: ${current} — ممكن تلميح؟`);
+      return;
+    }
+    // تلميح بداية مجاني (بلا AI): يتدرّج مع كل ضغطة حتى تنفد التلميحات المخزّنة
+    const idx = starterHintIndexRef.current;
+    starterHintIndexRef.current += 1;
+    void send('ممكن تلميح للبداية؟', undefined, undefined, idx);
   }
   function askSimpler() {
     void send('مش فاهم، ممكن تشرح أبسط؟');

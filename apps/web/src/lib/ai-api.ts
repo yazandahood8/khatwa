@@ -31,6 +31,7 @@ export async function streamTutor(
     history: TutorTurn[];
     image?: string;
     mediaType?: 'image/png' | 'image/jpeg';
+    starterHintIndex?: number;
   },
   onToken: (chunk: string) => void,
 ): Promise<{ remaining: number | null }> {

@@ -31,6 +31,8 @@ const askSchema = z.object({
   image: z.string().max(4_000_000).optional(),
   // نوع الصورة — PNG للمسودة المرسومة، JPEG لصورة الكاميرا (أخفّ حجماً)
   mediaType: z.enum(['image/png', 'image/jpeg']).default('image/png'),
+  // تلميح بدايةٍ مجاني: فهرس التلميح المتدرّج من الطريقة الموصى بها (0،1،2…) — بلا Claude ولا حصة
+  starterHintIndex: z.coerce.number().int().min(0).optional(),
 });
 
 const judgeSchema = z.object({
@@ -105,6 +107,41 @@ export async function askTutor(req: Request, res: Response) {
     },
   });
   if (!problem) throw ApiError.notFound('المسألة غير موجودة');
+
+  // تلميح البداية المجاني — deterministic starter hint: serve stored step hints (no Claude, no quota).
+  // كلّ ضغطة على «تلميح» قبل الكتابة تعرض التلميح التالي من الطريقة الموصى بها؛ وعند نفادها نسقط للـ AI.
+  if (!problem.language && !input.image && input.starterHintIndex !== undefined) {
+    const approved = problem.methods.filter((m) => m.isApproved);
+    const method = approved.find((m) => m.isRecommended) ?? approved[0];
+    const idx = input.starterHintIndex;
+    const step = method?.steps[idx];
+    if (step) {
+      const q = await getQuota(studentId, req.user!.role);
+      const reply = `${idx === 0 ? 'تلميح للبداية 💡' : 'تلميح إضافي 💡'} ${step.hint.trim()}`;
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-AI-Remaining', String(q.remaining));
+      res.flushHeaders?.();
+      res.end(reply);
+      await prisma.aiSession
+        .create({
+          data: {
+            studentId,
+            problemId,
+            messages: [
+              ...(input.history ?? []),
+              { role: 'user', content: input.message },
+              { role: 'assistant', content: reply },
+            ],
+            tokensUsed: 0,
+          },
+        })
+        .catch((e) => logger.error('aiSession persist failed', e instanceof Error ? e.message : e));
+      logger.info('AI tutor: deterministic starter-hint (0 tok, no Claude)');
+      return;
+    }
+    // نفدت التلميحات المخزّنة (أو لا طريقة) — أكمل للمسار العادي ليولّد الـ AI تلميحاً.
+  }
 
   // الطبقة الأولى الحتمية — deterministic fast-path: exact match against stored steps/mistakes
   // يرد فوراً بلا Claude وبلا احتساب من الحصة (لمسائل الرياضيات وخطوات الطالب فقط).
