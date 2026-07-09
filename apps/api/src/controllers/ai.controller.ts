@@ -113,11 +113,13 @@ export async function askTutor(req: Request, res: Response) {
   if (!problem.language && !input.image && input.starterHintIndex !== undefined) {
     const approved = problem.methods.filter((m) => m.isApproved);
     const method = approved.find((m) => m.isRecommended) ?? approved[0];
+    // تلميحات غير فارغة فقط بالترتيب — many stored steps (النتيجة النهائية) have a blank hint; skip them
+    const hints = (method?.steps ?? []).map((s) => s.hint.trim()).filter(Boolean);
     const idx = input.starterHintIndex;
-    const step = method?.steps[idx];
-    if (step) {
+    const hint = hints[idx];
+    if (hint) {
       const q = await getQuota(studentId, req.user!.role);
-      const reply = `${idx === 0 ? 'تلميح للبداية 💡' : 'تلميح إضافي 💡'} ${step.hint.trim()}`;
+      const reply = `${idx === 0 ? 'تلميح للبداية 💡' : 'تلميح إضافي 💡'} ${hint}`;
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('X-AI-Remaining', String(q.remaining));
