@@ -30,16 +30,33 @@ const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 type WorkItem = {
   key: string;
   topic: string;
+  level: string; // مستوى الطالب المشتقّ من المفتاح — درّج لغة التلميح حسبه
+  simple: boolean; // صفوف 7–9 أو مستوى أساسي — لغة يومية بحتة بلا أسماء قوانين
   problem: GenProblem;
 };
 
-/** يبني قائمة العمل: أول خطوة فارغة التلميح لكل مسألة رياضيات، بلا تكرار للمفاتيح. */
-function collectWork(seen: Set<string>): WorkItem[] {
+/** يشتقّ وصف المستوى من الجزء الأول للمفتاح (صف 7–12 أو رقم نموذج بجروت). */
+function levelFromKey(first: string, isQuestionnaire: boolean): { level: string; simple: boolean } {
+  if (isQuestionnaire) {
+    const units = { '3': '3 وحدات', '4': '4 وحدات', '5': '5 وحدات', '1': 'مستوى أساسي' }[first[0]] ?? 'بجروت';
+    return { level: `بجروت ${units} (نموذج ${first})`, simple: first[0] === '1' || first[0] === '3' };
+  }
+  const g = Number(first);
+  return { level: `صف ${first}`, simple: g >= 7 && g <= 9 };
+}
+
+/** يبني قائمة العمل: الخطوة الأولى لكل مسألة رياضيات، بلا تكرار للمفاتيح. */
+function collectWork(seen: Set<string>, opts: { force: boolean; filter: RegExp | null; existing: Record<string, string> }): WorkItem[] {
   const work: WorkItem[] = [];
-  const maps: Record<string, LessonGen>[] = [LESSON_PROBLEMS, QUESTIONNAIRE_PROBLEMS];
-  for (const map of maps) {
+  const maps: { map: Record<string, LessonGen>; isQ: boolean }[] = [
+    { map: LESSON_PROBLEMS, isQ: false },
+    { map: QUESTIONNAIRE_PROBLEMS, isQ: true },
+  ];
+  for (const { map, isQ } of maps) {
     for (const [mapKey, gen] of Object.entries(map)) {
-      const topic = mapKey.split('|')[1] ?? 'رياضيات';
+      const [first, topicPart] = mapKey.split('|');
+      const topic = topicPart ?? 'رياضيات';
+      const { level, simple } = levelFromKey(first, isQ);
       let problems: GenProblem[];
       try {
         problems = gen();
@@ -49,11 +66,15 @@ function collectWork(seen: Set<string>): WorkItem[] {
       }
       for (const problem of problems) {
         const step = problem.method.steps[0];
-        if (!step || step.hint.trim()) continue; // لا خطوة أو التلميح موجود مسبقاً
+        if (!step) continue;
+        // بلا --force: نتخطّى الخطوات التي لها تلميح أصلاً (مؤلَّف يدوياً). مع --force: نعيد توليد الكل.
+        if (!opts.force && step.hint.trim()) continue;
         const key = hintKey(problem.question, step.description, step.expression);
-        if (seen.has(key)) continue; // مفتاح مكرّر أو مولّد سابقاً
+        if (seen.has(key)) continue; // مفتاح مكرّر أو مُعالَج
+        // --filter: أعد توليد فقط ما تلميحه الحالي (المخزّن) يطابق النمط (لإصلاح التلميحات المبهمة)
+        if (opts.filter && !opts.filter.test(opts.existing[key] ?? '')) continue;
         seen.add(key);
-        work.push({ key, topic, problem });
+        work.push({ key, topic, level, simple, problem });
       }
     }
   }
@@ -61,14 +82,15 @@ function collectWork(seen: Set<string>): WorkItem[] {
 }
 
 function buildPrompt(item: WorkItem): string {
-  const { topic, problem } = item;
+  const { topic, level, problem } = item;
   const solution = problem.method.steps
     .map((s, i) => `${i + 1}. ${s.description} ⟶ ${s.expression}`)
     .join('\n');
   const mistakes = problem.commonMistakes.length
     ? problem.commonMistakes.map((m) => `- ${m.description}: ${m.correction}`).join('\n')
     : 'لا يوجد';
-  return `الموضوع: ${topic}
+  return `مستوى الطالب: ${level}  |  الصعوبة: ${problem.difficulty}
+الموضوع: ${topic}
 السؤال: ${problem.question}
 
 الحل الكامل (سرّي — للاسترشاد فقط، لا تكشفه):
@@ -78,15 +100,23 @@ ${solution}
 أخطاء شائعة:
 ${mistakes}
 
-المطلوب: اكتب تلميحاً واحداً قصيراً جداً يساعد الطالب على **الخطوة الأولى فقط** (رقم 1)، يوجّهه لكيف يبدأ دون أن تكشف له ناتج الخطوة ولا الجواب النهائي.`;
+المطلوب: اكتب تلميحاً واحداً قصيراً جداً يساعد الطالب على **الخطوة الأولى فقط** (رقم 1)، يوجّهه لكيف يبدأ دون أن تكشف له ناتج الخطوة ولا الجواب النهائي. عيّر لغته لمستوى الطالب أعلاه.`;
 }
 
-const SYSTEM = `أنت معلّم رياضيات سقراطي للطلاب العرب في إسرائيل. مهمّتك صياغة تلميح بداية واحد لكل مسألة.
+const SYSTEM = `أنت معلّم رياضيات سقراطي ولطيف للطلاب العرب في إسرائيل. مهمّتك صياغة تلميح بداية واحد لكل مسألة، مناسب لمستوى الطالب المذكور.
+
 قواعد صارمة:
-- تلميح واحد فقط، قصير جداً (من 3 إلى 12 كلمة).
-- يوجّه الطالب لأول خطوة/فكرة كيف يبدأ، لا يعطي الناتج ولا الجواب النهائي.
-- بالعربي العامي المبسّط المشجّع (لهجة فلسطينية مبسّطة)، ويمكن أن يكون سؤالاً موجّهاً.
-- أمثلة للأسلوب المطلوب: «ما نوع هاي المعادلة؟» ، «انتبه الإشارة بتنقلب» ، «فكّر بعددين ضربهم الحد الثابت».
+- تلميح واحد فقط، قصير جداً (من 3 إلى 14 كلمة)، بالعربي العامي الفلسطيني المبسّط والمشجّع. ممكن يكون سؤالاً موجّهاً.
+- وجّه الطالب لأوّل خطوة عملية: شو يعمل أوّل إشي؟ لا تُعطِ ناتج الخطوة ولا الجواب النهائي.
+- **الأهمّ — بسّط اللغة حسب المستوى ولا تخوّف الطالب:**
+  • لا ترمِ اسم قانون أو مصطلح صعب لحاله («فكّر بالتوزيع الثنائي»، «طبّق برنولي»، «استخدم قانون جيب التمام») — هذا بيحبط الطالب الضعيف.
+  • إن اضطررت لمصطلح تقنيّ، اشرحه بكلمتين بسيطتين جنبه أو استبدله بالفكرة العملية الملموسة.
+    ✗ سيّئ: «فكّر بصيغة الاحتمال الثنائي».  ✓ جيّد: «كم طريقة يطلع فيها ٦ مرّة وحدة بس من ٣ رميات؟».
+    ✗ سيّئ: «طبّق قانون جيب التمام».  ✓ جيّد: «عندك الأضلاع الثلاثة وبدّك زاوية — أيّ قانون بيربطهم؟».
+  • لمستوى «صف 7–9» أو «أساسي»: لغة يومية بحتة، بلا أسماء قوانين إطلاقاً.
+  • لمستوى «4 وحدات / 5 وحدات»: مسموح المصطلح المنهجيّ المعروف (مشتقة، تكامل…) بس مربوط بفعلٍ واضح لا مرمِيّ لحاله.
+- ابدأ بفعل أو سؤال ملموس مثل: «جرّب…»، «شوف…»، «ابدأ بـ…»، «أيّ…»، «كم…».
+- ممنوع الصياغات المبهمة أو المبتورة (مثل «ذري ثنائي C(n,k)»).
 - أخرج نصّ التلميح فقط: سطر واحد، بلا علامات اقتباس، بلا ترقيم، بلا مقدّمات مثل «تلميح:».`;
 
 /** ينظّف ناتج النموذج إلى سطر تلميح واحد. */
@@ -113,14 +143,21 @@ async function generateOne(item: WorkItem): Promise<string> {
 
 /** ينفّذ العمل بتوازٍ محدود ويكتب الملف تدريجياً. */
 async function run() {
-  const limit = Number(process.argv[2]) || 0; // 0 = بلا حد (تشغيل كامل)
+  const args = process.argv.slice(2);
+  const force = args.includes('--force');
+  const filterArg = args.find((a) => a.startsWith('--filter='))?.slice('--filter='.length);
+  const filter = filterArg ? new RegExp(filterArg) : null;
+  const limit = Number(args.find((a) => /^\d+$/.test(a))) || 0; // 0 = بلا حد (تشغيل كامل)
+
   const hints: Record<string, string> = existsSync(OUT_PATH)
     ? JSON.parse(readFileSync(OUT_PATH, 'utf8'))
     : {};
 
-  const seen = new Set<string>(Object.keys(hints));
-  let work = collectWork(seen);
+  // مع --force/--filter نعيد التوليد فوق مفاتيح موجودة، فلا نضعها في seen مسبقاً.
+  const seen = new Set<string>(force || filter ? [] : Object.keys(hints));
+  let work = collectWork(seen, { force, filter, existing: hints });
   if (limit > 0) work = work.slice(0, limit);
+  if (force || filter) console.log(`♻️  وضع إعادة التوليد${filter ? ` (فلتر: ${filterArg})` : ''} — سيُحدّث ما يُطابق فوق الموجود.`);
 
   console.log(`📝 مسائل تحتاج تلميح بداية: ${work.length} (موجود مسبقاً: ${Object.keys(hints).length})`);
   if (!work.length) {

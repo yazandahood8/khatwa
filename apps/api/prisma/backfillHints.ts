@@ -22,8 +22,9 @@ async function main() {
     console.error('❌ generatedHints.json غير موجود — شغّل hints:generate أولاً.');
     process.exit(1);
   }
+  const force = process.argv.includes('--force'); // يستبدل تلميحات موجودة (بعد إعادة توليد محسّنة)
   const hints: Record<string, string> = JSON.parse(readFileSync(HINTS_PATH, 'utf8'));
-  console.log(`📖 تلميحات محمّلة: ${Object.keys(hints).length}`);
+  console.log(`📖 تلميحات محمّلة: ${Object.keys(hints).length}${force ? ' — وضع --force (استبدال فوق الموجود)' : ''}`);
 
   const problems = await prisma.problem.findMany({
     where: { language: null }, // رياضيات فقط
@@ -43,15 +44,19 @@ async function main() {
       noStep++;
       continue;
     }
-    if (step.hint.trim()) {
-      hadHint++;
-      continue; // تلميح موجود مسبقاً — لا نلمسه
-    }
     const key = hintKey(p.question, step.description, step.expression);
     const hint = hints[key];
     if (!hint) {
       noKey++;
       continue;
+    }
+    if (!force && step.hint.trim()) {
+      hadHint++;
+      continue; // تلميح موجود مسبقاً — لا نلمسه (إلا مع --force)
+    }
+    if (step.hint.trim() === hint.trim()) {
+      hadHint++;
+      continue; // لا تغيير
     }
     await prisma.solutionStep.update({ where: { id: step.id }, data: { hint } });
     updated++;
