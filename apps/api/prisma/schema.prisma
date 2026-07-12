@@ -224,6 +224,7 @@ model Problem {
   figure          Json? // مخطط هندسي اختياري للسؤال — optional geometry diagram spec (FigureSpec)
   allowFreeMethod Boolean    @default(true) @map("allow_free_method")
   orderIndex      Int        @default(0) @map("order_index")
+  guidedFallbackHint String? @map("guided_fallback_hint") // رسالة توجيه لما الخطوة غير معروفة قبل السقوط للـ AI
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
@@ -233,10 +234,43 @@ model Problem {
   commonMistakes CommonMistake[]
   attempts       ProblemAttempt[]
   aiSessions     AiSession[]
+  solveMilestones    SolveMilestone[]
+  solveWrongPatterns SolveWrongPattern[]
 
   @@index([topicId])
   @@index([lessonId])
   @@map("problems")
+}
+
+/// محطّة في مسار الحلّ الموجّه (بلا AI) — an ordered checkpoint in the guided step solver.
+/// targetExpr يُطبّع رياضياً فتُقبل أي صياغة مكافئة. راجع services/guidedSolve.ts.
+model SolveMilestone {
+  id         String  @id @default(cuid())
+  problemId  String  @map("problem_id")
+  orderIndex Int     @map("order_index")
+  label      String // وصف قصير للمحطّة (للتتبّع)
+  targetExpr String  @map("target_expr") // الصيغة الصحيحة، مثل "3x+8" أو "26"
+  required   Boolean @default(true) // إجبارية لإكمال الحلّ؟
+  praise     String // رسالة التشجيع عند الوصول
+  nextHint   String? @map("next_hint") // توجيه للمحطّة التالية
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
+  @@map("solve_milestones")
+}
+
+/// خطأ معروف في مسار الحلّ الموجّه — a known wrong step with a targeted explanation.
+model SolveWrongPattern {
+  id        String @id @default(cuid())
+  problemId String @map("problem_id")
+  matchExpr String @map("match_expr") // الصيغة الخاطئة، مثل "5x"
+  message   String // شرح موجّه للخطأ دون كشف الجواب
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([problemId])
+  @@map("solve_wrong_patterns")
 }
 
 /// طرق الحل — solution methods

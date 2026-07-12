@@ -6,6 +6,7 @@ import { claude, CLAUDE_MODEL, isAiConfigured, estimateCostUsd } from '../servic
 import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { recordDiscoveredMethod } from '../services/newMethod';
 import { matchStep } from '../services/stepMatch';
+import { evaluateGuided } from '../services/guidedSolve';
 import {
   buildTutorSystemPrompt,
   buildCodeJudgePrompt,
@@ -98,6 +99,8 @@ export async function askTutor(req: Request, res: Response) {
     include: {
       methods: { include: { steps: { orderBy: { stepNumber: 'asc' } } } },
       commonMistakes: true,
+      solveMilestones: { orderBy: { orderIndex: 'asc' } },
+      solveWrongPatterns: true,
       topic: {
         include: {
           level: { include: { grade: { include: { subject: true } }, subject: true } },
@@ -143,6 +146,52 @@ export async function askTutor(req: Request, res: Response) {
       return;
     }
     // نفدت التلميحات المخزّنة (أو لا طريقة) — أكمل للمسار العادي ليولّد الـ AI تلميحاً.
+  }
+
+  // الطبقة الحتمية الموجّهة — guided step engine (محطّات + أخطاء معروفة)، بلا Claude/حصّة.
+  // تسبق الـ AI: تعطي رداً موجّهاً عند التعرّف على الخطوة، وإلا (خطوة غير معروفة) تسقط للـ AI.
+  if (!problem.language && !input.image && input.message.startsWith('خطوتي:') && problem.solveMilestones.length) {
+    const strip = (s: string) => s.replace(/^خطوتي:\s*/, '');
+    const priors = (input.history ?? [])
+      .filter((h) => h.role === 'user' && h.content.startsWith('خطوتي:'))
+      .map((h) => strip(h.content));
+    const g = evaluateGuided(
+      {
+        milestones: problem.solveMilestones.map((m) => ({
+          id: m.id, label: m.label, targetExpr: m.targetExpr,
+          required: m.required, praise: m.praise, nextHint: m.nextHint,
+        })),
+        wrong: problem.solveWrongPatterns.map((w) => ({ matchExpr: w.matchExpr, message: w.message })),
+        fallbackHint: problem.guidedFallbackHint,
+      },
+      priors,
+      strip(input.message),
+    );
+    if (g) {
+      const q = await getQuota(studentId, req.user!.role);
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-AI-Remaining', String(q.remaining));
+      res.flushHeaders?.();
+      res.end(g.reply);
+      await prisma.aiSession
+        .create({
+          data: {
+            studentId,
+            problemId,
+            messages: [
+              ...(input.history ?? []),
+              { role: 'user', content: input.message },
+              { role: 'assistant', content: g.reply },
+            ],
+            tokensUsed: 0,
+          },
+        })
+        .catch((e) => logger.error('aiSession persist failed', e instanceof Error ? e.message : e));
+      logger.info(`AI tutor: guided ${g.kind} (0 tok, no Claude)`);
+      return;
+    }
+    // خطوة غير معروفة — أكمل لـ matchStep ثم الـ AI
   }
 
   // الطبقة الأولى الحتمية — deterministic fast-path: exact match against stored steps/mistakes
