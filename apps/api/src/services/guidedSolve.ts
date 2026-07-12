@@ -15,7 +15,9 @@ export interface GuidedMilestone {
   targetExpr: string;
   required: boolean;
   praise: string;
-  nextHint?: string | null;
+  /** توجيه للوصول لهذه المحطّة (يُعرض حين تكون هي المطلوب التالي فعلاً). */
+  pendingHint?: string | null;
+  nextHint?: string | null; // (قديم) لم يعد يُستخدم — التوجيه صار سياقياً
 }
 export interface GuidedWrong {
   matchExpr: string;
@@ -156,17 +158,22 @@ export function evaluateGuided(
   const hit = mByKey.get(key);
   if (!hit) return null; // غير معروفة — اسقط للـ AI
 
+  // توجيه سياقيّ: يشير دائماً لأوّل محطّة إجبارية ما زالت ناقصة (لا خطوة أنجزها الطالب).
+  const nextGuidance = (): string => {
+    const next = graph.milestones.find((m) => m.required && !done.has(m.id));
+    if (!next) return '';
+    return next.pendingHint ?? `باقي: ${next.label}.`;
+  };
+
   if (done.has(hit.id)) {
-    return { kind: 'already', reply: `هاي خطوة عملناها 👍 ${hit.nextHint ?? ''}`.trim() };
+    return { kind: 'already', reply: `هاي خطوة عملناها 👍 ${nextGuidance()}`.trim() };
   }
   done.add(hit.id);
 
   const allRequiredDone = graph.milestones.filter((m) => m.required).every((m) => done.has(m.id));
   if (allRequiredDone) return { kind: 'solved', reply: `${hit.praise}\n[SOLVED]` };
 
-  const missing = graph.milestones.find((m) => m.required && !done.has(m.id));
-  const tail = hit.nextHint ?? (missing ? `باقي: ${missing.label}.` : '');
-  return { kind: 'correct', reply: `${hit.praise} ${tail}`.trim() };
+  return { kind: 'correct', reply: `${hit.praise} ${nextGuidance()}`.trim() };
 }
 
 export { DEFAULT_FALLBACK };

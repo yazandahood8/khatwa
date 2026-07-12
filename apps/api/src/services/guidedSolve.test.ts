@@ -4,10 +4,10 @@ import { evaluateGuided, type GuidedGraph } from './guidedSolve';
 // رسم حلّ: "ثمن 3 دفاتر وقلمين (قلم=4)، ثم عند x=6"
 const GRAPH: GuidedGraph = {
   milestones: [
-    { id: 'notebooks', label: '3 دفاتر = 3x', targetExpr: '3x', required: false, praise: 'تمام 👍', nextHint: 'احسب القلمين.' },
-    { id: 'pens', label: 'قلمين = 8', targetExpr: '2*4', required: false, praise: 'صح 👍', nextHint: 'اجمعهم بتعبير.' },
-    { id: 'expr', label: 'التعبير 3x+8', targetExpr: '3x+8', required: true, praise: 'ممتاز 🎯', nextHint: 'عوّض x=6.' },
-    { id: 'value', label: 'القيمة 26', targetExpr: '26', required: true, praise: 'أحسنت ✅' },
+    { id: 'notebooks', label: '3 دفاتر = 3x', targetExpr: '3x', required: false, praise: 'تمام 👍' },
+    { id: 'pens', label: 'قلمين = 8', targetExpr: '2*4', required: false, praise: 'صح 👍' },
+    { id: 'expr', label: 'التعبير', targetExpr: '3x+8', required: true, praise: 'ممتاز 🎯', pendingHint: 'اجمعهم بتعبير واحد.' },
+    { id: 'value', label: 'القيمة', targetExpr: '26', required: true, praise: 'أحسنت ✅', pendingHint: 'عوّض x=6.' },
   ],
   wrong: [
     { matchExpr: '5x', message: 'ما بتجمع الدفاتر مع الأقلام.' },
@@ -68,5 +68,19 @@ describe('evaluateGuided', () => {
   it('repeating a done milestone is "already", not "solved"', () => {
     const r = run(['3x+8', '3x+8']);
     expect(r[1].kind).toBe('already');
+  });
+
+  it('hints are context-aware: never points to an already-done step', () => {
+    // الطالب عمل القلمين (2*4) ثم الدفاتر (3x) — لازم الاثنين يوجّهوا للتعبير، لا "احسب القلمين".
+    const priors: string[] = [];
+    const replies: string[] = [];
+    for (const s of ['2*4', '3x']) {
+      const v = evaluateGuided(GRAPH, priors, s);
+      replies.push(v && 'reply' in v ? v.reply : '');
+      priors.push(s);
+    }
+    expect(replies[0]).toContain('اجمعهم بتعبير واحد'); // بعد القلمين → التعبير
+    expect(replies[1]).toContain('اجمعهم بتعبير واحد'); // بعد الدفاتر → التعبير (مش "احسب القلمين")
+    expect(replies[1]).not.toContain('قلمين'); // لا يطلب خطوة أنجزها
   });
 });

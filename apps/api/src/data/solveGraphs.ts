@@ -12,13 +12,15 @@ export const SOLVE_GRAPHS: Record<string, GuidedGraph> = {
   cmqzjp1vo0042nbs81w2wx0d4: {
     milestones: [
       { id: 'notebooks', label: 'ثمن 3 دفاتر = 3x', targetExpr: '3x', required: false,
-        praise: 'تمام، 3 دفاتر يعني 3x 👍', nextHint: 'هلّق احسب ثمن القلمين.' },
+        praise: 'تمام، 3 دفاتر يعني 3x 👍' },
       { id: 'pens', label: 'ثمن قلمين = 8', targetExpr: '2*4', required: false,
-        praise: 'صح، قلمين = 2×4 = 8 👍', nextHint: 'اجمع الاثنين بتعبير واحد.' },
-      { id: 'expr', label: 'التعبير 3x+8', targetExpr: '3x+8', required: true,
-        praise: 'ممتاز! هاد هو التعبير: 3x + 8 🎯', nextHint: 'عوّض x = 6 واحسب القيمة.' },
-      { id: 'value', label: 'القيمة عند x=6 ⟶ 26', targetExpr: '26', required: true,
-        praise: 'أحسنت! القيمة عند x=6 هي 26 ✅' },
+        praise: 'صح، قلمين = 2×4 = 8 👍' },
+      { id: 'expr', label: 'التعبير', targetExpr: '3x+8', required: true,
+        praise: 'ممتاز! هاد هو التعبير: 3x + 8 🎯',
+        pendingHint: 'اجمع ثمن الدفاتر مع ثمن القلمين بتعبير واحد.' },
+      { id: 'value', label: 'القيمة عند x=6', targetExpr: '26', required: true,
+        praise: 'أحسنت! القيمة عند x=6 هي 26 ✅',
+        pendingHint: 'عوّض x = 6 بالتعبير واحسب القيمة.' },
     ],
     wrong: [
       { matchExpr: '5x', message: 'ما بتقدر تجمع الدفاتر مع الأقلام — الدفتر ثمنه x والقلم ثمنه 4، مختلفين. خليهم منفصلين.' },
