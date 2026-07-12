@@ -7,6 +7,7 @@ import { consumeQuota, getQuota, refundQuota } from '../services/aiRateLimit';
 import { recordDiscoveredMethod } from '../services/newMethod';
 import { matchStep } from '../services/stepMatch';
 import { evaluateGuided } from '../services/guidedSolve';
+import { SOLVE_GRAPHS } from '../data/solveGraphs';
 import {
   buildTutorSystemPrompt,
   buildCodeJudgePrompt,
@@ -99,8 +100,6 @@ export async function askTutor(req: Request, res: Response) {
     include: {
       methods: { include: { steps: { orderBy: { stepNumber: 'asc' } } } },
       commonMistakes: true,
-      solveMilestones: { orderBy: { orderIndex: 'asc' } },
-      solveWrongPatterns: true,
       topic: {
         include: {
           level: { include: { grade: { include: { subject: true } }, subject: true } },
@@ -149,24 +148,15 @@ export async function askTutor(req: Request, res: Response) {
   }
 
   // الطبقة الحتمية الموجّهة — guided step engine (محطّات + أخطاء معروفة)، بلا Claude/حصّة.
-  // تسبق الـ AI: تعطي رداً موجّهاً عند التعرّف على الخطوة، وإلا (خطوة غير معروفة) تسقط للـ AI.
-  if (!problem.language && !input.image && input.message.startsWith('خطوتي:') && problem.solveMilestones.length) {
+  // الرسم مخزّن كوحدة كود (SOLVE_GRAPHS) لا في الـ DB. تسبق الـ AI: ترد عند التعرّف على
+  // الخطوة، وإلا (خطوة غير معروفة) تسقط للـ AI.
+  const graph = SOLVE_GRAPHS[problemId];
+  if (!problem.language && !input.image && input.message.startsWith('خطوتي:') && graph) {
     const strip = (s: string) => s.replace(/^خطوتي:\s*/, '');
     const priors = (input.history ?? [])
       .filter((h) => h.role === 'user' && h.content.startsWith('خطوتي:'))
       .map((h) => strip(h.content));
-    const g = evaluateGuided(
-      {
-        milestones: problem.solveMilestones.map((m) => ({
-          id: m.id, label: m.label, targetExpr: m.targetExpr,
-          required: m.required, praise: m.praise, nextHint: m.nextHint,
-        })),
-        wrong: problem.solveWrongPatterns.map((w) => ({ matchExpr: w.matchExpr, message: w.message })),
-        fallbackHint: problem.guidedFallbackHint,
-      },
-      priors,
-      strip(input.message),
-    );
+    const g = evaluateGuided(graph, priors, strip(input.message));
     if (g) {
       const q = await getQuota(studentId, req.user!.role);
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
