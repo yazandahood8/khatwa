@@ -22,7 +22,7 @@ export function getHealth(_req: Request, res: Response<HealthResponse>) {
     status: 'ok' as const,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    build: 'guided-2',
+    build: 'guided-3',
     guidedGraphs: Object.keys(SOLVE_GRAPHS).length,
     guidedSelftest,
   };

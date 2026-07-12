@@ -110,6 +110,20 @@ export async function askTutor(req: Request, res: Response) {
   });
   if (!problem) throw ApiError.notFound('المسألة غير موجودة');
 
+  // تشخيص مؤقّت — probes to confirm this controller build + Arabic-prefix handling.
+  if (input.message.includes('__PING__')) {
+    res.type('text/plain').send('PONG-guided-3'); // يظهر ⟹ ai.controller نسخة حديثة
+    return;
+  }
+  if (input.message.includes('__DIAG__')) {
+    res.json({
+      startsWithخطوتي: input.message.startsWith('خطوتي:'),
+      hasGraph: !!SOLVE_GRAPHS[problemId],
+      msgHead: [...input.message].slice(0, 8).map((c) => c.codePointAt(0)),
+    });
+    return;
+  }
+
   // تلميح البداية المجاني — deterministic starter hint: serve stored step hints (no Claude, no quota).
   // كلّ ضغطة على «تلميح» قبل الكتابة تعرض التلميح التالي من الطريقة الموصى بها؛ وعند نفادها نسقط للـ AI.
   if (!problem.language && !input.image && input.starterHintIndex !== undefined) {
