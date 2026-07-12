@@ -1,19 +1,21 @@
 'use client';
 
-import { Check, X } from 'lucide-react';
+import { Check, X, Trash2 } from 'lucide-react';
 import { Math } from '@/components/math/math';
+
+/** خطوة كتبها الطالب مع نتيجتها: صحيحة / خاطئة / قيد التحقّق (null). */
+export type SolveStep = { text: string; ok: boolean | null };
 
 /**
  * مؤشّر الخطوات — the signature "خطوة" step path.
- * Each solved step becomes a glowing check with a particle burst,
- * connected by a drawn line — you feel yourself walking the path.
+ * الخطوة الصحيحة ✓ خضراء، الخاطئة ✗ حمراء (يقدر يعدّلها/يحذفها)، وقيد التحقّق رقم باهت.
  */
 export function StepPath({
   steps,
   onRemove,
   active,
 }: {
-  steps: string[];
+  steps: SolveStep[];
   onRemove: (index: number) => void;
   active?: React.ReactNode;
 }) {
@@ -21,19 +23,27 @@ export function StepPath({
     <ol className="relative space-y-2">
       {steps.map((s, i) => {
         const isLatest = i === steps.length - 1;
+        const tone: Tone = s.ok === false ? 'wrong' : s.ok === true ? 'ok' : 'pending';
+        const box =
+          tone === 'wrong'
+            ? 'border-destructive/30 bg-destructive/5'
+            : tone === 'ok'
+              ? 'border-success/20 bg-success/5'
+              : 'border-border bg-muted/40';
         return (
           <li key={i} className="animate-step-reveal">
-            <div className="flex items-center gap-3 rounded-xl border border-success/20 bg-success/5 px-3 py-2.5">
-              <StepCheck burst={isLatest} index={i + 1} />
+            <div className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${box}`}>
+              <StepMark tone={tone} burst={tone === 'ok' && isLatest} index={i + 1} />
               <div className="flex-1 text-base" dir="ltr">
-                <Math expr={s} />
+                <Math expr={s.text} />
               </div>
               <button
                 onClick={() => onRemove(i)}
                 className="text-muted-foreground transition-colors hover:text-destructive"
-                aria-label="حذف الخطوة"
+                aria-label={tone === 'wrong' ? 'حذف الخطوة الخاطئة' : 'حذف الخطوة'}
+                title="حذف / تعديل"
               >
-                <X className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
           </li>
@@ -55,7 +65,24 @@ export function StepPath({
   );
 }
 
-function StepCheck({ burst, index }: { burst: boolean; index: number }) {
+type Tone = 'ok' | 'wrong' | 'pending';
+
+function StepMark({ tone, burst, index }: { tone: Tone; burst: boolean; index: number }) {
+  if (tone === 'pending') {
+    return (
+      <span className="grid h-7 w-7 shrink-0 animate-pulse place-items-center rounded-full border border-border bg-card text-xs font-bold text-muted-foreground">
+        {index}
+      </span>
+    );
+  }
+  if (tone === 'wrong') {
+    return (
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-destructive text-white">
+        <X className="h-4 w-4" strokeWidth={3} />
+        <span className="sr-only">الخطوة {index} خاطئة</span>
+      </span>
+    );
+  }
   return (
     <span className="relative grid h-7 w-7 shrink-0 place-items-center">
       <span
@@ -63,9 +90,8 @@ function StepCheck({ burst, index }: { burst: boolean; index: number }) {
         style={burst ? { animation: 'checkGlow 500ms cubic-bezier(0.16,1,0.3,1) both' } : undefined}
       >
         <Check className="h-4 w-4" strokeWidth={3} />
-        <span className="sr-only">الخطوة {index} مكتملة</span>
+        <span className="sr-only">الخطوة {index} صحيحة</span>
       </span>
-      {/* انفجار الجسيمات — particle burst on the newest step */}
       {burst &&
         PARTICLES.map((p, i) => (
           <span

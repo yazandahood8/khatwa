@@ -29,7 +29,7 @@ import { TraceTable } from '@/components/solve/trace-table';
 import { TraceRecursion } from '@/components/solve/trace-recursion';
 import { QuestionNav } from '@/components/solve/question-nav';
 import { ReferenceButton } from '@/components/solve/reference-button';
-import { StepPath } from '@/components/solve/step-path';
+import { StepPath, type SolveStep } from '@/components/solve/step-path';
 import { QuestionText } from '@/components/math/question-text';
 import { Celebration } from '@/components/solve/celebration';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,7 @@ export default function SolvePage() {
   const [problem, setProblem] = useState<ProblemFull | null>(null);
   const [sequence, setSequence] = useState<ProblemListItem[]>([]);
   const [current, setCurrent] = useState('');
-  const [steps, setSteps] = useState<string[]>([]);
+  const [steps, setSteps] = useState<SolveStep[]>([]);
   const [attempts, setAttempts] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; msg: string } | null>(null);
   const [solved, setSolved] = useState(false);
@@ -130,10 +130,24 @@ export default function SolvePage() {
   const addStep = () => {
     if (!current.trim()) return;
     const step = current.trim();
-    setSteps((s) => [...s, step]);
+    setSteps((s) => [...s, { text: step, ok: null }]); // قيد التحقّق حتى يردّ المساعد
     setCurrent('');
     aiRef.current?.sendStep(step);
   };
+
+  // نتيجة الخطوة من المساعد الموجّه — لوّن آخر خطوة قيد التحقّق (✓/✗).
+  const handleStepResult = useCallback((ok: boolean) => {
+    setSteps((arr) => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i >= 0; i--) {
+        if (copy[i].ok === null) {
+          copy[i] = { ...copy[i], ok };
+          break;
+        }
+      }
+      return copy;
+    });
+  }, []);
 
   const check = useCallback(async () => {
     if (!current.trim()) {
@@ -144,12 +158,12 @@ export default function SolvePage() {
     try {
       const res = await checkAnswer(id, {
         answer: current,
-        steps: [...steps, current],
+        steps: [...steps.map((s) => s.text), current],
         methodUsed: problem?.methods.find((m) => m.isRecommended)?.name,
       });
       setAttempts(res.attemptsCount);
       if (res.correct) {
-        setSteps((s) => [...s, current.trim()]);
+        setSteps((s) => [...s, { text: current.trim(), ok: true }]);
         setCurrent('');
         setSolved(true);
         solvedRef.current = true;
@@ -395,6 +409,7 @@ export default function SolvePage() {
               ref={aiRef}
               problemId={id}
               onSolved={handleAiSolved}
+              onStepResult={handleStepResult}
               getState={() => ({ attemptsCount: attempts, current })}
             />
           </div>

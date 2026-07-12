@@ -17,6 +17,8 @@ interface Props {
   problemId: string;
   getState: () => { attemptsCount: number; current: string };
   onSolved?: () => void;
+  /** نتيجة خطوة كتبها الطالب: صحيحة (true) أو خاطئة (false) — لتلوين قائمة الخطوات. */
+  onStepResult?: (ok: boolean) => void;
 }
 
 /** يستخرج الخيارات السريعة من وسم [OPTIONS] — parses quick-choice options from the reply. */
@@ -31,7 +33,7 @@ function parseOptions(content: string): string[] {
 }
 
 export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPanel(
-  { problemId, getState, onSolved },
+  { problemId, getState, onSolved, onStepResult },
   ref,
 ) {
   const [messages, setMessages] = useState<TutorTurn[]>([
@@ -85,6 +87,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
     image?: string,
     mediaType?: 'image/png' | 'image/jpeg',
     starterHintIndex?: number,
+    isStep?: boolean,
   ) {
     if (busy) return;
     setError(null);
@@ -116,6 +119,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
       if (rem != null) setRemaining(rem);
       speaker?.finish(); // انطق ما تبقّى من نص بعد آخر علامة وقف
       if (/\[SOLVED\]/.test(acc)) onSolved?.(); // المساعد أكّد اكتمال الحل
+      if (isStep) onStepResult?.(!/\[WRONG\]/.test(acc)); // خطوة صحيحة إلا إذا حملت وسم [WRONG]
     } catch (e) {
       speaker?.stop();
       const msg = e instanceof ApiClientError ? e.message : 'تعذّر الاتصال بالمساعد';
@@ -128,7 +132,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
 
   useImperativeHandle(ref, () => ({
     sendStep: (stepText: string) => {
-      if (stepText.trim()) void send(`خطوتي: ${stepText}`);
+      if (stepText.trim()) void send(`خطوتي: ${stepText}`, undefined, undefined, undefined, true);
     },
     sendDraft: (imageBase64: string) => {
       void send('📝 هاي مسودتي المكتوبة بخط يدي، راجعها وساعدني', imageBase64);
@@ -184,7 +188,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
         {messages.map((m, i) => {
           // أزل الوسوم والحركات من العرض — strip tags + harakat (kept only for speech)
           const text = m.content
-            .replace(/\s*\[(NEW_METHOD|SOLVED)\]\s*/g, '')
+            .replace(/\s*\[(NEW_METHOD|SOLVED|WRONG)\]\s*/g, '')
             .replace(/\s*\[OPTIONS\][^\n]*/g, '')
             .replace(/[ؐ-ًؚ-ٰٟـ]/g, '');
           const isAssistant = m.role === 'assistant';

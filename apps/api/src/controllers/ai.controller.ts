@@ -163,7 +163,8 @@ export async function askTutor(req: Request, res: Response) {
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('X-AI-Remaining', String(q.remaining));
       res.flushHeaders?.();
-      res.end(g.reply);
+      // وسم خفيّ للواجهة: خطوة خاطئة ⟹ تُعرَض بعلامة ✗ (يُجرّده العرض). الصحيحة بلا وسم.
+      res.end(g.kind === 'mistake' ? `${g.reply}\n[WRONG]` : g.reply);
       await prisma.aiSession
         .create({
           data: {
