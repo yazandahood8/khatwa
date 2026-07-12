@@ -10,7 +10,6 @@
     "packages/*"
   ],
   "scripts": {
-    "postinstall": "node scripts/postinstall-prisma.js",
     "dev": "npm run dev --workspace=apps/api & npm run dev --workspace=apps/web",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",
