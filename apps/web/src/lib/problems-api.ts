@@ -32,6 +32,10 @@ export interface CommonMistake {
 export interface Choice {
   text: string;
 }
+export interface HintWord {
+  en: string; // كلمة مهمة في نصّ السؤال
+  ar: string; // ترجمتها العربية
+}
 export interface ProblemFull extends ProblemListItem {
   topicId: string;
   code: string | null;
@@ -40,6 +44,7 @@ export interface ProblemFull extends ProblemListItem {
   starterCode: string | null;
   choices: Choice[] | null; // خيارات MCQ/إكمال — MCQ/cloze options
   passage: string | null; // قطعة القراءة أو موجز الكتابة — reading passage / writing brief
+  hintWords: HintWord[] | null; // كلمات السؤال المهمة + ترجمتها — لزرّ «تلميح» (إنجليزي)
   figure: FigureSpec | null; // مخطط هندسي اختياري يُعرض مع السؤال
 
   answerTolerance: number;

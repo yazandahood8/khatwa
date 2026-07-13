@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Celebration } from '@/components/solve/celebration';
 import { QuestionNav } from '@/components/solve/question-nav';
-import { QuestionText } from '@/components/math/question-text';
+import { QuestionHint } from '@/components/solve/question-hint';
 import { ReferenceButton } from '@/components/solve/reference-button';
 import { cn } from '@/lib/utils';
 
@@ -220,9 +220,12 @@ export function JudgedTextSolve({
           {/* بطاقة السؤال */}
           <div className="rounded-2xl border-r-4 border-primary bg-card p-5 shadow-card">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{copy.headerLabel}</p>
-            <div className="whitespace-pre-wrap text-lg leading-relaxed" dir="auto">
-              <QuestionText text={problem.question} />
-            </div>
+            <QuestionHint
+              question={problem.question}
+              hintWords={problem.hintWords}
+              label="كلمات مهمّة"
+              textClassName="whitespace-pre-wrap text-lg leading-relaxed"
+            />
           </div>
 
           {/* مربّع الإجابة */}

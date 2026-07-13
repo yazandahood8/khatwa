@@ -21,6 +21,9 @@ export interface EnExercise {
   choices?: string[]; // mcq فقط — answer لازم يساوي أحدها حرفيًا
   answer: string; // mcq/cloze: الإجابة الصحيحة؛ reading/writing: مرجع سرّي
   passage?: string; // موجز مهمّة كتابة اختياري (قطعة القراءة تُؤخذ من الدرس)
+  // كلمات مهمة في نصّ السؤال + ترجمتها العربية — لزرّ «تلميح» (إبراز ثم ترجمة، بلا ذكاء اصطناعي).
+  // en يجب أن تظهر ككلمة كاملة داخل question حتى تُبرَز. اختياري: أسئلة بلا كلمات لا تُظهر الزرّ.
+  hintWords?: { en: string; ar: string }[];
 }
 
 export interface EnLesson {
@@ -50,10 +53,10 @@ export const ENGLISH_GRADE7: EnUnit[] = [
         title: 'مفردات: العائلة والمعلومات الشخصية',
         skill: 'vocab',
         exercises: [
-          { kind: 'mcq', question: "My father's mother is my ___.", choices: ['grandmother', 'aunt', 'teacher', 'cousin'], answer: 'grandmother' },
-          { kind: 'mcq', question: "My uncle's daughter is my ___.", choices: ['cousin', 'sister', 'aunt', 'niece'], answer: 'cousin' },
-          { kind: 'cloze', question: 'My mother and father together are my ___.', answer: 'parents' },
-          { kind: 'cloze', question: 'I am twelve years ___.', answer: 'old' },
+          { kind: 'mcq', question: "My father's mother is my ___.", choices: ['grandmother', 'aunt', 'teacher', 'cousin'], answer: 'grandmother', hintWords: [{ en: 'father', ar: 'أب' }, { en: 'mother', ar: 'أم' }] },
+          { kind: 'mcq', question: "My uncle's daughter is my ___.", choices: ['cousin', 'sister', 'aunt', 'niece'], answer: 'cousin', hintWords: [{ en: 'uncle', ar: 'عمّ / خال' }, { en: 'daughter', ar: 'ابنة' }] },
+          { kind: 'cloze', question: 'My mother and father together are my ___.', answer: 'parents', hintWords: [{ en: 'mother', ar: 'أم' }, { en: 'father', ar: 'أب' }, { en: 'together', ar: 'معاً' }] },
+          { kind: 'cloze', question: 'I am twelve years ___.', answer: 'old', hintWords: [{ en: 'twelve', ar: 'اثنا عشر' }, { en: 'years', ar: 'سنوات' }] },
         ],
       },
       {
@@ -61,10 +64,10 @@ export const ENGLISH_GRADE7: EnUnit[] = [
         title: 'قواعد: زمن المضارع البسيط (Present Simple)',
         skill: 'grammar',
         exercises: [
-          { kind: 'mcq', question: 'I ___ a student.', choices: ['am', 'is', 'are', 'be'], answer: 'am' },
-          { kind: 'mcq', question: 'She ___ two brothers.', choices: ['has', 'have', 'haves', 'having'], answer: 'has' },
-          { kind: 'cloze', question: 'They ___ (be) my best friends.', answer: 'are' },
-          { kind: 'cloze', question: 'This is my sister. ___ name is Maya. (his/her)', answer: 'Her' },
+          { kind: 'mcq', question: 'I ___ a student.', choices: ['am', 'is', 'are', 'be'], answer: 'am', hintWords: [{ en: 'student', ar: 'طالب' }] },
+          { kind: 'mcq', question: 'She ___ two brothers.', choices: ['has', 'have', 'haves', 'having'], answer: 'has', hintWords: [{ en: 'two', ar: 'اثنان' }, { en: 'brothers', ar: 'إخوة' }] },
+          { kind: 'cloze', question: 'They ___ (be) my best friends.', answer: 'are', hintWords: [{ en: 'best', ar: 'أفضل' }, { en: 'friends', ar: 'أصدقاء' }] },
+          { kind: 'cloze', question: 'This is my sister. ___ name is Maya. (his/her)', answer: 'Her', hintWords: [{ en: 'sister', ar: 'أخت' }, { en: 'name', ar: 'اسم' }] },
         ],
       },
       {
@@ -74,10 +77,10 @@ export const ENGLISH_GRADE7: EnUnit[] = [
         passage:
           'Hi! My name is Sara. I am twelve years old and I live in Nazareth. I have one brother and one sister. My brother’s name is Adam and he is fifteen. My sister, Lana, is eight. My father is a doctor and my mother is a teacher. We have a small dog called Rocky. I like reading books and playing basketball.',
         exercises: [
-          { kind: 'mcq', question: 'How old is Sara?', choices: ['twelve', 'fifteen', 'eight', 'ten'], answer: 'twelve' },
-          { kind: 'mcq', question: "What is Sara's father's job?", choices: ['a doctor', 'a teacher', 'a driver', 'a nurse'], answer: 'a doctor' },
-          { kind: 'reading', question: 'How many brothers and sisters does Sara have? Answer in a full sentence.', answer: 'She has one brother and one sister. (Accept any answer stating one brother and one sister.)' },
-          { kind: 'reading', question: 'What does Sara like doing? Give two things.', answer: 'She likes reading books and playing basketball.' },
+          { kind: 'mcq', question: 'How old is Sara?', choices: ['twelve', 'fifteen', 'eight', 'ten'], answer: 'twelve', hintWords: [{ en: 'old', ar: 'عُمر (كم عمر)' }] },
+          { kind: 'mcq', question: "What is Sara's father's job?", choices: ['a doctor', 'a teacher', 'a driver', 'a nurse'], answer: 'a doctor', hintWords: [{ en: 'father', ar: 'أب' }, { en: 'job', ar: 'وظيفة / عمل' }] },
+          { kind: 'reading', question: 'How many brothers and sisters does Sara have? Answer in a full sentence.', answer: 'She has one brother and one sister. (Accept any answer stating one brother and one sister.)', hintWords: [{ en: 'brothers', ar: 'إخوة' }, { en: 'sisters', ar: 'أخوات' }, { en: 'sentence', ar: 'جملة' }] },
+          { kind: 'reading', question: 'What does Sara like doing? Give two things.', answer: 'She likes reading books and playing basketball.', hintWords: [{ en: 'like', ar: 'يحبّ' }, { en: 'doing', ar: 'يفعل' }, { en: 'things', ar: 'أشياء' }] },
         ],
       },
       {
@@ -85,8 +88,8 @@ export const ENGLISH_GRADE7: EnUnit[] = [
         title: 'كتابة: عرّف عن نفسك',
         skill: 'writing',
         exercises: [
-          { kind: 'writing', question: 'Write a short paragraph (30–40 words) about yourself. Include your name, your age, where you live, and one thing you like doing.', answer: 'Must include: name, age, place of living, and one hobby. Uses present simple correctly. Capitalizes "I" and names. About 30–40 words.' },
-          { kind: 'writing', question: 'Write 3–4 sentences about one member of your family. Include who they are, their name, and one fact about them.', answer: 'Names a family member, gives a name, and at least one fact. Correct third-person -s in present simple. 3–4 sentences.' },
+          { kind: 'writing', question: 'Write a short paragraph (30–40 words) about yourself. Include your name, your age, where you live, and one thing you like doing.', answer: 'Must include: name, age, place of living, and one hobby. Uses present simple correctly. Capitalizes "I" and names. About 30–40 words.', hintWords: [{ en: 'paragraph', ar: 'فقرة' }, { en: 'yourself', ar: 'نفسك' }, { en: 'age', ar: 'العُمر' }, { en: 'live', ar: 'تعيش / تسكن' }] },
+          { kind: 'writing', question: 'Write 3–4 sentences about one member of your family. Include who they are, their name, and one fact about them.', answer: 'Names a family member, gives a name, and at least one fact. Correct third-person -s in present simple. 3–4 sentences.', hintWords: [{ en: 'sentences', ar: 'جُمل' }, { en: 'member', ar: 'فرد' }, { en: 'family', ar: 'عائلة' }, { en: 'fact', ar: 'معلومة / حقيقة' }] },
         ],
       },
     ],

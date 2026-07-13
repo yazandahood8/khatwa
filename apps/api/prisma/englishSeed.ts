@@ -119,6 +119,7 @@ export async function seedEnglishGrade(
               | Prisma.InputJsonValue
               | undefined,
             passage,
+            hintWords: (ex.hintWords ?? undefined) as Prisma.InputJsonValue | undefined,
             difficulty: difficultyFor(ex.kind),
             orderIndex: order++,
             allowFreeMethod: true,
@@ -197,6 +198,7 @@ export async function seedEnglishModules(
                 | Prisma.InputJsonValue
                 | undefined,
               passage,
+              hintWords: (ex.hintWords ?? undefined) as Prisma.InputJsonValue | undefined,
               difficulty: difficultyFor(ex.kind),
               orderIndex: order++,
               allowFreeMethod: true,

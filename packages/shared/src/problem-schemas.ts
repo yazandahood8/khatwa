@@ -43,6 +43,10 @@ const problemBase = z.object({
   kind: z.string().trim().max(20).optional(), // "mcq" | "cloze" | "reading" | "writing" | "explain" | "trace_*"
   choices: z.array(choiceSchema).max(10).optional(), // MCQ/cloze
   passage: z.string().trim().max(8000).optional(), // قطعة القراءة أو موجز الكتابة
+  hintWords: z // كلمات السؤال المهمة + ترجمتها العربية — لزرّ «تلميح» (إنجليزي)
+    .array(z.object({ en: z.string().trim().min(1).max(60), ar: z.string().trim().min(1).max(120) }))
+    .max(12)
+    .optional(),
   starterCode: z.string().trim().max(4000).optional(),
   methods: z.array(solutionMethodSchema).optional().default([]),
   commonMistakes: z.array(commonMistakeSchema).optional(),

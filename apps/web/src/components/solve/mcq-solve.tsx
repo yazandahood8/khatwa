@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Celebration } from '@/components/solve/celebration';
 import { QuestionNav } from '@/components/solve/question-nav';
 import { ProblemFigure } from '@/components/math/problem-figure';
-import { QuestionText } from '@/components/math/question-text';
+import { QuestionHint } from '@/components/solve/question-hint';
 import { ReferenceButton } from '@/components/solve/reference-button';
 import { cn } from '@/lib/utils';
 
@@ -138,9 +138,7 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {isCloze ? 'أكمل الفراغ' : 'اختر الإجابة الصحيحة'}
             </p>
-            <div className="text-xl leading-relaxed" dir="auto">
-              <QuestionText text={problem.question} />
-            </div>
+            <QuestionHint question={problem.question} hintWords={problem.hintWords} label="تلميح" />
             {problem.figure && <ProblemFigure spec={problem.figure} />}
           </div>
 
