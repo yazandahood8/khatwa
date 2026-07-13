@@ -49,15 +49,30 @@ export default function HomePage() {
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
         <div className="animate-fade-slide-up space-y-6">
           <Badge variant="achievement" size="lg">
-            <Sparkles className="h-4 w-4" /> مساعدك الذكي بالرياضيات
+            <Sparkles className="h-4 w-4" /> مساعدك الذكي بكل مادة
           </Badge>
           <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl">
-            عالق بمسألة؟ <span className="gradient-text">المساعد معك</span> لحدّ ما تفهمها.
+            عالق بسؤال؟ <span className="gradient-text">المساعد معك</span> لحدّ ما تفهمه.
           </h1>
           <p className="max-w-md text-lg leading-relaxed text-muted-foreground">
             احضر درس قصير، جرّب تحلّ، ولمّا تعلق اسأل المساعد — بيوجّهك خطوة بخطوة بلهجتك، ساعة ما
             بدك. وما بيعطيك الجواب جاهز، عشان تفهم بنفسك وتثبت بالامتحان.
           </p>
+          {/* المواد — subjects */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { e: '📐', t: 'رياضيات' },
+              { e: '🔤', t: 'إنجليزي' },
+              { e: '💻', t: 'علوم الحاسوب' },
+            ].map((s) => (
+              <span
+                key={s.t}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-sm font-medium"
+              >
+                <span aria-hidden>{s.e}</span> {s.t}
+              </span>
+            ))}
+          </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/register">
               <Button variant="gradient" size="lg">
@@ -122,7 +137,7 @@ export default function HomePage() {
         <div className="grid gap-8 md:grid-cols-3">
           {[
             { icon: Video, title: 'شاهد الدرس', desc: 'فيديو قصير وواضح يشرحلك الفكرة من الصفر.' },
-            { icon: PencilRuler, title: 'حلّ المسألة', desc: 'تمارين تفاعلية مع لوحة رياضية ذكية.' },
+            { icon: PencilRuler, title: 'حلّ التمارين', desc: 'تمارين تفاعلية لكل درس — رياضيات، إنجليزي، وحاسوب.' },
             { icon: Bot, title: 'اسأل المساعد', desc: 'عالق؟ المساعد يوجّهك خطوة بخطوة حتى تفهم.' },
           ].map((s, i) => (
             <div key={s.title} className="text-center">
