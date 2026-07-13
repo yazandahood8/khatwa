@@ -5,8 +5,10 @@ import {
   Check,
   X,
   Clock,
-  ShieldCheck,
   HeartHandshake,
+  MessageCircle,
+  Brain,
+  Target,
   Video,
   PencilRuler,
   Bot,
@@ -43,18 +45,18 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* البطل — hero */}
+      {/* البطل — hero (بصوت الطالب) */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
         <div className="animate-fade-slide-up space-y-6">
           <Badge variant="achievement" size="lg">
-            <Sparkles className="h-4 w-4" /> مدعوم بالذكاء الاصطناعي
+            <Sparkles className="h-4 w-4" /> مساعدك الذكي بالرياضيات
           </Badge>
           <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl">
-            وفّر <span className="gradient-text">90%</span> من تكلفة المدرّس الخصوصي
+            عالق بمسألة؟ <span className="gradient-text">المساعد معك</span> لحدّ ما تفهمها.
           </h1>
           <p className="max-w-md text-lg leading-relaxed text-muted-foreground">
-            مساعد ذكاء اصطناعي صبور متاح 24/7 لابنك — يوجّهه خطوة بخطوة حتى يفهم بنفسه، بدون ما
-            يعطيه الجواب جاهزاً.
+            احضر درس قصير، جرّب تحلّ، ولمّا تعلق اسأل المساعد — بيوجّهك خطوة بخطوة بلهجتك، ساعة ما
+            بدك. وما بيعطيك الجواب جاهز، عشان تفهم بنفسك وتثبت بالامتحان.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/register">
@@ -114,15 +116,86 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* المقارنة — comparison */}
+      {/* كيف بتتعلّم — how it works (بصوت الطالب) */}
+      <section id="how" className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        <h2 className="mb-12 text-center font-display text-3xl font-bold">كيف بتتعلّم عليها؟</h2>
+        <div className="grid gap-8 md:grid-cols-3">
+          {[
+            { icon: Video, title: 'شاهد الدرس', desc: 'فيديو قصير وواضح يشرحلك الفكرة من الصفر.' },
+            { icon: PencilRuler, title: 'حلّ المسألة', desc: 'تمارين تفاعلية مع لوحة رياضية ذكية.' },
+            { icon: Bot, title: 'اسأل المساعد', desc: 'عالق؟ المساعد يوجّهك خطوة بخطوة حتى تفهم.' },
+          ].map((s, i) => (
+            <div key={s.title} className="text-center">
+              <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl gradient-primary text-white shadow-glow-primary">
+                <s.icon className="h-7 w-7" />
+              </span>
+              <p className="mb-1 font-display text-xs font-semibold text-primary">الخطوة {i + 1}</p>
+              <h3 className="font-display text-xl font-semibold">{s.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ليش رح تحبّها — student benefits */}
       <section className="bg-card py-16">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <h2 className="mb-10 text-center font-display text-3xl font-bold">
-            الفرق واضح
-          </h2>
-          <div className="grid gap-5 md:grid-cols-2">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 className="mb-12 text-center font-display text-3xl font-bold">ليش رح تحبّها؟</h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                icon: Clock,
+                title: 'وقت ما بدك',
+                desc: 'بلا مواعيد ولا انتظار — الليل، العطلة، قبل الامتحان بساعة. جاهز 24/7.',
+              },
+              {
+                icon: MessageCircle,
+                title: 'بلا إحراج',
+                desc: 'اسأل قدّ ما بدك وأعِد السؤال ألف مرة — المساعد ما بيملّ ولا بينرفز.',
+              },
+              {
+                icon: Brain,
+                title: 'تفهم بنفسك',
+                desc: 'ما بيعطيك الجواب جاهز — بيوجّهك بأسئلة حتى توصل لحالك، فبتثبت المعلومة.',
+              },
+              {
+                icon: Target,
+                title: 'جاهز للامتحان',
+                desc: 'تمارين على نمط البجروت لكل درس، وتلميحات لمّا تعلق.',
+              },
+            ].map((b) => (
+              <div key={b.title} className="rounded-2xl border border-border bg-background p-6 shadow-card">
+                <span className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-primary-light text-primary">
+                  <b.icon className="h-6 w-6" />
+                </span>
+                <h3 className="font-display text-lg font-semibold">{b.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{b.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* لأولياء الأمور — parent-trust band */}
+      <section className="border-y border-border bg-primary-light/20 py-16">
+        <div className="mx-auto max-w-5xl space-y-12 px-4 sm:px-6">
+          <div className="mx-auto max-w-2xl space-y-3 text-center">
+            <Badge variant="default" size="lg">
+              <HeartHandshake className="h-4 w-4" /> لأولياء الأمور
+            </Badge>
+            <h2 className="font-display text-3xl font-bold">
+              تعليم بجودة المدرّس الخصوصي — وإنتوا مطّلعين على كل خطوة
+            </h2>
+            <p className="text-muted-foreground">
+              وفّر حتى <span className="font-semibold text-foreground">90%</span> من تكلفة المدرّس
+              الخصوصي، مع تقارير أسبوعية تتابع تقدّم ابنك، ومحتوى آمن ومناسب للأولاد.
+            </p>
+          </div>
+
+          {/* المقارنة — comparison */}
+          <div className="mx-auto grid max-w-4xl gap-5 md:grid-cols-2">
             {/* مدرس خصوصي */}
-            <div className="rounded-2xl border border-border p-6">
+            <div className="rounded-2xl border border-border bg-background p-6">
               <h3 className="mb-4 font-display text-lg font-semibold text-muted-foreground">
                 مدرّس خصوصي
               </h3>
@@ -140,7 +213,7 @@ export default function HomePage() {
               </ul>
             </div>
             {/* خطوة */}
-            <div className="relative rounded-2xl border-2 border-primary bg-primary-light/30 p-6 shadow-card">
+            <div className="relative rounded-2xl border-2 border-primary bg-background p-6 shadow-card">
               <Badge variant="default" className="absolute -top-3 right-6">
                 خطوة
               </Badge>
@@ -160,73 +233,50 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* كيف يعمل — how it works */}
-      <section id="how" className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <h2 className="mb-12 text-center font-display text-3xl font-bold">كيف يعمل؟</h2>
-        <div className="grid gap-8 md:grid-cols-3">
-          {[
-            { icon: Video, title: 'شاهد الدرس', desc: 'فيديو قصير وواضح يشرح الفكرة من الصفر.' },
-            { icon: PencilRuler, title: 'حلّ المسألة', desc: 'تمارين تفاعلية مع لوحة رياضية ذكية.' },
-            { icon: Bot, title: 'اسأل المساعد', desc: 'عالق؟ المساعد يوجّهك خطوة بخطوة حتى تفهم.' },
-          ].map((s, i) => (
-            <div key={s.title} className="text-center">
-              <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl gradient-primary text-white shadow-glow-primary">
-                <s.icon className="h-7 w-7" />
-              </span>
-              <p className="mb-1 font-display text-xs font-semibold text-primary">الخطوة {i + 1}</p>
-              <h3 className="font-display text-xl font-semibold">{s.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* الشهادات — testimonials */}
-      <section className="bg-card py-16">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <h2 className="mb-10 text-center font-display text-3xl font-bold">ماذا يقول الأهل؟</h2>
-          <div className="grid gap-5 md:grid-cols-3">
-            {[
-              { q: 'ابني صار يحلّ الرياضيات لحاله وبثقة. أحسن استثمار عملناه.', n: 'أم محمد', c: 'حيفا' },
-              { q: 'وفّرنا مصاريف المدرّس، والنتائج تحسّنت بشكل ملحوظ.', n: 'أبو سامي', c: 'الناصرة' },
-              { q: 'المساعد صبور ما بيملّ — بنتي بتحبّ تتعلّم عليه.', n: 'أم ليان', c: 'كفر قاسم' },
-            ].map((t) => (
-              <div key={t.n} className="rounded-2xl border border-border bg-background p-6 shadow-card">
-                <div className="mb-3 flex gap-0.5 text-gold">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-gold" />
-                  ))}
-                </div>
-                <p className="mb-4 leading-relaxed">«{t.q}»</p>
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-primary-light font-display font-bold text-primary">
-                    {t.n.charAt(0)}
-                  </span>
-                  <div className="text-sm">
-                    <p className="font-semibold">{t.n}</p>
-                    <p className="text-muted-foreground">{t.c}</p>
+          {/* الشهادات — parent testimonials */}
+          <div>
+            <h3 className="mb-8 text-center font-display text-2xl font-bold">ماذا يقول الأهل؟</h3>
+            <div className="grid gap-5 md:grid-cols-3">
+              {[
+                { q: 'ابني صار يحلّ الرياضيات لحاله وبثقة. أحسن استثمار عملناه.', n: 'أم محمد', c: 'حيفا' },
+                { q: 'وفّرنا مصاريف المدرّس، والنتائج تحسّنت بشكل ملحوظ.', n: 'أبو سامي', c: 'الناصرة' },
+                { q: 'المساعد صبور ما بيملّ — بنتي بتحبّ تتعلّم عليه.', n: 'أم ليان', c: 'كفر قاسم' },
+              ].map((t) => (
+                <div key={t.n} className="rounded-2xl border border-border bg-background p-6 shadow-card">
+                  <div className="mb-3 flex gap-0.5 text-gold">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-gold" />
+                    ))}
+                  </div>
+                  <p className="mb-4 leading-relaxed">«{t.q}»</p>
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-10 w-10 place-items-center rounded-full bg-primary-light font-display font-bold text-primary">
+                      {t.n.charAt(0)}
+                    </span>
+                    <div className="text-sm">
+                      <p className="font-semibold">{t.n}</p>
+                      <p className="text-muted-foreground">{t.c}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* دعوة للعمل — final CTA */}
+      {/* دعوة للعمل — final CTA (بصوت الطالب) */}
       <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
         <div className="rounded-2xl gradient-primary p-10 text-white shadow-float">
-          <h2 className="font-display text-3xl font-bold">جاهز تبدأ رحلة ابنك؟</h2>
+          <h2 className="font-display text-3xl font-bold">جاهز تبدأ؟</h2>
           <p className="mx-auto mt-2 max-w-md text-white/80">
-            ابدأ مجاناً اليوم — بدون بطاقة ائتمان. أول درس من كل وحدة مجاني بالكامل.
+            أول درس من كل وحدة مجاني بالكامل — بدون بطاقة ائتمان. جرّب وشوف بنفسك.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
             <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> متاح 24/7</span>
-            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> آمن للأطفال</span>
-            <span className="flex items-center gap-1.5"><HeartHandshake className="h-4 w-4" /> صبور دائماً</span>
+            <span className="flex items-center gap-1.5"><MessageCircle className="h-4 w-4" /> بلهجتك</span>
+            <span className="flex items-center gap-1.5"><HeartHandshake className="h-4 w-4" /> صبور ما بيملّ</span>
           </div>
           <Link href="/register" className="mt-8 inline-block">
             <Button size="lg" className="bg-white text-primary hover:bg-white/90">
