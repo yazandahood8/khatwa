@@ -31,6 +31,8 @@ export interface EnLesson {
   title: string;
   skill: EnSkill;
   passage?: string; // قطعة مشتركة لدروس الفهم المقروء
+  // كلمات مهمة في القطعة + ترجمتها — لزرّ «تلميح» على القطعة (تُنسخ لكل مسائل الدرس التي تشترك بالقطعة).
+  passageHintWords?: { en: string; ar: string }[];
   exercises: EnExercise[];
 }
 
@@ -76,6 +78,23 @@ export const ENGLISH_GRADE7: EnUnit[] = [
         skill: 'reading',
         passage:
           'Hi! My name is Sara. I am twelve years old and I live in Nazareth. I have one brother and one sister. My brother’s name is Adam and he is fifteen. My sister, Lana, is eight. My father is a doctor and my mother is a teacher. We have a small dog called Rocky. I like reading books and playing basketball.',
+        passageHintWords: [
+          { en: 'name', ar: 'اسم' },
+          { en: 'old', ar: 'عُمر' },
+          { en: 'live', ar: 'يعيش / يسكن' },
+          { en: 'brother', ar: 'أخ' },
+          { en: 'sister', ar: 'أخت' },
+          { en: 'father', ar: 'أب' },
+          { en: 'doctor', ar: 'طبيب' },
+          { en: 'mother', ar: 'أم' },
+          { en: 'teacher', ar: 'معلّمة' },
+          { en: 'small', ar: 'صغير' },
+          { en: 'dog', ar: 'كلب' },
+          { en: 'reading', ar: 'القراءة' },
+          { en: 'books', ar: 'كُتب' },
+          { en: 'playing', ar: 'اللعب' },
+          { en: 'basketball', ar: 'كرة السلة' },
+        ],
         exercises: [
           { kind: 'mcq', question: 'How old is Sara?', choices: ['twelve', 'fifteen', 'eight', 'ten'], answer: 'twelve', hintWords: [{ en: 'old', ar: 'عُمر (كم عمر)' }] },
           { kind: 'mcq', question: "What is Sara's father's job?", choices: ['a doctor', 'a teacher', 'a driver', 'a nurse'], answer: 'a doctor', hintWords: [{ en: 'father', ar: 'أب' }, { en: 'job', ar: 'وظيفة / عمل' }] },

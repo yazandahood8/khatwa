@@ -211,9 +211,13 @@ export function JudgedTextSolve({
           {problem.passage && (
             <div className="rounded-2xl border border-border bg-muted/40 p-5 shadow-card">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{copy.passageLabel}</p>
-              <div className="max-h-72 overflow-y-auto whitespace-pre-wrap text-base leading-relaxed scrollbar-thin" dir="ltr">
-                {problem.passage}
-              </div>
+              <QuestionHint
+                text={problem.passage}
+                hintWords={problem.passageHintWords}
+                label="كلمات القطعة"
+                dir="ltr"
+                textClassName="max-h-72 overflow-y-auto whitespace-pre-wrap text-base leading-relaxed scrollbar-thin"
+              />
             </div>
           )}
 
@@ -221,7 +225,7 @@ export function JudgedTextSolve({
           <div className="rounded-2xl border-r-4 border-primary bg-card p-5 shadow-card">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{copy.headerLabel}</p>
             <QuestionHint
-              question={problem.question}
+              text={problem.question}
               hintWords={problem.hintWords}
               label="كلمات مهمّة"
               textClassName="whitespace-pre-wrap text-lg leading-relaxed"

@@ -107,6 +107,8 @@ export async function seedEnglishGrade(
       for (const ex of l.exercises) {
         // القطعة: من التمرين إن وُجدت، وإلا قطعة درس الفهم المقروء.
         const passage = ex.passage ?? (l.skill === 'reading' ? l.passage ?? null : null);
+        // كلمات القطعة تُرافق قطعة الدرس فقط (لا تُطبَّق على قطعة خاصة بالتمرين).
+        const passageHintWords = ex.passage ? undefined : l.skill === 'reading' ? l.passageHintWords : undefined;
         await prisma.problem.create({
           data: {
             topicId: topic.id,
@@ -120,6 +122,7 @@ export async function seedEnglishGrade(
               | undefined,
             passage,
             hintWords: (ex.hintWords ?? undefined) as Prisma.InputJsonValue | undefined,
+            passageHintWords: (passageHintWords ?? undefined) as Prisma.InputJsonValue | undefined,
             difficulty: difficultyFor(ex.kind),
             orderIndex: order++,
             allowFreeMethod: true,
@@ -186,6 +189,7 @@ export async function seedEnglishModules(
 
         for (const ex of l.exercises) {
           const passage = ex.passage ?? (l.skill === 'reading' ? l.passage ?? null : null);
+          const passageHintWords = ex.passage ? undefined : l.skill === 'reading' ? l.passageHintWords : undefined;
           await prisma.problem.create({
             data: {
               topicId: topic.id,
@@ -199,6 +203,7 @@ export async function seedEnglishModules(
                 | undefined,
               passage,
               hintWords: (ex.hintWords ?? undefined) as Prisma.InputJsonValue | undefined,
+              passageHintWords: (passageHintWords ?? undefined) as Prisma.InputJsonValue | undefined,
               difficulty: difficultyFor(ex.kind),
               orderIndex: order++,
               allowFreeMethod: true,

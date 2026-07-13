@@ -12,6 +12,7 @@ const specializationData = (input: {
   starterCode?: string;
   choices?: { text: string }[];
   hintWords?: { en: string; ar: string }[];
+  passageHintWords?: { en: string; ar: string }[];
 }) => ({
   language: input.language ?? null,
   kind: input.kind ?? null,
@@ -19,6 +20,7 @@ const specializationData = (input: {
   starterCode: input.starterCode ?? null,
   choices: (input.choices ?? undefined) as Prisma.InputJsonValue | undefined,
   hintWords: (input.hintWords ?? undefined) as Prisma.InputJsonValue | undefined,
+  passageHintWords: (input.passageHintWords ?? undefined) as Prisma.InputJsonValue | undefined,
 });
 
 const ok = <T>(res: Response, data: T, status = 200) =>

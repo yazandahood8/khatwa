@@ -7,11 +7,11 @@ import type { HintWord } from '@/lib/problems-api';
 import { cn } from '@/lib/utils';
 
 /**
- * بطاقة سؤال إنجليزي مع زرّ «تلميح» تدريجي (بلا ذكاء اصطناعي):
- *  - ضغطة 1: تُبرِز الكلمات المهمة في نصّ السؤال (عريضة + حمراء).
- *  - ضغطة 2: تُظهر ترجمتها العربية أسفل السؤال.
+ * نصّ إنجليزي (سؤال أو قطعة) مع زرّ «تلميح» تدريجي (بلا ذكاء اصطناعي):
+ *  - ضغطة 1: تُبرِز الكلمات المهمة في النصّ (عريضة + حمراء).
+ *  - ضغطة 2: تُظهر ترجمتها العربية أسفل النصّ.
  *  - ضغطة 3: تُخفي كلّ شيء وتعود للحالة الأصلية.
- * الكلمات وترجماتها تأتي مع المسألة (hintWords). أسئلة بلا كلمات لا تُظهر الزرّ.
+ * الكلمات وترجماتها تأتي مع المسألة (hintWords / passageHintWords). نصّ بلا كلمات لا يُظهر الزرّ.
  */
 
 type Token = { match: boolean; text: string };
@@ -40,30 +40,32 @@ function tokenize(text: string, words: HintWord[]): Token[] {
 }
 
 export function QuestionHint({
-  question,
+  text,
   hintWords,
   label = 'تلميح',
   className,
   textClassName = 'text-xl leading-relaxed',
+  dir = 'auto',
 }: {
-  question: string;
+  text: string;
   hintWords?: HintWord[] | null;
   label?: string;
   className?: string;
   textClassName?: string;
+  dir?: 'auto' | 'ltr' | 'rtl';
 }) {
   // 0 = عادي، 1 = إبراز، 2 = ترجمة
   const [stage, setStage] = useState<0 | 1 | 2>(0);
   const words = hintWords ?? [];
   const hasWords = words.length > 0;
-  const tokens = useMemo(() => tokenize(question, words), [question, words]);
+  const tokens = useMemo(() => tokenize(text, words), [text, words]);
 
   const next = () => setStage((s) => ((s + 1) % 3) as 0 | 1 | 2);
   const btnText = stage === 0 ? label : stage === 1 ? 'الترجمة' : 'إخفاء';
 
   return (
     <div className={className}>
-      <div className={textClassName} dir="auto">
+      <div className={textClassName} dir={dir}>
         {hasWords
           ? tokens.map((t, i) =>
               t.match ? (
@@ -79,7 +81,7 @@ export function QuestionHint({
                 <QuestionText key={i} text={t.text} />
               ),
             )
-          : <QuestionText text={question} />}
+          : <QuestionText text={text} />}
       </div>
 
       {hasWords && (

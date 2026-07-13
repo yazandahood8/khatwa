@@ -127,9 +127,13 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
           {problem.passage && (
             <div className="rounded-2xl border border-border bg-muted/40 p-5 shadow-card">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Passage</p>
-              <div className="max-h-64 overflow-y-auto whitespace-pre-wrap text-base leading-relaxed scrollbar-thin" dir="ltr">
-                {problem.passage}
-              </div>
+              <QuestionHint
+                text={problem.passage}
+                hintWords={problem.passageHintWords}
+                label="كلمات القطعة"
+                dir="ltr"
+                textClassName="max-h-64 overflow-y-auto whitespace-pre-wrap text-base leading-relaxed scrollbar-thin"
+              />
             </div>
           )}
 
@@ -138,7 +142,7 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {isCloze ? 'أكمل الفراغ' : 'اختر الإجابة الصحيحة'}
             </p>
-            <QuestionHint question={problem.question} hintWords={problem.hintWords} label="تلميح" />
+            <QuestionHint text={problem.question} hintWords={problem.hintWords} label="تلميح" />
             {problem.figure && <ProblemFigure spec={problem.figure} />}
           </div>
 

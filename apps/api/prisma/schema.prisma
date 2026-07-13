@@ -222,6 +222,7 @@ model Problem {
   choices         Json? // خيارات سؤال اختيار من متعدّد/إكمال — MCQ/cloze options ([{ text }]؛ finalAnswer = الصحيح)
   passage         String? // نصّ القطعة لأسئلة الفهم/القراءة، أو موجز مهمّة الكتابة — reading passage / writing brief
   hintWords       Json?    @map("hint_words") // كلمات السؤال المهمة + ترجمتها العربية — [{ en, ar }] لزرّ «تلميح» (إنجليزي، بلا AI)
+  passageHintWords Json?   @map("passage_hint_words") // كلمات القطعة المهمة + ترجمتها — [{ en, ar }] لزرّ «تلميح» على القطعة
   figure          Json? // مخطط هندسي اختياري للسؤال — optional geometry diagram spec (FigureSpec)
   allowFreeMethod Boolean    @default(true) @map("allow_free_method")
   orderIndex      Int        @default(0) @map("order_index")

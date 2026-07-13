@@ -47,6 +47,10 @@ const problemBase = z.object({
     .array(z.object({ en: z.string().trim().min(1).max(60), ar: z.string().trim().min(1).max(120) }))
     .max(12)
     .optional(),
+  passageHintWords: z // كلمات القطعة المهمة + ترجمتها — لزرّ «تلميح» على القطعة
+    .array(z.object({ en: z.string().trim().min(1).max(60), ar: z.string().trim().min(1).max(120) }))
+    .max(40)
+    .optional(),
   starterCode: z.string().trim().max(4000).optional(),
   methods: z.array(solutionMethodSchema).optional().default([]),
   commonMistakes: z.array(commonMistakeSchema).optional(),

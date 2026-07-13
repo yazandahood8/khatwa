@@ -45,6 +45,7 @@ export interface ProblemFull extends ProblemListItem {
   choices: Choice[] | null; // خيارات MCQ/إكمال — MCQ/cloze options
   passage: string | null; // قطعة القراءة أو موجز الكتابة — reading passage / writing brief
   hintWords: HintWord[] | null; // كلمات السؤال المهمة + ترجمتها — لزرّ «تلميح» (إنجليزي)
+  passageHintWords: HintWord[] | null; // كلمات القطعة المهمة + ترجمتها — لزرّ «تلميح» على القطعة
   figure: FigureSpec | null; // مخطط هندسي اختياري يُعرض مع السؤال
 
   answerTolerance: number;
