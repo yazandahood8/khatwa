@@ -32,7 +32,7 @@ export default function StudentDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const todayDone = Math.min(stats?.week.problemsSolved ?? 0, DAILY_GOAL);
+  const todayDone = Math.min(stats?.today.problemsSolved ?? 0, DAILY_GOAL);
   const goalPct = (todayDone / DAILY_GOAL) * 100;
   const firstName = (user?.name ?? '').split(' ')[0];
 

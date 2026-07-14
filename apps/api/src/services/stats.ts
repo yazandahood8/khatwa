@@ -3,6 +3,10 @@ import { prisma } from './prisma';
 /** يوم بصيغة YYYY-MM-DD (UTC) — day key for streak math. */
 const dayStr = (d: Date) => d.toISOString().slice(0, 10);
 
+/** يوم محلي بتوقيت إسرائيل — local (Asia/Jerusalem) day key, so "today" resets at local midnight. */
+const localDayStr = (d: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(d);
+
 /** يحسب أطول وأحدث سلسلة أيام متتالية — current + best consecutive-day streak. */
 function computeStreaks(dates: Date[]): { current: number; best: number } {
   const days = [...new Set(dates.map(dayStr))].sort(); // تصاعدي
@@ -54,6 +58,7 @@ export interface StudentStats {
   studyMinutes: number;
   badges: Badge[];
   week: { completedLessons: number; problemsSolved: number };
+  today: { problemsSolved: number };
   difficult: { problemId: string; question: string; attempts: number }[];
 }
 
@@ -110,6 +115,11 @@ export async function computeStudentStats(studentId: string): Promise<StudentSta
     problemsSolved: solved.filter((a) => a.completedAt && a.completedAt >= weekAgo).length,
   };
 
+  const todayKey = localDayStr(new Date());
+  const today = {
+    problemsSolved: solved.filter((a) => a.completedAt && localDayStr(a.completedAt) === todayKey).length,
+  };
+
   const difficult = attempts
     .filter((a) => a.attemptsCount > 3)
     .slice(0, 5)
@@ -135,6 +145,7 @@ export async function computeStudentStats(studentId: string): Promise<StudentSta
     studyMinutes,
     badges,
     week,
+    today,
     difficult,
   };
 }

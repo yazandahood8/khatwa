@@ -19,6 +19,7 @@ export interface StudentStats {
   studyMinutes: number;
   badges: Badge[];
   week: { completedLessons: number; problemsSolved: number };
+  today: { problemsSolved: number };
   difficult: { problemId: string; question: string; attempts: number }[];
 }
 
