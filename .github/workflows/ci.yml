@@ -39,3 +39,49 @@ jobs:
           # قيمة وهمية للبناء فقط — dummy value, build doesn't connect to DB
           DATABASE_URL: 'postgresql://user:pass@localhost:5432/db?schema=public'
           NEXT_PUBLIC_API_URL: 'http://localhost:4000'
+
+  integration:
+    name: Integration tests (API)
+    runs-on: ubuntu-latest
+
+    # حاويات خدمة على نفس منافذ إعداد Vitest (5544/6390) فلا حاجة لتجاوز المتغيّرات.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: khatwa_test
+          POSTGRES_PASSWORD: khatwa_test
+          POSTGRES_DB: khatwa_test
+        ports:
+          - 5544:5432
+        options: >-
+          --health-cmd "pg_isready -U khatwa_test -d khatwa_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6390:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      # globalSetup يُنفّذ `prisma db push` على قاعدة الخدمة قبل الاختبارات.
+      # test:integration:ci يشغّل Vitest مباشرة (بلا docker — الخدمات جاهزة أعلاه).
+      - name: Run integration tests
+        run: npm run test:integration:ci --workspace=apps/api

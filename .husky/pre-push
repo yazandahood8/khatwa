@@ -1,0 +1,21 @@
+# بوابة الدفع إلى main — run the full integration suite before any push to main.
+# git يمرّر الـ refs المدفوعة على stdin: "<local ref> <local sha> <remote ref> <remote sha>".
+# نشغّل الاختبارات فقط عند استهداف main كي لا نُبطئ دفع فروع العمل.
+
+pushing_to_main=0
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main) pushing_to_main=1 ;;
+  esac
+done
+
+if [ "$pushing_to_main" -eq 1 ]; then
+  echo "↪ الدفع إلى main — تشغيل الاختبارات التكاملية (تحتاج Docker Desktop قيد التشغيل)…"
+  npm run test:integration || {
+    echo "✗ فشلت الاختبارات التكاملية — أُلغي الدفع إلى main."
+    exit 1
+  }
+  echo "✓ نجحت الاختبارات التكاملية — يُكمل الدفع."
+else
+  echo "↪ الدفع ليس إلى main — تخطّي الاختبارات التكاملية."
+fi
