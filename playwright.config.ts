@@ -3,8 +3,9 @@ import { API_PORT, API_URL, WEB_PORT, WEB_URL, DATABASE_URL, REDIS_URL, JWT_SECR
 
 /**
  * إعداد Playwright لِـ E2E — drives the real web app + API against an isolated DB.
- * globalSetup: حاويات + مخطط + بذور. webServer: يشغّل الـ API والواجهة على منافذ E2E.
- * التشغيل مرئيّاً: `npm run test:e2e:headed` أو `npm run test:e2e:ui`.
+ * تُشغَّل عبر مُشغّل e2e/run-e2e.mjs الذي يرفع Docker ويبذر البيانات قبل هذا الإعداد،
+ * فيقلع التطبيق على قاعدة جاهزة (بلا ضجيج Redis). لا تُشغّل `playwright test` مباشرةً؛
+ * استخدم `npm run test:e2e` / `:headed` / `:ui`.
  */
 export default defineConfig({
   testDir: './e2e',
@@ -14,8 +15,6 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 10_000 },
   reporter: 'list',
-  globalSetup: './e2e/global-setup.ts',
-  globalTeardown: './e2e/global-teardown.ts',
 
   use: {
     baseURL: WEB_URL,

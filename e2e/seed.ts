@@ -1,29 +1,12 @@
-import { execSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { DATABASE_URL, COMPOSE_ARGS, SEED_STUDENT } from './env';
+import { DATABASE_URL, SEED_STUDENT } from './env';
 
 /**
- * إعداد عام لِـ E2E — brings up an isolated Postgres+Redis, syncs the schema,
- * and seeds a known student (+ minimal content) before the browser tests run.
+ * بذور E2E — seeds a known student (+ a tiny published content tree) into the
+ * already-running E2E database. يُشغَّل عبر tsx من مُشغّل run-e2e.mjs بعد رفع Docker وdb push.
  */
-export default async function globalSetup() {
-  // 1) حاويات نظيفة — fresh containers (down first in case a previous run lingered).
-  try {
-    execSync(`docker compose ${COMPOSE_ARGS} down -v`, { stdio: 'ignore' });
-  } catch {
-    /* لا شيء لإنزاله — nothing to tear down */
-  }
-  execSync(`docker compose ${COMPOSE_ARGS} up -d --wait`, { stdio: 'inherit' });
-
-  // 2) مخطط قاعدة البيانات — push schema to the fresh DB.
-  execSync('npx prisma db push --skip-generate --accept-data-loss', {
-    stdio: 'inherit',
-    cwd: 'apps/api',
-    env: { ...process.env, DATABASE_URL, DIRECT_URL: DATABASE_URL },
-  });
-
-  // 3) بيانات معروفة — seed a known student + a tiny published content tree.
+async function main() {
   const prisma = new PrismaClient({ datasources: { db: { url: DATABASE_URL } } });
   try {
     const subject = await prisma.subject.create({ data: { nameAr: 'رياضيات' } });
@@ -57,3 +40,9 @@ export default async function globalSetup() {
     await prisma.$disconnect();
   }
 }
+
+main().catch((e) => {
+  // eslint-disable-next-line no-console
+  console.error('E2E seed failed:', e);
+  process.exit(1);
+});
