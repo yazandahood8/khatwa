@@ -10,12 +10,23 @@ while read -r _local_ref _local_sha remote_ref _remote_sha; do
 done
 
 if [ "$pushing_to_main" -eq 1 ]; then
-  echo "↪ الدفع إلى main — تشغيل الاختبارات التكاملية (تحتاج Docker Desktop قيد التشغيل)…"
+  echo "↪ الدفع إلى main — تحتاج Docker Desktop قيد التشغيل."
+
+  # الخطوة 1: اختبارات التكامل (API) — integration suite.
+  echo "① تشغيل اختبارات التكامل…"
   npm run test:integration || {
-    echo "✗ فشلت الاختبارات التكاملية — أُلغي الدفع إلى main."
+    echo "✗ فشلت اختبارات التكامل — أُلغي الدفع إلى main."
     exit 1
   }
-  echo "✓ نجحت الاختبارات التكاملية — يُكمل الدفع."
+  echo "✓ نجحت اختبارات التكامل."
+
+  # الخطوة 2: اختبارات E2E (Playwright) — يشغّل الواجهة + الـ API في متصفّح حقيقي.
+  echo "② تشغيل اختبارات E2E (Playwright)…"
+  npm run test:e2e || {
+    echo "✗ فشلت اختبارات E2E — أُلغي الدفع إلى main."
+    exit 1
+  }
+  echo "✓ نجحت اختبارات E2E — يُكمل الدفع."
 else
-  echo "↪ الدفع ليس إلى main — تخطّي الاختبارات التكاملية."
+  echo "↪ الدفع ليس إلى main — تخطّي اختبارات التكامل وE2E."
 fi

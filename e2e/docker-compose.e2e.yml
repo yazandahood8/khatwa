@@ -1,0 +1,28 @@
+# قاعدة بيانات وذاكرة مؤقتة لاختبارات E2E — isolated Postgres + Redis for Playwright E2E.
+# منافذ خاصّة (5545/6391) مختلفة عن اختبارات التكامل (5544/6390) كي لا يتعارضا.
+services:
+  postgres-e2e:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: khatwa_e2e
+      POSTGRES_PASSWORD: khatwa_e2e
+      POSTGRES_DB: khatwa_e2e
+    ports:
+      - '5545:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U khatwa_e2e -d khatwa_e2e']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-e2e:
+    image: redis:7-alpine
+    ports:
+      - '6391:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      timeout: 3s
+      retries: 20

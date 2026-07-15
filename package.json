@@ -19,12 +19,17 @@
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:integration": "npm run test:integration --workspace=apps/api",
+    "test:e2e": "npm run build --workspace=packages/shared && playwright test",
+    "test:e2e:headed": "npm run build --workspace=packages/shared && playwright test --headed",
+    "test:e2e:ui": "npm run build --workspace=packages/shared && playwright test --ui",
+    "test:e2e:down": "docker compose -f e2e/docker-compose.e2e.yml -p khatwa-e2e down -v",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "prisma:generate": "npm run prisma:generate --workspace=apps/api",
     "prisma:migrate": "npm run prisma:migrate --workspace=apps/api",
     "prepare": "husky || true"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "husky": "^9.1.7",
     "prettier": "^3.3.3"
   },

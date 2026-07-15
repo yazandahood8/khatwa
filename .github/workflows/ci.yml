@@ -86,3 +86,43 @@ jobs:
       # test:integration:ci يشغّل Vitest مباشرة (بلا docker — الخدمات جاهزة أعلاه).
       - name: Run integration tests
         run: npm run test:integration:ci --workspace=apps/api
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # فقط عند الدفع إلى main (أي عند دمج PR) — لا على كل PR كي تبقى فحوص الـ PR سريعة.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+
+      # متصفّح Chromium + اعتماديّات نظامه — Playwright browser for the runner.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # test:e2e يبني الحزمة المشتركة، ثم globalSetup يرفع Postgres+Redis عبر docker compose
+      # (متوفّر على ubuntu-latest)، ويشغّل الـ API + next dev، ثم اختبارات المتصفّح.
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      # أثر/تقرير Playwright عند الفشل — upload the report for debugging failures.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
