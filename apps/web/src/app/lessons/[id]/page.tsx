@@ -13,6 +13,8 @@ import {
   RotateCcw,
   RotateCw,
   Gauge,
+  MessageCircle,
+  X,
 } from 'lucide-react';
 import {
   getLessonById,
@@ -29,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { LessonChatPanel } from '@/components/lessons/lesson-chat-panel';
 import { cn } from '@/lib/utils';
 
 export default function LessonPage() {
@@ -46,6 +49,7 @@ export default function LessonPage() {
   const [locked, setLocked] = useState(false);
   const [firstProblemId, setFirstProblemId] = useState<string | null>(null);
   const [rate, setRate] = useState(1);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -168,7 +172,8 @@ export default function LessonPage() {
 
   return (
     <AppShell nav={studentNav} title="الدرس">
-      <div className="mx-auto max-w-4xl space-y-5">
+      <div className="mx-auto flex max-w-6xl gap-6">
+        <div className="min-w-0 flex-1 space-y-5">
         <Link
           href="/courses"
           className="inline-flex items-center gap-1 text-sm text-primary transition-colors hover:underline"
@@ -292,7 +297,52 @@ export default function LessonPage() {
             </CardContent>
           </Card>
         )}
+        </div>
+
+        {/* معلّم الدرس — نسخة واحدة تتكيّف: عمود جانبي على الحاسوب، لوح سفلي منزلق على الجوال. */}
+        <aside
+          className={cn(
+            'fixed inset-x-0 bottom-0 z-50 h-[78vh] rounded-t-2xl border-t border-border bg-card p-4 shadow-float transition-transform duration-300',
+            'lg:sticky lg:top-6 lg:z-auto lg:h-[calc(100vh-8rem)] lg:w-[360px] lg:shrink-0 lg:translate-y-0 lg:rounded-2xl lg:border-t lg:bg-card lg:p-0 lg:shadow-none lg:transition-none',
+            showChat ? 'translate-y-0' : 'translate-y-full',
+          )}
+        >
+          {/* مقبض السحب + إغلاق (جوال فقط) */}
+          <div className="relative mb-2 flex h-5 items-center lg:hidden">
+            <span className="mx-auto h-1.5 w-12 rounded-full bg-border" />
+            <button
+              onClick={() => setShowChat(false)}
+              className="absolute end-0 text-muted-foreground"
+              aria-label="إغلاق"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="h-[calc(100%-1.75rem)] lg:h-full">
+            <LessonChatPanel lessonId={id} lessonTitle={lesson?.title} />
+          </div>
+        </aside>
       </div>
+
+      {/* خلفية معتمة للّوح على الجوال — mobile sheet backdrop */}
+      {showChat && (
+        <button
+          className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm lg:hidden"
+          aria-label="إغلاق"
+          onClick={() => setShowChat(false)}
+        />
+      )}
+
+      {/* زرّ المحادثة العائم — mobile floating chat button (يختفي عند فتح اللوح) */}
+      {!showChat && (
+        <button
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-5 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float lg:hidden"
+          aria-label="افتح معلّم الدرس"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
+      )}
     </AppShell>
   );
 }

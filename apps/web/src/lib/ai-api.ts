@@ -66,6 +66,45 @@ export async function streamTutor(
 }
 
 /**
+ * يبثّ رد معلّم الدرس رمزاً برمز — streams the lesson-teacher reply token-by-token.
+ * دردشة مقيّدة بدرس واحد. يعيد الحصة المتبقية.
+ */
+export async function streamLessonChat(
+  lessonId: string,
+  body: { message: string; history: TutorTurn[] },
+  onToken: (chunk: string) => void,
+): Promise<{ remaining: number | null }> {
+  const token = getToken();
+  const res = await fetch(`${API_URL}/api/lessons/${lessonId}/ai`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (res.status === 429) {
+    const j = await res.json().catch(() => null);
+    throw new ApiClientError('RATE_LIMITED', j?.error?.message ?? 'تجاوزت حدّك اليومي');
+  }
+  if (!res.ok || !res.body) {
+    const j = await res.json().catch(() => null);
+    throw new ApiClientError(j?.error?.code ?? 'AI_ERROR', j?.error?.message ?? 'تعذّر الاتصال بالمساعد');
+  }
+
+  const remaining = res.headers.get('X-AI-Remaining');
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    onToken(decoder.decode(value, { stream: true }));
+  }
+  return { remaining: remaining != null ? Number(remaining) : null };
+}
+
+/**
  * يبثّ حكم مصحّح الكود رمزاً برمز — streams the code-judge reply token-by-token.
  * يُستخدم لمسائل علوم الحاسوب (problem.language). يعيد الحصة المتبقية.
  */

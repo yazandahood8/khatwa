@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from '../middleware/auth.middleware';
 import * as c from '../controllers/content.controller';
 import * as review from '../controllers/adminReview.controller';
 import { adminAnalytics } from '../controllers/analytics.controller';
+import { lessonChat } from '../controllers/ai.controller';
 
 const router = Router();
 const admin = [requireAuth, requireRole(UserRole.ADMIN)] as const;
@@ -58,5 +59,8 @@ router.post('/lessons/:id/publish', ...admin, c.setLessonPublish);
 router.post('/lessons/:id/upload-url', ...admin, c.getLessonUploadUrl);
 router.post('/lessons/:id/attach-video', ...admin, c.attachLessonVideo);
 router.get('/lessons/:id/playback', requireAuth, c.getLessonPlayback);
+
+// دردشة معلّم الدرس — lesson teacher chat (any authed user, quota-limited)
+router.post('/lessons/:id/ai', requireAuth, lessonChat);
 
 export default router;

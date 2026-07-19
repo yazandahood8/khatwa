@@ -20,7 +20,9 @@
     "db:backfill-figures": "tsx prisma/backfillFigures.ts",
     "hints:generate": "tsx prisma/generateHints.ts",
     "hints:backfill": "tsx prisma/backfillHints.ts",
-    "english:hints:backfill": "tsx prisma/backfillEnglishHints.ts"
+    "english:hints:backfill": "tsx prisma/backfillEnglishHints.ts",
+    "summaries:generate": "tsx prisma/generateLessonSummaries.ts",
+    "summaries:backfill": "tsx prisma/backfillLessonSummaries.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

@@ -22,7 +22,7 @@ import { getUserPlan } from '../services/aiRateLimit';
  * بوابة الوصول للدرس حسب الباقة — lesson access gate by plan.
  * المجاني: أول درس فقط في كل موضوع. المدفوع/الأدمن: كل الدروس.
  */
-async function assertLessonAccess(req: Request, lesson: { id: string; topicId: string }) {
+export async function assertLessonAccess(req: Request, lesson: { id: string; topicId: string }) {
   if (req.user?.role === 'admin') return;
   const plan = await getUserPlan(req.user!.id);
   if (plan !== SubscriptionPlan.FREE) return;

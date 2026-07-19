@@ -10,6 +10,7 @@ import { evaluateGuided } from '../services/guidedSolve';
 import { SOLVE_GRAPHS } from '../data/solveGraphs';
 import {
   buildTutorSystemPrompt,
+  buildLessonTeacherPrompt,
   buildCodeJudgePrompt,
   buildCodeHintPrompt,
   buildTraceTableJudgePrompt,
@@ -19,6 +20,7 @@ import {
   buildEnglishReadingJudgePrompt,
   buildEnglishHintPrompt,
 } from '../utils/aiPrompt';
+import { assertLessonAccess } from './content.controller';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
 
@@ -47,6 +49,14 @@ const judgeSchema = z.object({
   // صورة تتبّع مرسوم/مصوَّر (base64) — لأسئلة التتبّع العودي بالصناديق
   image: z.string().max(4_000_000).optional(),
   mediaType: z.enum(['image/png', 'image/jpeg']).default('image/png'),
+});
+
+const lessonChatSchema = z.object({
+  message: z.string().trim().min(1, 'الرسالة مطلوبة').max(2000),
+  history: z
+    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) }))
+    .max(20)
+    .optional(),
 });
 
 /**
@@ -364,6 +374,113 @@ export async function askTutor(req: Request, res: Response) {
     );
   } catch (err) {
     logger.error('AI stream error', err instanceof Error ? err.message : err);
+    if (!full) await refundQuota(studentId); // لم يصل أي رد — لا تحتسب السؤال
+    if (!res.headersSent) {
+      res.status(502).json({ success: false, error: { code: 'AI_ERROR', message: 'تعذّر الاتصال بالمساعد' } });
+    } else {
+      res.end('\n\n(عذراً، صار خطأ. حاول مرة ثانية)');
+    }
+  }
+}
+
+/** POST /api/lessons/:id/ai — معلّم الدرس (دردشة مقيّدة بهذا الدرس، بثّ مباشر). */
+export async function lessonChat(req: Request, res: Response) {
+  if (!isAiConfigured() || !claude) {
+    throw ApiError.internal('المساعد الذكي غير مهيأ بعد (ANTHROPIC_API_KEY مفقود)');
+  }
+  const input = lessonChatSchema.parse(req.body);
+  const studentId = req.user!.id;
+  const lessonId = req.params.id;
+
+  // الدرس مع سياق التسلسل الهرمي + تماريه — lesson with topic hierarchy + its problems
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    include: {
+      problems: { select: { question: true } },
+      topic: {
+        include: {
+          level: { include: { grade: { include: { subject: true } }, subject: true } },
+          questionnaire: { include: { level: { include: { subject: true } } } },
+        },
+      },
+    },
+  });
+  if (!lesson) throw ApiError.notFound('الدرس غير موجود');
+
+  // بوابة الباقة — نفس تقييد الوصول لمشاهدة الدرس (المجاني: أول درس فقط)
+  await assertLessonAccess(req, lesson);
+
+  // تحديد المعدل حسب الباقة — rate limit by plan (throws RATE_LIMITED)
+  let quota;
+  try {
+    quota = await consumeQuota(studentId, req.user!.role);
+  } catch (e) {
+    if ((e as { code?: string }).code === 'RATE_LIMITED') {
+      res.status(429).json({
+        success: false,
+        error: { code: 'RATE_LIMITED', message: 'خلصت أسئلتك لليوم. جرّب بكرة أو رقّي باقتك 🙂' },
+      });
+      return;
+    }
+    throw e;
+  }
+
+  const tctx = deriveTopicContext(lesson.topic);
+  const systemPrompt = buildLessonTeacherPrompt({
+    subject: tctx.subject,
+    grade: tctx.grade,
+    level: tctx.level,
+    topic: lesson.topic.nameAr,
+    lessonTitle: lesson.title,
+    lessonDescription: lesson.description,
+    lessonSummary: lesson.summary,
+    problems: lesson.problems,
+  });
+
+  const messages: Anthropic.MessageParam[] = [
+    ...(input.history ?? []),
+    { role: 'user', content: input.message },
+  ];
+
+  // بثّ الرد — stream the response as plain text chunks
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('X-AI-Remaining', String(quota.remaining));
+  res.flushHeaders?.();
+
+  let full = '';
+  try {
+    const stream = claude.messages.stream({
+      model: CLAUDE_MODEL,
+      max_tokens: 600,
+      system: systemPrompt,
+      messages,
+    });
+    stream.on('text', (t) => {
+      full += t;
+      res.write(t);
+    });
+    const finalMsg = await stream.finalMessage();
+    res.end();
+
+    // حفظ الجلسة + التكلفة — persist session + token usage
+    const inTok = finalMsg.usage.input_tokens;
+    const outTok = finalMsg.usage.output_tokens;
+    const savedMessages = [
+      ...messages.map((m) => ({
+        role: m.role,
+        content: typeof m.content === 'string' ? m.content : input.message,
+      })),
+      { role: 'assistant', content: full.trimEnd() },
+    ];
+    await prisma.aiSession.create({
+      data: { studentId, lessonId, messages: savedMessages, tokensUsed: inTok + outTok },
+    });
+    logger.info(
+      `AI lesson chat: ${inTok}+${outTok} tok ($${estimateCostUsd(CLAUDE_MODEL, inTok, outTok).toFixed(5)})`,
+    );
+  } catch (err) {
+    logger.error('AI lesson chat error', err instanceof Error ? err.message : err);
     if (!full) await refundQuota(studentId); // لم يصل أي رد — لا تحتسب السؤال
     if (!res.headersSent) {
       res.status(502).json({ success: false, error: { code: 'AI_ERROR', message: 'تعذّر الاتصال بالمساعد' } });

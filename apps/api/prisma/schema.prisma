@@ -186,6 +186,7 @@ model Lesson {
   id              String   @id @default(cuid())
   title           String
   description     String?
+  summary         String?  @map("summary") // ملخّص الدرس — قاعدة معرفة معلّم الدردشة الذكي (اختياري)
   durationMinutes Int?     @map("duration_minutes")
   durationSeconds Int?     @map("duration_seconds") // مدة دقيقة (mm:ss)؛ تُستخدم للعرض والتجميع
   videoUrl        String?  @map("video_url") // AWS S3 / CloudFront
@@ -196,9 +197,10 @@ model Lesson {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  topic    Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  progress LessonProgress[]
-  problems Problem[]
+  topic      Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  progress   LessonProgress[]
+  problems   Problem[]
+  aiSessions AiSession[]
 
   @@index([topicId])
   @@map("lessons")
@@ -364,14 +366,17 @@ model AiSession {
   id         String   @id @default(cuid())
   studentId  String   @map("student_id")
   problemId  String?  @map("problem_id")
+  lessonId   String?  @map("lesson_id") // جلسات دردشة الدرس — lesson-scoped chat sessions
   messages   Json     @default("[]")
   tokensUsed Int      @default(0) @map("tokens_used")
   createdAt  DateTime @default(now()) @map("created_at")
 
   student User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   problem Problem? @relation(fields: [problemId], references: [id], onDelete: SetNull)
+  lesson  Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
+  @@index([lessonId])
   @@map("ai_sessions")
 }
 
