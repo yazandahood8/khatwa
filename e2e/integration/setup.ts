@@ -1,6 +1,6 @@
 import { beforeEach, afterAll } from 'vitest';
-import { prisma } from '../../src/services/prisma';
-import { redis } from '../../src/services/redis';
+import { prisma } from '../../apps/api/src/services/prisma';
+import { redis } from '../../apps/api/src/services/redis';
 
 /**
  * تهيئة لكل اختبار — per-test isolation.

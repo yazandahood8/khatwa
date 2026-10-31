@@ -1,8 +1,11 @@
 // مُشغّل الاختبارات التكاملية — orchestrates the integration run cross-platform (Windows/CI).
 // يرفع Postgres+Redis عبر Docker، يشغّل Vitest، ثم يُنزل الحاويات دائماً (حتى عند الفشل).
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const COMPOSE = ['compose', '-f', 'docker-compose.test.yml'];
+const HERE = fileURLToPath(new URL('.', import.meta.url));
+const COMPOSE = ['compose', '-f', `"${HERE}docker-compose.yml"`];
+const CONFIG = `"${HERE}vitest.config.ts"`;
 
 // shell:true — كي يجد Windows ملفات .cmd مثل npx.cmd/docker (وإلا ENOENT).
 function run(cmd, args, opts = {}) {
@@ -21,7 +24,7 @@ try {
   }
 
   // 2) تشغيل Vitest التكاملي (globalSetup يتكفّل بـ prisma db push).
-  code = run('npx', ['vitest', 'run', '--config', 'vitest.integration.config.ts']);
+  code = run('npx', ['vitest', 'run', '--config', CONFIG], { cwd: fileURLToPath(new URL('../../apps/api', import.meta.url)) });
 } finally {
   // 3) إنزال الحاويات دائماً — always tear down (-v يحذف الأحجام المؤقتة).
   run('docker', [...COMPOSE, 'down', '-v']);

@@ -1,14 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
-import { API_PORT, API_URL, WEB_PORT, WEB_URL, DATABASE_URL, REDIS_URL, JWT_SECRET } from './e2e/env';
+import { API_PORT, API_URL, WEB_PORT, WEB_URL, DATABASE_URL, REDIS_URL, JWT_SECRET } from './e2e/shared/env';
 
 /**
  * إعداد Playwright لِـ E2E — drives the real web app + API against an isolated DB.
- * تُشغَّل عبر مُشغّل e2e/run-e2e.mjs الذي يرفع Docker ويبذر البيانات قبل هذا الإعداد،
+ * تُشغَّل عبر مُشغّل e2e/browser/run.mjs الذي يرفع Docker ويبذر البيانات قبل هذا الإعداد،
  * فيقلع التطبيق على قاعدة جاهزة (بلا ضجيج Redis). لا تُشغّل `playwright test` مباشرةً؛
  * استخدم `npm run test:e2e` / `:headed` / `:ui`.
  */
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './e2e/browser',
   testMatch: '**/*.spec.ts',
   fullyParallel: false,
   workers: 1, // تسلسليّ — DB/خادم مشترك.

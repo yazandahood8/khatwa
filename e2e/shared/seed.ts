@@ -4,7 +4,7 @@ import { DATABASE_URL, SEED_STUDENT } from './env';
 
 /**
  * بذور E2E — seeds a known student (+ a tiny published content tree) into the
- * already-running E2E database. يُشغَّل عبر tsx من مُشغّل run-e2e.mjs بعد رفع Docker وdb push.
+ * already-running E2E database. يُشغَّل عبر tsx من مُشغّل run.mjs بعد رفع Docker وdb push.
  */
 async function main() {
   const prisma = new PrismaClient({ datasources: { db: { url: DATABASE_URL } } });

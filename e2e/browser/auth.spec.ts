@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { SEED_STUDENT } from './env';
+import { SEED_STUDENT } from '../shared/env';
 
 /**
  * تدفّق المصادقة في متصفّح حقيقي — real-browser auth flow against the running app + API.

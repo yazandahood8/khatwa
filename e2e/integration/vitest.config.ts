@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 
 /**
  * إعداد الاختبارات التكاملية — integration tests run the real Express app (createApp)
- * against a throwaway Docker Postgres + Redis (see docker-compose.test.yml).
+ * against a throwaway Docker Postgres + Redis (see docker-compose.yml).
  * منفصلة عن اختبارات الوحدة (vitest.config.ts) لأنها تحتاج قاعدة بيانات.
  */
 export default defineConfig({
@@ -19,9 +19,11 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['tests/integration/**/*.test.ts'],
-    globalSetup: ['tests/integration/globalSetup.ts'],
-    setupFiles: ['tests/integration/setup.ts'],
+    // الجذر = هذا المجلد؛ يُشغَّل من apps/api (cwd) كي تجد الحزم والـ prisma نفسها.
+    root: fileURLToPath(new URL('.', import.meta.url)),
+    include: ['**/*.test.ts'],
+    globalSetup: ['./globalSetup.ts'],
+    setupFiles: ['./setup.ts'],
     // تشغيل تسلسلي — ملف واحد في كل مرة كي لا تتسابق الاختبارات على قاعدة البيانات.
     // (Vitest 4: poolOptions أُزيلت؛ fileParallelism:false يكفي للعزل مع التفريغ بين الاختبارات.)
     pool: 'forks',
