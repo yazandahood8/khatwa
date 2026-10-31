@@ -14,7 +14,7 @@ export const WEB_URL = `http://localhost:${WEB_PORT}`;
 export const JWT_SECRET = 'khatwa-e2e-secret-0123456789abcdef';
 
 /** مشروع docker-compose المعزول لِـ E2E — isolated compose project name. */
-export const COMPOSE_ARGS = '-f e2e/docker-compose.e2e.yml -p khatwa-e2e';
+export const COMPOSE_ARGS = '-f e2e/shared/docker-compose.e2e.yml -p khatwa-e2e';
 
 /** طالب مزروع معروف لاختبار تسجيل الدخول — a known seeded student for the login spec. */
 export const SEED_STUDENT = {

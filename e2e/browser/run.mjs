@@ -5,8 +5,8 @@
 // أي وسائط تُمرَّر (مثل --headed أو --ui) تذهب إلى `playwright test`.
 import { execSync, spawnSync } from 'node:child_process';
 
-const COMPOSE = 'docker compose -f e2e/docker-compose.e2e.yml -p khatwa-e2e';
-// أبقِها متوافقة مع e2e/env.ts — keep in sync with e2e/env.ts.
+const COMPOSE = 'docker compose -f e2e/shared/docker-compose.e2e.yml -p khatwa-e2e';
+// أبقِها متوافقة مع e2e/shared/env.ts — keep in sync with e2e/shared/env.ts.
 const DB_URL = 'postgresql://khatwa_e2e:khatwa_e2e@localhost:5545/khatwa_e2e?schema=public';
 const pwArgs = process.argv.slice(2).join(' ');
 
@@ -35,7 +35,7 @@ try {
     cwd: 'apps/api',
     env: { ...process.env, DATABASE_URL: DB_URL, DIRECT_URL: DB_URL },
   });
-  sh('npx tsx e2e/seed.ts');
+  sh('npx tsx e2e/shared/seed.ts');
 
   // 4) Playwright يشغّل الـ API/الواجهة على قاعدة جاهزة — no startup Redis noise.
   const r = spawnSync(`npx playwright test ${pwArgs}`.trim(), {

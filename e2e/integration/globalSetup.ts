@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 /**
  * إعداد عام يُنفَّذ مرة واحدة قبل كل الاختبارات التكاملية — global setup (runs once).
@@ -17,5 +18,7 @@ export default function setup() {
   execSync('npx prisma db push --skip-generate --accept-data-loss', {
     stdio: 'inherit',
     env,
+    // مخطط prisma يعيش في apps/api — the prisma schema lives in apps/api.
+    cwd: fileURLToPath(new URL('../../apps/api', import.meta.url)),
   });
 }

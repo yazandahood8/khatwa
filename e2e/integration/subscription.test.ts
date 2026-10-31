@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { UserRole } from '@khatwa/shared';
-import { prisma } from '../../src/services/prisma';
-import { ipnSignature } from '../../src/services/payplus';
+import { prisma } from '../../apps/api/src/services/prisma';
+import { ipnSignature } from '../../apps/api/src/services/payplus';
 import { api, auth, seedUser } from './helpers';
 
 /**

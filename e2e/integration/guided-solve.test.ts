@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserRole } from '@khatwa/shared';
-import { prisma } from '../../src/services/prisma';
+import { prisma } from '../../apps/api/src/services/prisma';
 import { api, auth, seedUser, seedContentTree } from './helpers';
 
 /**
@@ -21,7 +21,7 @@ const ai = vi.hoisted(() => {
   return { stream };
 });
 
-vi.mock('../../src/services/claude', () => ({
+vi.mock('../../apps/api/src/services/claude', () => ({
   claude: { messages: { stream: ai.stream } },
   CLAUDE_MODEL: 'claude-test',
   isAiConfigured: () => true,
@@ -37,7 +37,7 @@ const testGraph = {
   fallbackHint: 'ابدأ بالتعبير',
 };
 
-vi.mock('../../src/data/solveGraphs', () => ({
+vi.mock('../../apps/api/src/data/solveGraphs', () => ({
   SOLVE_GRAPHS: new Proxy({}, { get: () => testGraph }),
 }));
 
