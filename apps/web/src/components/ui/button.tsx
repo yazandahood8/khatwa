@@ -4,28 +4,28 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all duration-200 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-[1.1em] [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-all duration-150 ease-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-[1.1em] [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        // Primary — indigo, lifts + glows on hover
+        // Primary — ink blue on a "pressed key" ledge; presses down on click
         default:
-          'bg-primary text-primary-foreground shadow-card hover:bg-primary-dark hover:-translate-y-px hover:shadow-elevated',
-        // Secondary — white w/ border, indigo on hover
+          'bg-primary text-primary-foreground shadow-glow-primary hover:bg-primary-dark active:translate-y-[2px] active:shadow-none',
+        // Secondary — paper with an ink outline
         secondary:
-          'border-[1.5px] border-border bg-card text-foreground hover:border-primary hover:text-primary',
-        // Ghost — transparent, soft indigo wash on hover
+          'border-[1.5px] border-foreground/70 bg-card text-foreground hover:border-foreground hover:bg-muted active:translate-y-px',
+        // Ghost — transparent, faint ink wash on hover
         ghost: 'text-primary hover:bg-accent hover:text-accent-foreground',
-        // Danger — soft red that fills on hover
+        // Danger — red pen outline that fills on hover
         destructive:
-          'border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive hover:text-destructive-foreground',
+          'border border-destructive/40 bg-destructive/5 text-destructive hover:bg-destructive hover:text-destructive-foreground',
         // Outline (kept for shadcn compatibility)
         outline:
-          'border-[1.5px] border-border bg-card text-foreground hover:border-primary hover:text-primary',
-        link: 'text-primary underline-offset-4 hover:underline',
-        // Gradient hero CTA
+          'border-[1.5px] border-foreground/70 bg-card text-foreground hover:border-foreground hover:bg-muted active:translate-y-px',
+        link: 'text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary',
+        // Hero CTA — ink-black key with an ink-blue ledge
         gradient:
-          'gradient-primary text-white shadow-glow-primary hover:-translate-y-px hover:shadow-float',
+          'bg-foreground text-background shadow-[0_3px_0_0_hsl(var(--primary))] hover:bg-primary-dark active:translate-y-[2px] active:shadow-none',
       },
       size: {
         sm: 'h-8 rounded-md px-3 text-sm',

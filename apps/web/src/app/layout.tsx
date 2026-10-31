@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
-import { Cairo, IBM_Plex_Sans_Arabic, JetBrains_Mono } from 'next/font/google';
+import { Reem_Kufi, IBM_Plex_Sans_Arabic, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/providers/auth-provider';
 import { ToastProvider } from '@/components/ui/toast';
 
-// خط العناوين — display headings
-const cairo = Cairo({
+// خط العناوين — display headings (geometric Kufi, full Arabic + Latin)
+const reemKufi = Reem_Kufi({
   subsets: ['arabic', 'latin'],
-  weight: ['600', '700'],
-  variable: '--font-cairo',
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
   display: 'swap',
 });
 
@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body
-        className={`${cairo.variable} ${plexArabic.variable} ${jetbrains.variable} font-body antialiased`}
+        className={`${reemKufi.variable} ${plexArabic.variable} ${jetbrains.variable} font-body antialiased`}
       >
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>

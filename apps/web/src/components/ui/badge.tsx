@@ -3,7 +3,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-full font-medium transition-colors',
+  // Labels look like tabs cut from paper — small radius, never pills
+  'inline-flex items-center gap-1 rounded-sm font-medium transition-colors',
   {
     variants: {
       variant: {
@@ -12,10 +13,10 @@ const badgeVariants = cva(
         success: 'bg-success/10 text-success',
         warning: 'bg-warning/10 text-warning',
         destructive: 'bg-destructive/10 text-destructive',
-        // Streak — gradient fire chip with glow
+        // Streak — solid warning chip on a ledge
         streak: 'gradient-streak text-white shadow-glow-streak',
-        // Achievement — amber pill
-        achievement: 'border-[1.5px] border-gold bg-gold-light text-gold-text',
+        // Achievement — highlighter swatch
+        achievement: 'bg-highlight/70 text-foreground',
         outline: 'border border-border text-foreground',
       },
       size: {

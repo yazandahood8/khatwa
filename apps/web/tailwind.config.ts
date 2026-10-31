@@ -15,10 +15,10 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        // Cairo for headings, IBM Plex Sans Arabic for body, JetBrains Mono for math
-        display: ['var(--font-cairo)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-plex-arabic)', 'var(--font-cairo)', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-plex-arabic)', 'var(--font-cairo)', 'system-ui', 'sans-serif'],
+        // Reem Kufi for headings, IBM Plex Sans Arabic for body, JetBrains Mono for math
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-plex-arabic)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-plex-arabic)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
       fontSize: {
@@ -59,6 +59,8 @@ const config: Config = {
           foreground: 'hsl(var(--success-foreground) / <alpha-value>)',
         },
         warning: 'hsl(var(--warning) / <alpha-value>)',
+        highlight: 'hsl(var(--highlight) / <alpha-value>)',
+        margin: 'hsl(var(--margin) / <alpha-value>)',
         gold: {
           DEFAULT: 'hsl(var(--gold) / <alpha-value>)',
           light: 'hsl(var(--gold-light) / <alpha-value>)',
@@ -78,20 +80,27 @@ const config: Config = {
         },
       },
       borderRadius: {
-        sm: '6px',
-        DEFAULT: '12px',
-        md: '12px',
+        // Cut-paper corners — small and consistent
+        sm: '3px',
+        DEFAULT: '6px',
+        md: '6px',
         lg: 'var(--radius)',
-        xl: '20px',
-        '2xl': '28px',
+        xl: '8px',
+        '2xl': '10px',
       },
       boxShadow: {
-        subtle: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
-        card: '0 4px 16px rgba(108,99,255,0.08), 0 1px 4px rgba(0,0,0,0.04)',
-        elevated: '0 12px 40px rgba(108,99,255,0.15), 0 4px 12px rgba(0,0,0,0.06)',
-        float: '0 24px 60px rgba(108,99,255,0.2)',
-        'glow-primary': '0 8px 24px rgba(108,99,255,0.35)',
-        'glow-streak': '0 4px 12px rgba(245,158,11,0.4)',
+        // Paper, not glow: a ruled edge plus a stacked-sheet offset
+        subtle: '0 1px 0 hsl(var(--border))',
+        card: '0 1px 0 hsl(var(--border)), 0 2px 0 hsl(var(--border) / 0.5)',
+        elevated:
+          '0 1px 0 hsl(var(--border)), 0 14px 28px -16px hsl(var(--foreground) / 0.28)',
+        float: '0 22px 44px -20px hsl(var(--foreground) / 0.35)',
+        // "Pressed key" ledge under primary actions
+        'glow-primary': '0 3px 0 0 hsl(var(--primary-dark))',
+        'glow-streak': '0 2px 0 0 hsl(25 85% 32%)',
+        // Stacked sheet — the worked page sits on a pad of paper
+        sheet:
+          '0 1px 0 hsl(var(--border)), -6px 6px 0 -1px hsl(var(--card)), -6px 6px 0 0 hsl(var(--border)), -12px 12px 0 -1px hsl(var(--card)), -12px 12px 0 0 hsl(var(--border))',
       },
       keyframes: {
         fadeSlideUp: {

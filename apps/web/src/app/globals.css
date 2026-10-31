@@ -3,83 +3,91 @@
 @tailwind utilities;
 
 /* ──────────────────────────────────────────────────────────
-   خطوة — Design Tokens
+   خطوة — Design Tokens · "الدفتر / The Worked Page"
+   A good student's exercise book: warm paper, fountain-pen ink,
+   a red margin rule, highlighter marks, numbered steps in the margin.
    Semantic colors use HSL triplets so Tailwind can apply
    alpha modifiers (e.g. bg-primary/30).
    ────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Surfaces */
-    --background: 248 100% 98%; /* #F8F7FF off-white w/ purple tint */
-    --foreground: 221 39% 11%; /* #111827 near-black */
-    --card: 0 0% 100%; /* #FFFFFF */
-    --card-foreground: 221 39% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 221 39% 11%;
+    /* Surfaces — paper */
+    --background: 40 33% 95%; /* #F6F2EA warm exercise-book paper */
+    --foreground: 222 38% 13%; /* #141E2E ink-black */
+    --card: 42 60% 99%; /* #FFFDF8 fresh sheet */
+    --card-foreground: 222 38% 13%;
+    --popover: 42 60% 99%;
+    --popover-foreground: 222 38% 13%;
 
-    /* Primary — Electric Indigo */
-    --primary: 244 100% 69%; /* #6C63FF */
-    --primary-foreground: 0 0% 100%;
-    --primary-dark: 243 75% 59%; /* #4F46E5 */
-    --primary-light: 226 100% 97%; /* #EEF2FF */
+    /* Primary — fountain-pen ink blue */
+    --primary: 221 72% 38%; /* #1B4AA8 */
+    --primary-foreground: 42 60% 99%;
+    --primary-dark: 222 75% 26%; /* #112F74 */
+    --primary-light: 218 62% 93%; /* #E4ECFA blotting-paper blue */
 
     /* Neutrals / shadcn semantic */
-    --secondary: 226 100% 97%; /* soft indigo for secondary surfaces */
-    --secondary-foreground: 243 75% 59%;
-    --muted: 220 14% 96%; /* light gray surface */
-    --muted-foreground: 220 9% 46%; /* #6B7280 */
-    --accent: 226 100% 97%; /* #EEF2FF — subtle hover bg */
-    --accent-foreground: 244 100% 69%; /* indigo text on hover */
+    --secondary: 40 26% 90%;
+    --secondary-foreground: 222 38% 13%;
+    --muted: 40 22% 90%; /* #EAE5DA */
+    --muted-foreground: 222 12% 38%; /* #555D6E — AA on paper */
+    --accent: 218 62% 93%;
+    --accent-foreground: 221 72% 38%;
 
-    /* Feedback */
-    --success: 160 84% 39%; /* #10B981 */
+    /* Feedback — pencil colours */
+    --success: 152 60% 29%; /* #1E7A50 green pencil */
     --success-foreground: 0 0% 100%;
-    --warning: 25 95% 53%; /* #F97316 */
-    --destructive: 0 84% 60%; /* #EF4444 */
+    --warning: 25 85% 45%; /* #D3631A */
+    --destructive: 4 72% 47%; /* #CF3022 red pen */
     --destructive-foreground: 0 0% 100%;
 
     /* Gold / achievements */
     --gold: 38 92% 50%; /* #F59E0B */
-    --gold-light: 48 96% 89%; /* #FEF3C7 */
-    --gold-text: 23 82% 31%; /* #92400E */
+    --gold-light: 46 90% 88%;
+    --gold-text: 25 80% 30%;
+
+    /* Signature marks */
+    --highlight: 51 100% 62%; /* #FFE53D highlighter */
+    --margin: 4 75% 58%; /* #E4493B notebook margin rule */
 
     /* Lines & focus */
-    --border: 220 13% 91%; /* #E5E7EB */
-    --input: 220 13% 91%;
-    --ring: 244 100% 69%;
+    --border: 38 18% 82%; /* #DAD3C6 ruled line */
+    --input: 38 16% 76%;
+    --ring: 221 72% 38%;
 
-    /* Dark sidebar (used on light theme too) */
-    --sidebar: 244 47% 20%; /* #1E1B4B */
-    --sidebar-foreground: 0 0% 100%;
+    /* Ink sidebar (used on light theme too) */
+    --sidebar: 222 38% 13%;
+    --sidebar-foreground: 40 33% 95%;
 
-    --radius: 0.75rem; /* 12px — cards & buttons */
+    --radius: 0.375rem; /* 6px — cut paper, not pills */
   }
 
+  /* Chalkboard — dark variant of the same notebook */
   .dark {
-    --background: 245 30% 8%; /* #0F0E1A */
-    --foreground: 0 0% 90%;
-    --card: 248 24% 12%; /* #1A1827 */
-    --card-foreground: 0 0% 90%;
-    --popover: 248 24% 12%;
-    --popover-foreground: 0 0% 90%;
+    --background: 222 30% 9%;
+    --foreground: 40 25% 90%;
+    --card: 222 26% 13%;
+    --card-foreground: 40 25% 90%;
+    --popover: 222 26% 13%;
+    --popover-foreground: 40 25% 90%;
 
-    --primary: 234 89% 74%; /* #818CF8 lighter indigo for dark bg */
-    --primary-foreground: 245 30% 8%;
-    --primary-dark: 244 100% 69%;
-    --primary-light: 245 30% 16%;
+    --primary: 218 85% 72%;
+    --primary-foreground: 222 30% 9%;
+    --primary-dark: 221 72% 60%;
+    --primary-light: 222 30% 18%;
 
-    --secondary: 248 24% 16%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 248 24% 16%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 245 30% 16%;
-    --accent-foreground: 234 89% 74%;
+    --secondary: 222 24% 17%;
+    --secondary-foreground: 40 25% 90%;
+    --muted: 222 24% 17%;
+    --muted-foreground: 40 10% 62%;
+    --accent: 222 30% 18%;
+    --accent-foreground: 218 85% 72%;
 
-    --border: 248 24% 22%;
-    --input: 248 24% 18%;
-    --ring: 234 89% 74%;
+    --highlight: 51 90% 55%;
+    --border: 222 20% 24%;
+    --input: 222 20% 22%;
+    --ring: 218 85% 72%;
 
-    --sidebar: 245 35% 10%;
+    --sidebar: 222 34% 7%;
   }
 }
 
@@ -105,7 +113,7 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-cairo), system-ui, sans-serif;
+    font-family: var(--font-display), system-ui, sans-serif;
     line-height: 1.3;
   }
 
@@ -114,9 +122,21 @@
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  /* On-brand text selection */
+  /* Highlighter selection */
   ::selection {
-    background: hsl(var(--primary) / 0.18);
+    background: hsl(var(--highlight) / 0.7);
+    color: hsl(var(--foreground));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -124,24 +144,77 @@
    Reusable component utilities
    ────────────────────────────────────────────────────────── */
 @layer components {
-  /* Signature indigo gradient (banners, hero CTAs) */
+  /* Ink surface with faint graph-paper lines (banners, hero blocks).
+     Kept under the old name so every existing usage adopts the new look. */
   .gradient-primary {
-    background-image: linear-gradient(135deg, #6c63ff 0%, #818cf8 100%);
+    background-color: hsl(var(--sidebar));
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #6c63ff, #818cf8);
+  /* Highlighter stroke behind a key phrase (replaces gradient text) */
+  .gradient-text,
+  .marker {
+    background-image: linear-gradient(
+      to bottom,
+      transparent 52%,
+      hsl(var(--highlight) / 0.85) 52%,
+      hsl(var(--highlight) / 0.85) 90%,
+      transparent 90%
+    );
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    padding-inline: 0.12em;
   }
 
-  /* Streak fire chip */
+  /* Streak chip — solid warning ink */
   .gradient-streak {
-    background-image: linear-gradient(135deg, #f59e0b, #ef4444);
+    background-color: hsl(var(--warning));
   }
 
-  /* Stat card soft wash */
+  /* Stat card — plain sheet */
   .gradient-stat {
-    background-image: linear-gradient(160deg, hsl(var(--primary-light)) 0%, #ffffff 70%);
+    background-color: hsl(var(--card));
+  }
+
+  /* Graph paper — 24px squares in faint ink blue */
+  .paper-grid {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Ruled lines — like a lined exercise book */
+  .paper-ruled {
+    background-image: linear-gradient(transparent calc(2rem - 1px), hsl(var(--primary) / 0.12) 1px);
+    background-size: 100% 2rem;
+  }
+
+  /* The signature: a red margin rule on the start side (right in RTL).
+     Put .margin-gutter inside a `relative` row to hang a step number
+     in the margin, vertically centred on that row. */
+  .margin-rule {
+    position: relative;
+    padding-inline-start: 3.5rem;
+  }
+  .margin-rule::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 2.75rem;
+    width: 1.5px;
+    background: hsl(var(--margin) / 0.75);
+  }
+  .margin-gutter {
+    position: absolute;
+    inset-inline-start: -3.5rem;
+    top: 50%;
+    width: 2.75rem;
+    transform: translateY(-50%);
+    text-align: center;
   }
 }
 
@@ -188,6 +261,16 @@
   }
 }
 
+/* Highlighter sweeps in from the start edge */
+@keyframes markerSweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
@@ -207,5 +290,11 @@
 
   .animate-enter {
     animation: fadeSlideUp 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-marker {
+    background-repeat: no-repeat;
+    background-position: right center;
+    animation: markerSweep 700ms 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
