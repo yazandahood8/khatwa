@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { hintKey } from './hintKey';
-
+//
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes('--apply');
 const HINTS_PATH = join(__dirname, 'generatedHints.json');
