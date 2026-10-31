@@ -3,7 +3,7 @@
 import { PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const COLORS = ['#6C63FF', '#818CF8', '#F59E0B', '#10B981', '#EF4444'];
+const COLORS = ['#2B7FE8', '#BEDD3F', '#FAB912', '#FF7AA8', '#7C83FF'];
 
 /** احتفال — celebration modal with a lightweight confetti burst. */
 export function Celebration({
@@ -34,7 +34,7 @@ export function Celebration({
         ))}
       </div>
 
-      <div className="relative w-full max-w-sm animate-fade-slide-up rounded-2xl bg-card p-8 text-center shadow-float">
+      <div className="relative w-full max-w-sm animate-fade-slide-up rounded-[2rem] bg-card p-8 text-center shadow-float">
         <span className="mx-auto grid h-20 w-20 animate-success-pop place-items-center rounded-full gradient-primary text-white shadow-glow-primary">
           <PartyPopper className="h-10 w-10" />
         </span>
@@ -43,7 +43,7 @@ export function Celebration({
           حللت المسألة {attempts <= 1 ? 'من أول محاولة! 🔥' : `بعد ${attempts} محاولات.`}
         </p>
 
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-gold-light py-3 font-display font-bold text-gold-text">
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-lime py-3 font-display font-bold text-foreground">
           <span className="text-xl">⭐</span> +{attempts <= 1 ? 12 : 8} نقطة
         </div>
 

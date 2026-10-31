@@ -176,16 +176,16 @@ export default function LessonPage() {
         <div className="min-w-0 flex-1 space-y-5">
         <Link
           href="/courses"
-          className="inline-flex items-center gap-1 text-sm text-primary transition-colors hover:underline"
+          className="inline-flex items-center gap-1 rounded-full bg-primary-light px-4 py-1.5 text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
           <ChevronRight className="h-4 w-4" /> كل الدروس
         </Link>
 
         {/* مشغّل الفيديو — video player */}
         {locked ? (
-          <Card className="border-primary/30">
+          <Card className="rounded-3xl border-2 border-dashed border-primary/30 bg-primary-light/40 shadow-none">
             <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-              <span className="grid h-16 w-16 place-items-center rounded-full bg-primary-light text-primary">
+              <span className="grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow-primary">
                 <Lock className="h-7 w-7" />
               </span>
               <p className="font-display text-lg font-semibold">هذا الدرس للباقات المدفوعة</p>
@@ -196,7 +196,7 @@ export default function LessonPage() {
             </CardContent>
           </Card>
         ) : videoUrl ? (
-          <div className="overflow-hidden rounded-2xl bg-black shadow-elevated">
+          <div className="overflow-hidden rounded-3xl bg-black shadow-float ring-4 ring-primary/20">
             <video
               ref={videoRef}
               src={videoUrl}
@@ -218,7 +218,7 @@ export default function LessonPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="aspect-video w-full animate-pulse rounded-2xl bg-muted" />
+          <div className="aspect-video w-full animate-pulse rounded-3xl bg-primary-light" />
         )}
 
         {/* أدوات التحكم — speed + skip (native controls cover play/scrub/fullscreen/volume) */}
@@ -239,8 +239,8 @@ export default function LessonPage() {
                 type="button"
                 onClick={() => changeRate(r)}
                 className={cn(
-                  'rounded-md px-2 py-1 text-xs font-medium transition-colors',
-                  rate === r ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-accent',
+                  'min-h-8 rounded-full px-3 py-1 text-xs font-bold transition-colors',
+                  rate === r ? 'bg-primary text-white shadow-glow-primary' : 'bg-primary-light text-primary hover:bg-accent',
                 )}
               >
                 {r}×
@@ -275,13 +275,13 @@ export default function LessonPage() {
             )}
             {completed && <Badge variant="success" size="sm">مكتمل</Badge>}
           </div>
-          <h1 className="font-display text-2xl font-bold">{lesson?.title ?? 'جارٍ التحميل…'}</h1>
+          <h1 className="font-display text-3xl font-extrabold">{lesson?.title ?? 'جارٍ التحميل…'}</h1>
           {lesson?.description && <p className="text-muted-foreground">{lesson.description}</p>}
         </div>
 
         {/* يظهر بعد 80% — practice CTA after 80% */}
         {watchedPercent >= 80 && firstProblemId && (
-          <Card className="animate-fade-slide-up overflow-hidden border-none gradient-primary text-white shadow-glow-primary">
+          <Card className="animate-fade-slide-up overflow-hidden rounded-3xl border-none gradient-primary text-white shadow-float">
             <CardContent className="flex flex-wrap items-center justify-between gap-4 p-6">
               <div>
                 <p className="font-display text-lg font-bold">خلّصت الدرس؟ جرّب مسألة! 📝</p>
@@ -290,7 +290,7 @@ export default function LessonPage() {
               <Button
                 size="lg"
                 onClick={() => router.push(`/problems/${firstProblemId}/solve`)}
-                className="bg-white text-primary hover:bg-white/90"
+                variant="gradient"
               >
                 <Rocket /> ابدأ التمرين
               </Button>
@@ -302,8 +302,8 @@ export default function LessonPage() {
         {/* معلّم الدرس — نسخة واحدة تتكيّف: عمود جانبي على الحاسوب، لوح سفلي منزلق على الجوال. */}
         <aside
           className={cn(
-            'fixed inset-x-0 bottom-0 z-50 h-[78vh] rounded-t-2xl border-t border-border bg-card p-4 shadow-float transition-transform duration-300',
-            'lg:sticky lg:top-6 lg:z-auto lg:h-[calc(100vh-8rem)] lg:w-[360px] lg:shrink-0 lg:translate-y-0 lg:rounded-2xl lg:border-t lg:bg-card lg:p-0 lg:shadow-none lg:transition-none',
+            'fixed inset-x-0 bottom-0 z-50 h-[78vh] rounded-t-3xl border-t border-border bg-card p-4 shadow-float transition-transform duration-300',
+            'lg:sticky lg:top-6 lg:z-auto lg:h-[calc(100vh-8rem)] lg:w-[360px] lg:shrink-0 lg:translate-y-0 lg:rounded-3xl lg:border lg:bg-card lg:p-0 lg:shadow-card lg:transition-none',
             showChat ? 'translate-y-0' : 'translate-y-full',
           )}
         >
@@ -337,7 +337,7 @@ export default function LessonPage() {
       {!showChat && (
         <button
           onClick={() => setShowChat(true)}
-          className="fixed bottom-5 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float lg:hidden"
+          className="fixed bottom-24 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float transition-transform hover:scale-110 lg:hidden"
           aria-label="افتح معلّم الدرس"
         >
           <MessageCircle className="h-6 w-6" />

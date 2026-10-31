@@ -38,7 +38,7 @@ export default function NewMethodsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold">الطرق الجديدة 🆕</h1>
+        <h1 className="text-3xl font-extrabold">الطرق الجديدة 🆕</h1>
         <p className="text-sm text-muted-foreground">
           طرق حلّ اكتشفها طلاب ووافق عليها المساعد الذكي — راجعها واعتمدها أو ارفضها.
         </p>

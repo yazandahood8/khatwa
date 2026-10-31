@@ -8,6 +8,7 @@ import { getParentReport, type ParentReport } from '@/lib/progress-api';
 import { AppShell } from '@/components/app-shell';
 import { parentNav } from '@/components/nav-items';
 import { StatsView } from '@/components/progress/stats-view';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -75,13 +76,15 @@ export default function ParentDashboard() {
   return (
     <AppShell nav={parentNav} title="متابعة الأبناء">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold">لوحة وليّ الأمر</h1>
-          <p className="text-muted-foreground">تابع تقدّم أبنائك في مكان واحد.</p>
-        </div>
+        <PageHeader
+          title="لوحة وليّ الأمر"
+          description="تابع تقدّم أبنائك في مكان واحد."
+          icon={<GraduationCap className="h-7 w-7" />}
+          tone="sky"
+        />
 
         {/* ربط طالب — link a student */}
-        <Card>
+        <Card className="rounded-3xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Link2 className="h-5 w-5 text-primary" /> ربط حساب طالب
@@ -110,7 +113,7 @@ export default function ParentDashboard() {
         </Card>
 
         {/* الأبناء — children list */}
-        <Card>
+        <Card className="rounded-3xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <GraduationCap className="h-5 w-5 text-primary" /> أبنائي ({students.length})
@@ -118,7 +121,7 @@ export default function ParentDashboard() {
           </CardHeader>
           <CardContent>
             {students.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+              <p className="rounded-2xl border-2 border-dashed border-primary/25 bg-primary-light/40 py-8 text-center text-sm text-muted-foreground">
                 لم تربط أي طالب بعد.
               </p>
             ) : (
@@ -126,10 +129,10 @@ export default function ParentDashboard() {
                 {students.map((s) => (
                   <li
                     key={s.id}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-border p-3"
+                    className="flex items-center justify-between gap-2 rounded-2xl bg-secondary/60 p-3 transition-colors hover:bg-primary-light/60"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="grid h-10 w-10 place-items-center rounded-full bg-primary-light font-display font-bold text-primary">
+                      <span className="grid h-11 w-11 place-items-center rounded-full bg-primary font-display text-lg font-bold text-primary-foreground">
                         {s.name?.charAt(0) ?? '؟'}
                       </span>
                       <div>
@@ -156,14 +159,14 @@ export default function ParentDashboard() {
         {/* التقرير — student report */}
         {reportFor && (
           <div className="space-y-3">
-            <h2 className="font-display text-xl font-semibold">
+            <h2 className="font-display text-2xl font-extrabold">
               تقرير {report?.student.name ?? '…'}
               {report?.student.grade ? ` · صف ${report.student.grade}` : ''}
             </h2>
             {report ? (
               <StatsView stats={report.stats} />
             ) : (
-              <Skeleton className="h-48 rounded-xl" />
+              <Skeleton className="h-48 rounded-3xl" />
             )}
           </div>
         )}

@@ -15,7 +15,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        // Reem Kufi for headings, IBM Plex Sans Arabic for body, JetBrains Mono for math
+        // Baloo Bhaijaan 2 (rounded, bold) for headings, IBM Plex Sans Arabic for body, JetBrains Mono for math
         display: ['var(--font-display)', 'system-ui', 'sans-serif'],
         body: ['var(--font-plex-arabic)', 'system-ui', 'sans-serif'],
         sans: ['var(--font-plex-arabic)', 'system-ui', 'sans-serif'],
@@ -61,6 +61,17 @@ const config: Config = {
         warning: 'hsl(var(--warning) / <alpha-value>)',
         highlight: 'hsl(var(--highlight) / <alpha-value>)',
         margin: 'hsl(var(--margin) / <alpha-value>)',
+        lime: {
+          DEFAULT: 'hsl(var(--lime) / <alpha-value>)',
+          light: 'hsl(var(--lime-light) / <alpha-value>)',
+          dark: 'hsl(var(--lime-dark) / <alpha-value>)',
+        },
+        tint: {
+          lavender: 'hsl(var(--tint-lavender) / <alpha-value>)',
+          sky: 'hsl(var(--tint-sky) / <alpha-value>)',
+          pink: 'hsl(var(--tint-pink) / <alpha-value>)',
+          sun: 'hsl(var(--tint-sun) / <alpha-value>)',
+        },
         gold: {
           DEFAULT: 'hsl(var(--gold) / <alpha-value>)',
           light: 'hsl(var(--gold-light) / <alpha-value>)',
@@ -80,27 +91,28 @@ const config: Config = {
         },
       },
       borderRadius: {
-        // Cut-paper corners — small and consistent
-        sm: '3px',
-        DEFAULT: '6px',
-        md: '6px',
+        // Big, friendly corners
+        sm: '10px',
+        DEFAULT: '14px',
+        md: '16px',
         lg: 'var(--radius)',
-        xl: '8px',
-        '2xl': '10px',
+        xl: '24px',
+        '2xl': '32px',
+        '3xl': '40px',
       },
       boxShadow: {
-        // Paper, not glow: a ruled edge plus a stacked-sheet offset
-        subtle: '0 1px 0 hsl(var(--border))',
-        card: '0 1px 0 hsl(var(--border)), 0 2px 0 hsl(var(--border) / 0.5)',
+        // Soft, layered, blue-tinted shadows
+        subtle: '0 1px 2px hsl(var(--foreground) / 0.06)',
+        card: '0 1px 2px hsl(var(--foreground) / 0.05), 0 8px 24px -12px hsl(var(--primary) / 0.18)',
         elevated:
-          '0 1px 0 hsl(var(--border)), 0 14px 28px -16px hsl(var(--foreground) / 0.28)',
-        float: '0 22px 44px -20px hsl(var(--foreground) / 0.35)',
-        // "Pressed key" ledge under primary actions
-        'glow-primary': '0 3px 0 0 hsl(var(--primary-dark))',
-        'glow-streak': '0 2px 0 0 hsl(25 85% 32%)',
-        // Stacked sheet — the worked page sits on a pad of paper
-        sheet:
-          '0 1px 0 hsl(var(--border)), -6px 6px 0 -1px hsl(var(--card)), -6px 6px 0 0 hsl(var(--border)), -12px 12px 0 -1px hsl(var(--card)), -12px 12px 0 0 hsl(var(--border))',
+          '0 2px 4px hsl(var(--foreground) / 0.06), 0 18px 36px -16px hsl(var(--primary) / 0.35)',
+        float: '0 28px 56px -24px hsl(var(--primary) / 0.5)',
+        // Chunky "ledge" under primary actions
+        'glow-primary': '0 4px 0 0 hsl(var(--primary-dark))',
+        'glow-streak': '0 3px 0 0 hsl(27 85% 34%)',
+        'glow-lime': '0 4px 0 0 hsl(var(--lime-dark))',
+        // Stacked ledge under colorful tiles
+        sheet: '0 6px 0 -1px hsl(var(--foreground) / 0.12), 0 18px 32px -18px hsl(var(--primary) / 0.35)',
       },
       keyframes: {
         fadeSlideUp: {

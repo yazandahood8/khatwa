@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 const GRADES = [7, 8, 9]; // 10-12 يُختار عبر الوحدات (ثانوي)
 const HIGH_SCHOOL = 'hs'; // قيمة خاصة لخيار "المرحلة الثانوية"
 const SELECT_CLASS =
-  'flex h-12 w-full rounded-md border-[1.5px] border-input bg-card px-4 text-base transition-all focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15';
+  'flex h-12 w-full rounded-2xl border-2 border-input/80 bg-secondary/60 px-5 text-base transition-all focus:border-primary focus:bg-card focus:outline-none focus:ring-4 focus:ring-primary/15';
 
 function passwordStrength(pw: string) {
   let score = 0;

@@ -62,10 +62,10 @@ export function MenuView({ ctx }: { ctx: Ctx }) {
               <button
                 onClick={() => goTo(i)}
                 className={cn(
-                  'max-w-[12rem] truncate rounded-md px-2 py-1 transition-colors',
+                  'max-w-[12rem] truncate rounded-full px-3 py-1.5 font-semibold transition-colors',
                   i === stack.length - 1
-                    ? 'font-semibold text-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-primary-light hover:text-primary',
                 )}
               >
                 {crumbLabel(c)}
@@ -288,9 +288,9 @@ function LessonsStage({ topic, ctx }: { topic: Topic; ctx: Ctx }) {
         <Card
           interactive
           onClick={() => router.push(`/problems/${problems[0].id}/solve`)}
-          className="flex items-center gap-3 p-4 text-primary"
+          className="flex items-center gap-3 rounded-3xl bg-lime-light p-4 text-foreground"
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-lime">
             <Calculator className="h-5 w-5" />
           </span>
           <span className="flex-1 font-semibold">{`المسائل (${problems.length}) — ابدأ التمرين`}</span>
@@ -322,8 +322,8 @@ function LessonCard({
 }) {
   const meta = locked ? 'مدفوع' : (duration ?? (noVideo ? 'قريباً' : null));
   return (
-    <Card interactive onClick={onClick} className="flex items-center gap-3 p-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+    <Card interactive onClick={onClick} className="flex items-center gap-3 rounded-3xl p-4">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-light">
         {done ? (
           <CheckCircle2 className="h-5 w-5 text-success" />
         ) : started ? (
@@ -359,16 +359,24 @@ function MenuCard({
   meta?: string;
   onClick: () => void;
 }) {
+  // لون ثابت لكل بطاقة بحسب العنوان — a stable colorful tint per card
+  const tones = ['bg-tint-lavender', 'bg-lime-light', 'bg-tint-sky', 'bg-tint-pink', 'bg-tint-sun'];
+  const tone = tones[Array.from(title).reduce((a, ch) => a + ch.charCodeAt(0), 0) % tones.length];
   return (
-    <Card interactive onClick={onClick} className="flex items-center gap-3 p-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+    <Card interactive onClick={onClick} className="group flex items-center gap-3 rounded-3xl p-4">
+      <span
+        className={cn(
+          'flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-primary transition-transform duration-300 group-hover:rotate-6',
+          tone,
+        )}
+      >
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-display font-semibold">{title}</span>
+        <span className="block truncate font-display text-lg font-bold">{title}</span>
         {meta && <span className="block text-xs text-muted-foreground">{meta}</span>}
       </span>
-      <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-1 group-hover:text-primary" />
     </Card>
   );
 }

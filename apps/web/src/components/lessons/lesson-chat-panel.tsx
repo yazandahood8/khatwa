@@ -28,11 +28,13 @@ export function LessonChatPanel({ lessonId, lessonTitle }: Props) {
   const [configured, setConfigured] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
+  const [canSpeak, setCanSpeak] = useState(false); // يُحدَّد بعد التحميل لتفادي اختلاف الـ SSR
   const mutedRef = useRef(false);
   const speakerRef = useRef<Speaker | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setCanSpeak(ttsAvailable());
     primeVoices();
     const m = typeof localStorage !== 'undefined' && localStorage.getItem('khatwa_tts_muted') === '1';
     setMuted(m);
@@ -100,10 +102,10 @@ export function LessonChatPanel({ lessonId, lessonTitle }: Props) {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card">
       {/* رأس — header */}
-      <div className="flex items-center justify-between border-b border-border bg-primary-light/50 px-4 py-3">
-        <span className="flex items-center gap-2 font-display font-semibold text-primary">
+      <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
+        <span className="flex items-center gap-2 font-display font-bold text-primary-foreground">
           <Sparkles className="h-[18px] w-[18px]" /> اسأل عن الدرس
         </span>
         <div className="flex items-center gap-2">
@@ -112,7 +114,7 @@ export function LessonChatPanel({ lessonId, lessonTitle }: Props) {
               {remaining < 0 ? 'غير محدود ∞' : `بقي ${remaining} اليوم`}
             </span>
           )}
-          {ttsAvailable() && (
+          {canSpeak && (
             <button
               onClick={toggleMute}
               title={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
@@ -129,7 +131,7 @@ export function LessonChatPanel({ lessonId, lessonTitle }: Props) {
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 scrollbar-thin">
         {messages.map((m, i) => {
           // أزل الحركات من العرض — strip harakat (kept only for speech)
-          const text = m.content.replace(/[ؐ-ًؚ-ٰٟـ]/g, '');
+          const text = m.content.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u0640]/g, '');
           const isAssistant = m.role === 'assistant';
           const isEmptyStreaming = isAssistant && !text && busy && i === messages.length - 1;
           return (
@@ -150,7 +152,7 @@ export function LessonChatPanel({ lessonId, lessonTitle }: Props) {
           );
         })}
         {error && (
-          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
+          <p className="rounded-2xl bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
         )}
       </div>
 
@@ -180,13 +182,13 @@ export function LessonChatPanel({ lessonId, lessonTitle }: Props) {
           rows={1}
           placeholder="اكتب سؤالك عن الدرس…"
           disabled={busy || !configured}
-          className="max-h-28 min-h-[40px] flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary disabled:opacity-50 scrollbar-thin"
+          className="max-h-28 min-h-[40px] flex-1 resize-none rounded-2xl border-2 border-input/80 bg-secondary/60 px-4 py-2 text-sm outline-none transition-colors focus:border-primary focus:bg-card disabled:opacity-50 scrollbar-thin"
         />
         <button
           type="submit"
           disabled={busy || !configured || !draft.trim()}
           aria-label="إرسال"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow-primary transition-all hover:-translate-y-0.5 disabled:opacity-40"
         >
           <Send className="h-[18px] w-[18px]" />
         </button>

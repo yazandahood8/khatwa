@@ -79,7 +79,7 @@ export function Row({
   subtreeExpanded?: boolean;
 }) {
   return (
-    <div className="flex items-center rounded-lg transition-colors hover:bg-accent">
+    <div className="flex items-center rounded-2xl transition-colors hover:bg-primary-light">
       <button
         onClick={onClick}
         style={{ paddingInlineStart: depth * 18 + 10 }}
@@ -98,7 +98,7 @@ export function Row({
           <span className="w-4 shrink-0" />
         )}
         <span className="shrink-0">{icon}</span>
-        <span className="flex-1 truncate font-medium">{label}</span>
+        <span className="flex-1 truncate font-semibold">{label}</span>
         {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
         {meta && <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>}
       </button>
@@ -107,7 +107,7 @@ export function Row({
           onClick={onToggleSubtree}
           aria-label={subtreeExpanded ? 'طيّ الفرع' : 'توسيع الفرع'}
           title={subtreeExpanded ? 'طيّ الفرع' : 'توسيع الفرع'}
-          className="me-2 shrink-0 rounded-md p-1.5 text-muted-foreground/60 transition-colors hover:bg-background hover:text-foreground"
+          className="me-2 grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground/70 transition-colors hover:bg-card hover:text-primary"
         >
           {subtreeExpanded ? (
             <ChevronsDownUp className="h-4 w-4" />

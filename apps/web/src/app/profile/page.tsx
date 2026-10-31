@@ -18,10 +18,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
+import { PageHeader } from '@/components/page-header';
 
 const GRADES = [7, 8, 9, 10, 11, 12];
 const SELECT_CLASS =
-  'flex h-12 w-full rounded-md border-[1.5px] border-input bg-card px-4 text-base transition-all focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15';
+  'flex h-12 w-full rounded-2xl border-2 border-input/80 bg-secondary/60 px-5 text-base transition-all focus:border-primary focus:bg-card focus:outline-none focus:ring-4 focus:ring-primary/15';
 
 export default function ProfilePage() {
   const { user, refresh } = useAuth();
@@ -105,9 +106,14 @@ export default function ProfilePage() {
   return (
     <AppShell nav={navForRole(user?.role)} title="الملف الشخصي">
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="font-display text-2xl font-bold">الملف الشخصي</h1>
+        <PageHeader
+          title="الملف الشخصي"
+          description={user?.name}
+          icon={<User className="h-7 w-7" />}
+          tone="lime"
+        />
 
-        <Card>
+        <Card className="rounded-3xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <User className="h-5 w-5 text-primary" /> المعلومات الأساسية
@@ -157,7 +163,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-3xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <KeyRound className="h-5 w-5 text-primary" /> تغيير كلمة السر

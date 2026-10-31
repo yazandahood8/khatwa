@@ -100,8 +100,8 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <header className="flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
+    <div className="flex h-screen flex-col overflow-hidden bg-secondary/50">
+      <header className="m-3 mb-0 flex items-center gap-4 rounded-full bg-card px-4 py-2.5 shadow-card ring-1 ring-primary/10 sm:px-6">
         <div className="flex flex-1 items-center gap-3">
           <QuestionNav
             problems={sequence}
@@ -138,7 +138,7 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
           )}
 
           {/* بطاقة السؤال */}
-          <div className="rounded-2xl border-r-4 border-primary bg-card p-5 shadow-card">
+          <div className="rounded-3xl border-e-8 border-primary bg-card p-6 shadow-elevated">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {isCloze ? 'أكمل الفراغ' : 'اختر الإجابة الصحيحة'}
             </p>
@@ -155,7 +155,7 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
                 dir="ltr"
                 placeholder="Type your answer…"
                 className={cn(
-                  'w-full rounded-xl border bg-card px-4 py-3 text-lg outline-none transition-all',
+                  'w-full rounded-2xl border-2 bg-card px-5 py-3 text-lg outline-none transition-all focus:ring-4 focus:ring-primary/15',
                   shake ? 'animate-error-shake border-destructive' : 'border-border focus:border-primary',
                 )}
                 onKeyDown={(e) => e.key === 'Enter' && submit()}
@@ -169,13 +169,13 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
                     onClick={() => setSelected(c.text)}
                     dir="ltr"
                     className={cn(
-                      'flex items-center gap-3 rounded-xl border px-4 py-3 text-start text-lg transition-all',
+                      'flex min-h-14 items-center gap-3 rounded-2xl border-2 px-4 py-3 text-start text-lg transition-all duration-200',
                       selected === c.text
-                        ? 'border-primary bg-primary/10 font-medium'
-                        : 'border-border bg-card hover:border-primary/50',
+                        ? 'border-primary bg-primary-light font-semibold shadow-glow-primary'
+                        : 'border-border bg-card hover:-translate-y-0.5 hover:border-primary/50',
                     )}
                   >
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-current text-xs">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-light font-display text-sm font-bold text-primary">
                       {String.fromCharCode(65 + i)}
                     </span>
                     <span className="flex-1">{c.text}</span>
@@ -187,7 +187,7 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
           {feedback && !celebrate && (
             <p
               className={cn(
-                'rounded-xl px-4 py-2.5 text-sm font-medium',
+                'rounded-2xl px-5 py-3 text-sm font-semibold',
                 feedback.correct ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive',
               )}
             >
@@ -202,7 +202,7 @@ export function McqSolve({ problem, sequence }: { problem: ProblemFull; sequence
           )}
 
           {solved && !celebrate && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-success/10 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-3xl bg-lime-light px-5 py-4">
               <span className="flex items-center gap-2 font-display font-semibold text-success">
                 <CheckCircle2 className="h-5 w-5" /> إجابة صحيحة!
               </span>

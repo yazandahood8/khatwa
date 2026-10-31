@@ -20,18 +20,14 @@ export function Progress({
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={cn('relative h-2 w-full overflow-hidden rounded-sm bg-muted', className)}
+      className={cn('relative h-3 w-full overflow-hidden rounded-full bg-primary-light', className)}
     >
       <div
         className={cn(
-          'h-full rounded-sm bg-primary transition-[width] duration-700 ease-soft',
+          'h-full rounded-full bg-primary transition-[width] duration-700 ease-soft',
           barClassName,
         )}
         style={{ width: `${pct}%` }}
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--card))_1px,transparent_1px)] bg-[length:10%_100%] opacity-70"
       />
     </div>
   );
@@ -73,7 +69,7 @@ export function CircularProgress({
           r={r}
           fill="none"
           strokeWidth={stroke}
-          strokeLinecap="butt"
+          strokeLinecap="round"
           className="stroke-primary transition-[stroke-dashoffset] duration-700 ease-soft"
           strokeDasharray={c}
           strokeDashoffset={offset}

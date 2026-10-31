@@ -7,9 +7,9 @@ import { CircularProgress, Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 const TOP = [
-  { key: 'points', icon: Star, label: 'النقاط', tint: 'bg-gold-light text-gold-text' },
-  { key: 'streak', icon: Flame, label: 'أيام متواصلة', tint: 'bg-gold-light text-gold-text' },
-  { key: 'completedLessons', icon: Clapperboard, label: 'دروس مكتملة', tint: 'bg-primary-light text-primary' },
+  { key: 'points', icon: Star, label: 'النقاط', tint: 'text-gold-text', card: 'bg-tint-sun' },
+  { key: 'streak', icon: Flame, label: 'أيام متواصلة', tint: 'text-warning', card: 'bg-tint-pink' },
+  { key: 'completedLessons', icon: Clapperboard, label: 'دروس مكتملة', tint: 'text-primary', card: 'bg-tint-lavender' },
 ] as const;
 
 export function StatsView({ stats }: { stats: StudentStats }) {
@@ -19,13 +19,13 @@ export function StatsView({ stats }: { stats: StudentStats }) {
       {/* البطاقات العليا — top stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {TOP.map((s) => (
-          <Card key={s.key} className="gradient-stat">
+          <Card key={s.key} className={cn('rounded-3xl border-none shadow-none transition-transform hover:-translate-y-1', s.card)}>
             <CardContent className="flex flex-col gap-3 p-5">
-              <span className={cn('grid h-10 w-10 place-items-center rounded-xl', s.tint)}>
+              <span className={cn('grid h-11 w-11 place-items-center rounded-full bg-card shadow-subtle', s.tint)}>
                 <s.icon className="h-5 w-5" />
               </span>
               <div>
-                <p className="font-display text-3xl font-bold leading-none">
+                <p className="font-display text-4xl font-extrabold leading-none">
                   {(stats[s.key] as number).toLocaleString('ar')}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
@@ -34,7 +34,7 @@ export function StatsView({ stats }: { stats: StudentStats }) {
           </Card>
         ))}
         {/* دقة الحلول — accuracy ring */}
-        <Card className="gradient-stat">
+        <Card className="rounded-3xl border-none bg-lime-light shadow-none">
           <CardContent className="flex items-center gap-4 p-5">
             <CircularProgress value={stats.accuracy} size={64} stroke={7}>
               <span className="text-sm">{stats.accuracy}%</span>
@@ -65,10 +65,10 @@ export function StatsView({ stats }: { stats: StudentStats }) {
               <div
                 key={b.key}
                 className={cn(
-                  'flex flex-col items-center gap-1 rounded-xl border p-4 text-center transition-all',
+                  'flex flex-col items-center gap-1 rounded-3xl p-4 text-center transition-all',
                   b.earned
-                    ? 'border-gold bg-gold-light text-gold-text shadow-subtle'
-                    : 'border-border bg-muted/30 opacity-50 grayscale',
+                    ? 'bg-tint-sun text-gold-text shadow-sheet hover:-translate-y-1'
+                    : 'bg-muted/50 opacity-50 grayscale',
                 )}
               >
                 <span className="text-3xl">{b.icon}</span>
@@ -131,7 +131,7 @@ export function StatsView({ stats }: { stats: StudentStats }) {
               {stats.difficult.map((d) => (
                 <li
                   key={d.problemId}
-                  className="flex items-center justify-between gap-2 rounded-lg bg-warning/5 px-3 py-2 text-sm"
+                  className="flex items-center justify-between gap-2 rounded-2xl bg-warning/10 px-4 py-2.5 text-sm"
                   dir="auto"
                 >
                   <span className="truncate">{d.question}</span>

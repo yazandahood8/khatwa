@@ -3,91 +3,72 @@
 @tailwind utilities;
 
 /* ──────────────────────────────────────────────────────────
-   خطوة — Design Tokens · "الدفتر / The Worked Page"
-   A good student's exercise book: warm paper, fountain-pen ink,
-   a red margin rule, highlighter marks, numbered steps in the margin.
+   خطوة — Design Tokens · "المغامرة / The Adventure"
+   Bright blue, big white sections, lime sparks, chunky rounded
+   type, soft shapes floating around. Friendly for a 6-year-old,
+   sharp enough for a 17-year-old preparing for the Bagrut.
    Semantic colors use HSL triplets so Tailwind can apply
    alpha modifiers (e.g. bg-primary/30).
    ────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Surfaces — paper */
-    --background: 40 33% 95%; /* #F6F2EA warm exercise-book paper */
-    --foreground: 222 38% 13%; /* #141E2E ink-black */
-    --card: 42 60% 99%; /* #FFFDF8 fresh sheet */
-    --card-foreground: 222 38% 13%;
-    --popover: 42 60% 99%;
-    --popover-foreground: 222 38% 13%;
+    /* Surfaces — white, with a cool gray for alternating sections */
+    --background: 0 0% 100%;
+    --foreground: 228 55% 17%; /* #14204A deep navy ink */
+    --card: 0 0% 100%;
+    --card-foreground: 228 55% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 55% 17%;
 
-    /* Primary — fountain-pen ink blue */
-    --primary: 221 72% 38%; /* #1B4AA8 */
-    --primary-foreground: 42 60% 99%;
-    --primary-dark: 222 75% 26%; /* #112F74 */
-    --primary-light: 218 62% 93%; /* #E4ECFA blotting-paper blue */
+    /* Primary — bright adventure blue */
+    --primary: 214 79% 53%; /* #2B7FE8 */
+    --primary-foreground: 0 0% 100%;
+    --primary-dark: 215 72% 42%; /* #1E5FB8 — the button "ledge" */
+    --primary-light: 214 90% 95%; /* #E8F1FE */
 
     /* Neutrals / shadcn semantic */
-    --secondary: 40 26% 90%;
-    --secondary-foreground: 222 38% 13%;
-    --muted: 40 22% 90%; /* #EAE5DA */
-    --muted-foreground: 222 12% 38%; /* #555D6E — AA on paper */
-    --accent: 218 62% 93%;
-    --accent-foreground: 221 72% 38%;
+    --secondary: 225 40% 96%; /* #F2F4FA section gray */
+    --secondary-foreground: 228 55% 17%;
+    --muted: 225 30% 95%;
+    --muted-foreground: 226 15% 37%; /* #505672 — AA on white */
+    --accent: 214 90% 95%;
+    --accent-foreground: 215 72% 42%;
 
-    /* Feedback — pencil colours */
-    --success: 152 60% 29%; /* #1E7A50 green pencil */
+    /* Feedback */
+    --success: 152 62% 32%; /* #1F8553 */
     --success-foreground: 0 0% 100%;
-    --warning: 25 85% 45%; /* #D3631A */
-    --destructive: 4 72% 47%; /* #CF3022 red pen */
+    --warning: 27 90% 48%; /* #E8670C */
+    --destructive: 4 76% 52%; /* #DC3A2C */
     --destructive-foreground: 0 0% 100%;
 
     /* Gold / achievements */
-    --gold: 38 92% 50%; /* #F59E0B */
-    --gold-light: 46 90% 88%;
-    --gold-text: 25 80% 30%;
+    --gold: 43 96% 53%; /* #FAB912 */
+    --gold-light: 46 100% 90%;
+    --gold-text: 28 80% 28%;
 
-    /* Signature marks */
-    --highlight: 51 100% 62%; /* #FFE53D highlighter */
-    --margin: 4 75% 58%; /* #E4493B notebook margin rule */
+    /* Signature marks — lime spark + a coral dot for notifications */
+    --lime: 69 68% 55%; /* #BEDD3F */
+    --lime-light: 70 70% 90%; /* #F0F7CC */
+    --lime-dark: 72 70% 28%; /* readable lime-green text on white */
+    --highlight: 69 68% 55%;
+    --margin: 8 90% 62%;
+
+    /* Soft feature tints (the colorful cards) */
+    --tint-lavender: 233 100% 94%; /* #E1E4FF */
+    --tint-sky: 207 100% 93%;
+    --tint-pink: 340 100% 94%;
+    --tint-sun: 46 100% 88%;
 
     /* Lines & focus */
-    --border: 38 18% 82%; /* #DAD3C6 ruled line */
-    --input: 38 16% 76%;
-    --ring: 221 72% 38%;
+    --border: 224 30% 90%;
+    --input: 224 25% 82%;
+    --ring: 214 79% 53%;
 
-    /* Ink sidebar (used on light theme too) */
-    --sidebar: 222 38% 13%;
-    --sidebar-foreground: 40 33% 95%;
+    /* Blue navigation panel */
+    --sidebar: 214 79% 50%;
+    --sidebar-foreground: 0 0% 100%;
 
-    --radius: 0.375rem; /* 6px — cut paper, not pills */
-  }
-
-  /* Chalkboard — dark variant of the same notebook */
-  .dark {
-    --background: 222 30% 9%;
-    --foreground: 40 25% 90%;
-    --card: 222 26% 13%;
-    --card-foreground: 40 25% 90%;
-    --popover: 222 26% 13%;
-    --popover-foreground: 40 25% 90%;
-
-    --primary: 218 85% 72%;
-    --primary-foreground: 222 30% 9%;
-    --primary-dark: 221 72% 60%;
-    --primary-light: 222 30% 18%;
-
-    --secondary: 222 24% 17%;
-    --secondary-foreground: 40 25% 90%;
-    --muted: 222 24% 17%;
-    --muted-foreground: 40 10% 62%;
-    --accent: 222 30% 18%;
-    --accent-foreground: 218 85% 72%;
-
-    --highlight: 51 90% 55%;
-    --border: 222 20% 24%;
-    --input: 222 20% 22%;
-    --ring: 218 85% 72%;
-
-    --sidebar: 222 34% 7%;
+    --radius: 1.125rem; /* 18px — generous, never pointy */
   }
 }
 
@@ -98,6 +79,7 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -122,9 +104,8 @@
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  /* Highlighter selection */
   ::selection {
-    background: hsl(var(--highlight) / 0.7);
+    background: hsl(var(--lime) / 0.55);
     color: hsl(var(--foreground));
   }
 
@@ -144,84 +125,75 @@
    Reusable component utilities
    ────────────────────────────────────────────────────────── */
 @layer components {
-  /* Ink surface with faint graph-paper lines (banners, hero blocks).
-     Kept under the old name so every existing usage adopts the new look. */
+  /* Bright blue surface with soft dots and a large corner blob
+     (hero cards, banners). Name kept so existing usages adopt the look. */
   .gradient-primary {
-    background-color: hsl(var(--sidebar));
+    background-color: hsl(var(--primary));
     background-image:
-      linear-gradient(hsl(0 0% 100% / 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(0 0% 100% / 0.05) 1px, transparent 1px);
-    background-size: 24px 24px;
+      radial-gradient(circle at 100% 0%, hsl(0 0% 100% / 0.16) 0, transparent 38%),
+      radial-gradient(circle at 0% 100%, hsl(var(--primary-dark) / 0.55) 0, transparent 45%),
+      radial-gradient(hsl(0 0% 100% / 0.22) 1.5px, transparent 1.6px);
+    background-size: auto, auto, 18px 18px;
   }
 
-  /* Highlighter stroke behind a key phrase (replaces gradient text) */
+  /* Lime highlighter under a key phrase (replaces gradient text) */
   .gradient-text,
   .marker {
+    color: inherit;
     background-image: linear-gradient(
       to bottom,
-      transparent 52%,
-      hsl(var(--highlight) / 0.85) 52%,
-      hsl(var(--highlight) / 0.85) 90%,
-      transparent 90%
+      transparent 58%,
+      hsl(var(--lime)) 58%,
+      hsl(var(--lime)) 92%,
+      transparent 92%
     );
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
     padding-inline: 0.12em;
+    border-radius: 0.2em;
   }
 
-  /* Streak chip — solid warning ink */
+  /* Blue emphasised word inside a heading */
+  .accent-word {
+    color: hsl(var(--primary));
+  }
+
+  /* Streak chip — solid warm */
   .gradient-streak {
     background-color: hsl(var(--warning));
   }
 
-  /* Stat card — plain sheet */
+  /* Stat card — plain white */
   .gradient-stat {
     background-color: hsl(var(--card));
   }
 
-  /* Graph paper — 24px squares in faint ink blue */
-  .paper-grid {
-    background-image:
-      linear-gradient(hsl(var(--primary) / 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.07) 1px, transparent 1px);
-    background-size: 24px 24px;
+  /* Dotted pattern — decorative grid of dots */
+  .dots {
+    background-image: radial-gradient(hsl(var(--primary) / 0.35) 1.6px, transparent 1.7px);
+    background-size: 14px 14px;
+  }
+  .dots-white {
+    background-image: radial-gradient(hsl(0 0% 100% / 0.45) 1.6px, transparent 1.7px);
+    background-size: 14px 14px;
   }
 
-  /* Ruled lines — like a lined exercise book */
-  .paper-ruled {
-    background-image: linear-gradient(transparent calc(2rem - 1px), hsl(var(--primary) / 0.12) 1px);
-    background-size: 100% 2rem;
+  /* Hand-drawn dashed outline used on colorful feature cards */
+  .dashed-frame {
+    outline: 1.5px dashed hsl(var(--foreground) / 0.55);
+    outline-offset: 5px;
   }
 
-  /* The signature: a red margin rule on the start side (right in RTL).
-     Put .margin-gutter inside a `relative` row to hang a step number
-     in the margin, vertically centred on that row. */
-  .margin-rule {
-    position: relative;
-    padding-inline-start: 3.5rem;
-  }
-  .margin-rule::before {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 2.75rem;
-    width: 1.5px;
-    background: hsl(var(--margin) / 0.75);
-  }
-  .margin-gutter {
-    position: absolute;
-    inset-inline-start: -3.5rem;
-    top: 50%;
-    width: 2.75rem;
-    transform: translateY(-50%);
-    text-align: center;
+  /* Soft section with a curved top edge (like the reference's wave) */
+  .section-curve {
+    border-top-left-radius: 50% 2.5rem;
+    border-top-right-radius: 50% 2.5rem;
   }
 }
 
 /* ──────────────────────────────────────────────────────────
-   Custom scrollbar + RTL-aware entrance helper
+   Signature micro-interactions
    ────────────────────────────────────────────────────────── */
-/* خطوة — signature step-path micro-interactions */
 @keyframes particleBurst {
   0% {
     opacity: 1;
@@ -271,6 +243,26 @@
   }
 }
 
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rot, 0deg));
+  }
+  50% {
+    transform: translateY(-12px) rotate(var(--rot, 0deg));
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(var(--rot, 0deg));
+  }
+  50% {
+    transform: translate(8px, -10px) rotate(calc(var(--rot, 0deg) + 6deg));
+  }
+}
+
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
@@ -296,5 +288,15 @@
     background-repeat: no-repeat;
     background-position: right center;
     animation: markerSweep 700ms 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-float {
+    animation: floatY 6s ease-in-out infinite;
+  }
+  .animate-float-slow {
+    animation: floatY 9s ease-in-out infinite;
+  }
+  .animate-drift {
+    animation: drift 11s ease-in-out infinite;
   }
 }

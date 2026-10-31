@@ -14,6 +14,7 @@ import { AppShell } from '@/components/app-shell';
 import { studentNav } from '@/components/nav-items';
 import { TopicNode, Loading, Empty, type Ctx, type ProgressMap } from '@/components/courses/tree';
 import { ModuleNotice } from '@/components/courses/module-notice';
+import { PageHeader } from '@/components/page-header';
 
 export default function QuestionnairePage() {
   const params = useParams<{ id: string }>();
@@ -47,13 +48,13 @@ export default function QuestionnairePage() {
       <div className="mx-auto max-w-3xl space-y-4">
         <button
           onClick={() => router.push('/courses')}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-10 items-center gap-1 rounded-full bg-primary-light px-4 py-1.5 text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
           <ArrowRight className="h-4 w-4" /> رجوع للدروس
         </button>
-        <h1 className="font-display text-2xl font-bold">{title}</h1>
+        <PageHeader title={title} tone="lavender" />
         <ModuleNotice number={number ? Number(number) : null} />
-        <div className="rounded-2xl border border-border bg-card p-2 shadow-card">
+        <div className="rounded-3xl border border-border/70 bg-card p-3 shadow-card">
           {topics === null ? (
             <Loading />
           ) : topics.length === 0 ? (

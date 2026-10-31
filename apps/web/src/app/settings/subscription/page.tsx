@@ -10,6 +10,7 @@ import {
 } from '@/lib/subscription-api';
 import { useAuth } from '@/providers/auth-provider';
 import { AppShell } from '@/components/app-shell';
+import { PageHeader } from '@/components/page-header';
 import { navForRole } from '@/components/nav-items';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,9 +55,9 @@ export default function SubscriptionSettingsPage() {
   return (
     <AppShell nav={navForRole(user?.role)} title="الاشتراك">
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="font-display text-2xl font-bold">الاشتراك</h1>
+        <PageHeader title="الاشتراك" description="باقتك ومزاياها" icon={<Crown className="h-7 w-7" />} tone="sun" />
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden rounded-3xl">
           {/* رأس متدرّج — gradient header */}
           <div className="gradient-primary p-6 text-white">
             <div className="flex items-center justify-between">
@@ -91,7 +92,7 @@ export default function SubscriptionSettingsPage() {
                     : sub.endsAt && ` · يتجدّد في ${endsDate}`}
                 </p>
                 {isTrial && (
-                  <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  <p className="rounded-2xl bg-gold-light px-3 py-2 text-xs text-gold-text">
                     ⏳ بعد انتهاء التجربة يعود حسابك للباقة المجانية. اشترك للاستمرار بكل الميزات.
                   </p>
                 )}

@@ -29,6 +29,7 @@ import {
   type ExpandBus,
   type ProgressMap,
 } from '@/components/courses/tree';
+import { Ring, DotGrid } from '@/components/decor';
 import { HighSchoolTracks } from '@/components/courses/high-school-tracks';
 import { MenuView } from '@/components/courses/menu-view';
 import { cn } from '@/lib/utils';
@@ -63,14 +64,16 @@ export default function CoursesPage() {
 
   return (
     <AppShell nav={studentNav} title="الدروس">
-      <div className="mx-auto max-w-3xl space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="font-display text-2xl font-bold">الدروس</h1>
-          <div className="flex items-center gap-2">
+      <div className="mx-auto max-w-3xl space-y-5">
+        <div className="relative flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-3xl bg-tint-lavender p-5 sm:p-6">
+          <Ring className="-end-8 -top-10 h-32 w-32" />
+          <DotGrid className="bottom-3 end-24 hidden h-12 w-20 sm:block" />
+          <h1 className="relative font-display text-3xl font-extrabold">الدروس</h1>
+          <div className="relative flex flex-wrap items-center gap-2">
             {view === 'tree' && (
               <button
                 onClick={bus.allExpanded ? collapseAll : expandAll}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-card px-4 py-1.5 text-sm font-bold text-muted-foreground shadow-subtle transition-all hover:-translate-y-0.5 hover:text-primary"
               >
                 {bus.allExpanded ? (
                   <ChevronsDownUp className="h-4 w-4" />
@@ -86,7 +89,7 @@ export default function CoursesPage() {
         {view === 'menu' ? (
           <MenuView ctx={ctx} />
         ) : (
-          <div className="rounded-2xl border border-border bg-card p-2 shadow-card">
+          <div className="rounded-3xl border border-border/70 bg-card p-3 shadow-card">
             {loading ? (
               <Loading />
             ) : subjects.length === 0 ? (
@@ -113,7 +116,7 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
     { id: 'menu', label: 'قائمة', icon: LayoutGrid },
   ];
   return (
-    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-card p-1">
+    <div className="flex shrink-0 items-center gap-1 rounded-full bg-card p-1 shadow-subtle">
       {options.map((o) => {
         const Icon = o.icon;
         const active = view === o.id;
@@ -123,9 +126,9 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
             onClick={() => onChange(o.id)}
             aria-pressed={active}
             className={cn(
-              'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
+              'flex min-h-9 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold transition-colors',
               active
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-primary text-primary-foreground shadow-glow-primary'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
