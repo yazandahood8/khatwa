@@ -15,10 +15,10 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        // Baloo Bhaijaan 2 (rounded, bold) for headings, IBM Plex Sans Arabic for body, JetBrains Mono for math
+        // Baloo Bhaijaan 2 (rounded, bold) for headings, Tajawal for body, JetBrains Mono for math
         display: ['var(--font-display)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-plex-arabic)', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-plex-arabic)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body-ar)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-body-ar)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
       fontSize: {
