@@ -88,6 +88,10 @@ export const config = {
     '/scan',
     '/capture/:path*',
     '/capture',
-    ...AUTH_PAGES,
+    // Next requires a static array here (no spread) — keep in sync with AUTH_PAGES
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
   ],
 };
