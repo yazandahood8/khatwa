@@ -8,7 +8,7 @@
 | `performance/` | حمل وأداء | _لم تُحدَّد الأداة — undecided_ | _لم تُكتب بعد — scaffold only_ |
 | `shared/` | env · seed · fixtures · docker-compose | — | يستخدمها `browser/` |
 
-وحدات الاختبار الصغيرة (unit) تبقى بجانب الكود: `apps/api/src/**/*.test.ts`، `apps/web/tests/`.
+وحدات الاختبار الصغيرة (unit) تبقى بجانب الكود: `backend/src/**/*.test.ts`، `frontend/tests/`.
 Unit tests stay next to the code; everything that needs a DB, a browser, or load lives here.
 
 CI و pre-push يستدعيان نفس سكربتات npm، لذا لا يتغيّر شيء عند التشغيل.

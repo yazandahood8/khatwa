@@ -6,10 +6,10 @@
  * هذا الملخّص هو قاعدة معرفة معلّم الدردشة (buildLessonTeacherPrompt).
  *
  * حتمي وقابل للاستئناف: يتخطّى ما هو موجود مسبقاً في الملف، فيمكن تشغيله على دفعات.
- * تشغيل كامل:   npm run summaries:generate --workspace=apps/api
- * تجربة سريعة:  npm run summaries:generate --workspace=apps/api -- 5   (أول 5 دروس فقط)
- * إعادة توليد:  npm run summaries:generate --workspace=apps/api -- --force
- * فلترة عنوان: npm run summaries:generate --workspace=apps/api -- --filter=كسور
+ * تشغيل كامل:   npm run summaries:generate --workspace=backend
+ * تجربة سريعة:  npm run summaries:generate --workspace=backend -- 5   (أول 5 دروس فقط)
+ * إعادة توليد:  npm run summaries:generate --workspace=backend -- --force
+ * فلترة عنوان: npm run summaries:generate --workspace=backend -- --filter=كسور
  */
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

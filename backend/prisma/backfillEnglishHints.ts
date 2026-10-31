@@ -7,8 +7,8 @@
  * (عبر نصّ السؤال question + language='english') ويحدّث العمود في مكانه فقط — فلا يمسّ
  * محاولات الطلاب ولا تقدّمهم (بعكس إعادة الزرع). آمن للتكرار (idempotent).
  *
- * تشغيل (dev):   npm --workspace apps/api run english:hints:backfill
- * تشغيل (prod):  DATABASE_URL="<رابط Supabase المباشر>" npm --workspace apps/api run english:hints:backfill
+ * تشغيل (dev):   npm --workspace backend run english:hints:backfill
+ * تشغيل (prod):  DATABASE_URL="<رابط Supabase المباشر>" npm --workspace backend run english:hints:backfill
  * --force: يستبدل hintWords موجودة (بعد تحرير المحتوى).
  */
 import { PrismaClient, type Prisma } from '@prisma/client';

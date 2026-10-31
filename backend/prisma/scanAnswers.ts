@@ -1,7 +1,7 @@
 /**
  * فحص لمرّة واحدة — scan stored problem answers for formats the checker may reject.
  * يبرز المسائل التي جوابها كسر/عشري/نسبة مع answerTolerance=0 (الأكثر عرضة لرفض إجابة صحيحة).
- * تشغيل: npx tsx apps/api/prisma/scanAnswers.ts
+ * تشغيل: npx tsx backend/prisma/scanAnswers.ts
  */
 import { PrismaClient } from '@prisma/client';
 

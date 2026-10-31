@@ -8,15 +8,15 @@
  *
  * تشغيل يدوي عند الرغبة بتحديث اللقطة — run manually to refresh:
  *   npx tsx e2e/shared/export-prod-content.ts
- * يقرأ DIRECT_URL من apps/api/.env — reads the prod DB URL from apps/api/.env.
+ * يقرأ DIRECT_URL من backend/.env — reads the prod DB URL from backend/.env.
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { PrismaClient } from '@prisma/client';
 
 function prodUrl(): string {
-  const env = readFileSync('apps/api/.env', 'utf8');
+  const env = readFileSync('backend/.env', 'utf8');
   const url = env.match(/^DIRECT_URL="?([^"\n]+)"?/m)?.[1];
-  if (!url) throw new Error('DIRECT_URL not found in apps/api/.env');
+  if (!url) throw new Error('DIRECT_URL not found in backend/.env');
   return url;
 }
 

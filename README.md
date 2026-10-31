@@ -37,7 +37,7 @@ khatwa/
 ### المتطلبات
 - Node.js >= 20
 - npm >= 10
-- حساب Supabase (PostgreSQL) — انظر `apps/api/.env.example`
+- حساب Supabase (PostgreSQL) — انظر `backend/.env.example`
 
 ### التثبيت
 
@@ -50,9 +50,9 @@ npm install
 
 ```bash
 # Backend
-cp apps/api/.env.example apps/api/.env
+cp backend/.env.example backend/.env
 # Frontend
-cp apps/web/.env.example apps/web/.env.local
+cp frontend/.env.example frontend/.env.local
 ```
 ثم املأ القيم الحقيقية (انظر قسم البنية التحتية أدناه).
 

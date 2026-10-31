@@ -1,10 +1,10 @@
 import supertest from 'supertest';
 import { UserRole } from '@khatwa/shared';
-import { createApp } from '../../apps/api/src/app';
-import { prisma } from '../../apps/api/src/services/prisma';
-import { redis } from '../../apps/api/src/services/redis';
-import { hashPassword } from '../../apps/api/src/utils/password';
-import { signToken } from '../../apps/api/src/utils/jwt';
+import { createApp } from '../../backend/src/app';
+import { prisma } from '../../backend/src/services/prisma';
+import { redis } from '../../backend/src/services/redis';
+import { hashPassword } from '../../backend/src/utils/password';
+import { signToken } from '../../backend/src/utils/jwt';
 
 /**
  * أدوات مشتركة للاختبارات التكاملية — shared helpers.

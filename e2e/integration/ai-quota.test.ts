@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { UserRole } from '@khatwa/shared';
 import { api, auth, seedUser, seedContentTree } from './helpers';
-import { prisma } from '../../apps/api/src/services/prisma';
+import { prisma } from '../../backend/src/services/prisma';
 
 /**
  * حصّة الذكاء الاصطناعي — quota gating (Redis حقيقي، Claude مموّه).
@@ -26,7 +26,7 @@ const ai = vi.hoisted(() => {
   return { stream };
 });
 
-vi.mock('../../apps/api/src/services/claude', () => ({
+vi.mock('../../backend/src/services/claude', () => ({
   claude: { messages: { stream: ai.stream } },
   CLAUDE_MODEL: 'claude-test',
   isAiConfigured: () => true,

@@ -32,7 +32,7 @@ try {
 
   // 3) المخطط + البذور — schema then seed (DB is up now).
   sh('npx prisma db push --skip-generate --accept-data-loss', {
-    cwd: 'apps/api',
+    cwd: 'backend',
     env: { ...process.env, DATABASE_URL: DB_URL, DIRECT_URL: DB_URL },
   });
   sh('npx tsx e2e/shared/seed.ts');

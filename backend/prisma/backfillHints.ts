@@ -6,8 +6,8 @@
  * وإذا كان تلميحها فارغاً يطابقه بالمفتاح الثابت (hintKey) ويحدّث العمود في مكانه فقط —
  * فلا يمسّ محاولات الطلاب ولا جلساتهم (بعكس إعادة الزرع). آمن للتكرار (idempotent).
  *
- * تشغيل (dev):   npm --workspace apps/api run hints:backfill
- * تشغيل (prod):  DATABASE_URL="<رابط Supabase المباشر>" npm --workspace apps/api run hints:backfill
+ * تشغيل (dev):   npm --workspace backend run hints:backfill
+ * تشغيل (prod):  DATABASE_URL="<رابط Supabase المباشر>" npm --workspace backend run hints:backfill
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

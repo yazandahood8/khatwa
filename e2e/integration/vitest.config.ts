@@ -19,7 +19,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    // الجذر = هذا المجلد؛ يُشغَّل من apps/api (cwd) كي تجد الحزم والـ prisma نفسها.
+    // الجذر = هذا المجلد؛ يُشغَّل من backend (cwd) كي تجد الحزم والـ prisma نفسها.
     root: fileURLToPath(new URL('.', import.meta.url)),
     include: ['**/*.test.ts'],
     globalSetup: ['./globalSetup.ts'],

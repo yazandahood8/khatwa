@@ -24,7 +24,7 @@ try {
   }
 
   // 2) تشغيل Vitest التكاملي (globalSetup يتكفّل بـ prisma db push).
-  code = run('npx', ['vitest', 'run', '--config', CONFIG], { cwd: fileURLToPath(new URL('../../apps/api', import.meta.url)) });
+  code = run('npx', ['vitest', 'run', '--config', CONFIG], { cwd: fileURLToPath(new URL('../../backend', import.meta.url)) });
 } finally {
   // 3) إنزال الحاويات دائماً — always tear down (-v يحذف الأحجام المؤقتة).
   run('docker', [...COMPOSE, 'down', '-v']);

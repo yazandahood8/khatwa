@@ -4,8 +4,8 @@
  * يمرّ على الدروس، وإذا كان ملخّصها فارغاً يطابقه بمعرّف الدرس ويحدّث العمود في مكانه فقط —
  * فلا يمسّ أيّ بيانات أخرى. آمن للتكرار (idempotent). مع --force يستبدل الملخّصات الموجودة.
  *
- * تشغيل (dev):   npm --workspace apps/api run summaries:backfill
- * تشغيل (prod):  DATABASE_URL="<رابط Supabase المباشر>" npm --workspace apps/api run summaries:backfill
+ * تشغيل (dev):   npm --workspace backend run summaries:backfill
+ * تشغيل (prod):  DATABASE_URL="<رابط Supabase المباشر>" npm --workspace backend run summaries:backfill
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

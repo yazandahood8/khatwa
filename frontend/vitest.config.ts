@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 
 /**
  * إعداد اختبارات الواجهة — component tests (Vitest + React Testing Library + jsdom).
- * تشغيل: npm run test --workspace=apps/web  (سريعة، بلا متصفح ولا خادم).
+ * تشغيل: npm run test --workspace=frontend  (سريعة، بلا متصفح ولا خادم).
  */
 export default defineConfig({
   plugins: [react()],
@@ -12,7 +12,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       // نحلّ @khatwa/shared من المصدر لتفادي نسخة dist قديمة أو ازدواج zod (كما في الـ API).
-      '@khatwa/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)),
+      '@khatwa/shared': fileURLToPath(new URL('../packages/shared/src/index.ts', import.meta.url)),
     },
   },
   test: {

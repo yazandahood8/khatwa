@@ -6,8 +6,8 @@
  * قصيراً عبر Claude اعتماداً على الحل الصحيح (السرّي)، ويكتبه في prisma/generatedHints.json.
  *
  * حتمي وقابل للاستئناف: يتخطّى ما هو موجود مسبقاً في الملف، فيمكن تشغيله على دفعات.
- * تشغيل كامل:  npm run hints:generate --workspace=apps/api
- * تجربة سريعة: npm run hints:generate --workspace=apps/api -- 5   (أول 5 فقط)
+ * تشغيل كامل:  npm run hints:generate --workspace=backend
+ * تجربة سريعة: npm run hints:generate --workspace=backend -- 5   (أول 5 فقط)
  */
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

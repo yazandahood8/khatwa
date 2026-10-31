@@ -9,7 +9,7 @@
  * ثم يزرع مسائل كاملة (طرق + خطوات + أخطاء) على موضوعَي العرض.
  *
  * Idempotent: المواضيع upsert حسب (المستوى + الاسم)؛ الدروس/المسائل تُتخطّى إذا وُجدت.
- * تشغيل: npm run seed --workspace=apps/api
+ * تشغيل: npm run seed --workspace=backend
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

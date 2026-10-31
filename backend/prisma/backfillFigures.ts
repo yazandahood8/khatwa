@@ -5,7 +5,7 @@
  * يمرّ على كل مسائل المولّدات التي تحمل `figure`، ويطابقها بنص السؤال داخل موضوعها
  * (grade|topic) ثم يحدّث العمود. آمن للتكرار (idempotent).
  *
- * تشغيل:  npm --workspace apps/api run db:backfill-figures
+ * تشغيل:  npm --workspace backend run db:backfill-figures
  */
 import { PrismaClient, type Prisma } from '@prisma/client';
 import { LESSON_PROBLEMS } from './generators';

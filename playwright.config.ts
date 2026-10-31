@@ -28,7 +28,7 @@ export default defineConfig({
     {
       // الـ API عبر tsx على منفذ E2E، مربوط بقاعدة الحاوية.
       command: 'npx tsx src/index.ts',
-      cwd: 'apps/api',
+      cwd: 'backend',
       url: `${API_URL}/health`,
       reuseExistingServer: false,
       timeout: 60_000,
@@ -45,7 +45,7 @@ export default defineConfig({
     {
       // الواجهة عبر next dev على منفذ E2E، موجَّهة لِـ API E2E.
       command: 'npx next dev',
-      cwd: 'apps/web',
+      cwd: 'frontend',
       port: WEB_PORT,
       reuseExistingServer: false,
       timeout: 120_000,

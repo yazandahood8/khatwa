@@ -18,7 +18,7 @@ export default function setup() {
   execSync('npx prisma db push --skip-generate --accept-data-loss', {
     stdio: 'inherit',
     env,
-    // مخطط prisma يعيش في apps/api — the prisma schema lives in apps/api.
-    cwd: fileURLToPath(new URL('../../apps/api', import.meta.url)),
+    // مخطط prisma يعيش في backend — the prisma schema lives in backend.
+    cwd: fileURLToPath(new URL('../../backend', import.meta.url)),
   });
 }

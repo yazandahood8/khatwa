@@ -6,7 +6,7 @@
  * ويُدرِج مسائل التتبّع الجديدة (مثل درس تتبع العودية). آمن ومتكرِّر (idempotent).
  *
  * أولاً يضيف العمود kind إن لم يكن موجوداً (عبر عميل التشغيل — يعمل على الـ pooler).
- * تشغيل: cd apps/api && npx tsx prisma/backfillTrace.ts
+ * تشغيل: cd backend && npx tsx prisma/backfillTrace.ts
  */
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
