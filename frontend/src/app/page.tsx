@@ -1,7 +1,6 @@
-import Link from 'next/link';
-import { Sigma, Languages, Code2, ArrowLeft } from 'lucide-react';
+import { Sigma, Languages, Code2 } from 'lucide-react';
 import { AI_DAILY_LIMITS, SubscriptionPlan } from '@khatwa/shared';
-import { Button } from '@/components/ui/button';
+import { NavAuthActions, HeroCta } from '@/components/landing/auth-actions';
 import { BrandMark } from '@/components/brand-mark';
 import { DotGrid, PaperPlane, Ring, Sparkle } from '@/components/decor';
 import { HeroCards, LandingPopups, WatchHowButton } from '@/components/landing/landing-popups';
@@ -14,14 +13,7 @@ export default function HomePage() {
         <header className="mx-auto flex h-16 max-w-6xl items-center justify-between rounded-full bg-card/90 px-4 shadow-card ring-1 ring-primary/10 backdrop-blur-md sm:px-6">
           <BrandMark />
           <div className="flex items-center gap-2">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                تسجيل الدخول
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm">ابدأ مجاناً</Button>
-            </Link>
+            <NavAuthActions />
           </div>
         </header>
       </div>
@@ -65,11 +57,7 @@ export default function HomePage() {
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
-                <Link href="/register">
-                  <Button size="lg">
-                    ابدأ مجاناً <ArrowLeft />
-                  </Button>
-                </Link>
+                <HeroCta />
                 <WatchHowButton />
               </div>
 
