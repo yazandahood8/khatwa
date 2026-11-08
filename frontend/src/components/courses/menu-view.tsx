@@ -30,6 +30,8 @@ import {
 import { getProblems, type ProblemListItem } from '@/lib/problems-api';
 import { Card } from '@/components/ui/card';
 import { Loading, Empty, type Ctx } from '@/components/courses/tree';
+import { useAuth } from '@/providers/auth-provider';
+import { lessonScope } from '@/lib/lesson-scope';
 import { cn } from '@/lib/utils';
 
 /**
@@ -126,13 +128,21 @@ function SubjectsStage({ onOpen }: { onOpen: (c: Crumb) => void }) {
 }
 
 function SubjectStage({ subject, onOpen }: { subject: Subject; onOpen: (c: Crumb) => void }) {
+  const { user } = useAuth();
   const grades = useFetch(() => getGrades(subject.id), `g${subject.id}`);
   const tracks = useFetch(() => getUnitTracks(subject.id), `t${subject.id}`);
   if (!grades || !tracks) return <Loading />;
 
   // 7-9 في الشجرة العادية؛ 10-12 حسب مسارات الوحدات (كما في عرض الشجرة).
-  const middle = grades.filter((g) => g.gradeNumber <= 9);
-  if (middle.length === 0 && tracks.length === 0)
+  const scope = lessonScope(user);
+  const middle = grades.filter((g) => g.gradeNumber <= 9 && scope.gradeVisible(g.gradeNumber));
+  const myTracks = scope.tracksVisible
+    ? (() => {
+        const mine = tracks.filter((t) => scope.trackVisible(trackLabel(t)));
+        return mine.length > 0 ? mine : tracks;
+      })()
+    : [];
+  if (middle.length === 0 && myTracks.length === 0)
     return <Empty text="لا صفوف متاحة بعد." />;
 
   return (
@@ -152,10 +162,10 @@ function SubjectStage({ subject, onOpen }: { subject: Subject; onOpen: (c: Crumb
           </Grid>
         </Section>
       )}
-      {tracks.length > 0 && (
+      {myTracks.length > 0 && (
         <Section title="المرحلة الثانوية — حسب الوحدات">
           <Grid>
-            {tracks.map((t) => (
+            {myTracks.map((t) => (
               <MenuCard
                 key={t.id}
                 icon="🧭"

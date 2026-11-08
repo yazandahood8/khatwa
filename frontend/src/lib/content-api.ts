@@ -106,6 +106,12 @@ export interface StudentDashboard {
   inProgressCount: number;
 }
 export const getMyProgress = () => apiFetch<ProgressRow[]>('/api/me/progress');
+export interface SubjectProgress {
+  subjectId: string;
+  total: number;
+  completed: number;
+}
+export const getSubjectProgress = () => apiFetch<SubjectProgress[]>('/api/me/progress/subjects');
 export const getStudentDashboard = () => apiFetch<StudentDashboard>('/api/me/dashboard');
 export const saveProgress = (lessonId: string, watchTimeSeconds: number, completed?: boolean) =>
   apiFetch(`/api/lessons/${lessonId}/progress`, {

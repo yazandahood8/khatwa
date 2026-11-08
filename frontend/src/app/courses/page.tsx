@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ListTree, LayoutGrid, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { Network, List, ChevronDown, BookOpen } from 'lucide-react';
 import {
   type Subject,
   type Grade,
@@ -13,12 +13,15 @@ import {
   getLevels,
   getTopics,
   getMyProgress,
+  getSubjectProgress,
+  type SubjectProgress,
 } from '@/lib/content-api';
 import { getCurrentSubscription } from '@/lib/subscription-api';
 import { AppShell } from '@/components/app-shell';
 import { studentNav } from '@/components/nav-items';
 import {
   Row,
+  Branch,
   Loading,
   Empty,
   useLazy,
@@ -29,10 +32,12 @@ import {
   type ExpandBus,
   type ProgressMap,
 } from '@/components/courses/tree';
-import { Ring, DotGrid } from '@/components/decor';
 import { HighSchoolTracks } from '@/components/courses/high-school-tracks';
 import { MenuView } from '@/components/courses/menu-view';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/providers/auth-provider';
+import { lessonScope } from '@/lib/lesson-scope';
+import { CapIcon, BookIcon, RulerArt, HeaderArt } from '@/components/courses/art';
 
 type ViewMode = 'tree' | 'menu';
 
@@ -40,6 +45,7 @@ export default function CoursesPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [plan, setPlan] = useState('free');
   const [progress, setProgress] = useState<ProgressMap>({});
+  const [subjectStats, setSubjectStats] = useState<Record<string, SubjectProgress>>({});
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>('tree');
   const [bus, setBus] = useState<ExpandBus>({ allExpanded: false, expandTick: 0, collapseTick: 0 });
@@ -55,6 +61,9 @@ export default function CoursesPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
     getCurrentSubscription().then((s) => setPlan(s.plan)).catch(() => {});
+    getSubjectProgress()
+      .then((rows) => setSubjectStats(Object.fromEntries(rows.map((r) => [r.subjectId, r]))))
+      .catch(() => {});
     getMyProgress()
       .then((rows) => setProgress(Object.fromEntries(rows.map((r) => [r.lessonId, r]))))
       .catch(() => {});
@@ -64,32 +73,36 @@ export default function CoursesPage() {
 
   return (
     <AppShell nav={studentNav} title="الدروس">
-      <div className="mx-auto max-w-3xl space-y-5">
-        <div className="relative flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-3xl bg-tint-lavender p-5 sm:p-6">
-          <Ring className="-end-8 -top-10 h-32 w-32" />
-          <DotGrid className="bottom-3 end-24 hidden h-12 w-20 sm:block" />
-          <h1 className="relative font-display text-3xl font-extrabold">الدروس</h1>
-          <div className="relative flex flex-wrap items-center gap-2">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="relative flex flex-wrap items-center gap-x-4 gap-y-3 overflow-hidden rounded-3xl bg-gradient-to-l from-tint-lavender via-primary-light to-tint-lavender p-4 sm:min-h-[150px] sm:p-6">
+          <div className="relative flex items-center gap-3">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-card text-violet-600 shadow-card">
+              <BookOpen className="h-7 w-7" />
+            </span>
+            <div>
+              <h1 className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">الدروس</h1>
+              <p className="text-xs text-muted-foreground sm:text-sm">رحلتك التعليمية نحو مستقبل أفضل</p>
+            </div>
+          </div>
+          <div className="relative flex flex-wrap items-center gap-2 sm:ms-4">
             {view === 'tree' && (
               <button
                 onClick={bus.allExpanded ? collapseAll : expandAll}
-                className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-card px-4 py-1.5 text-sm font-bold text-muted-foreground shadow-subtle transition-all hover:-translate-y-0.5 hover:text-primary"
+                aria-pressed={bus.allExpanded}
+                className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-bold shadow-subtle transition-all duration-150 hover:-translate-y-0.5 hover:text-primary hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                {bus.allExpanded ? (
-                  <ChevronsDownUp className="h-4 w-4" />
-                ) : (
-                  <ChevronsUpDown className="h-4 w-4" />
-                )}
                 {bus.allExpanded ? 'طيّ الكل' : 'توسيع الكل'}
+                <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', bus.allExpanded && 'rotate-180')} />
               </button>
             )}
             <ViewToggle view={view} onChange={setView} />
           </div>
+          <HeaderArt className="pointer-events-none absolute inset-y-0 end-0 hidden h-full w-auto xl:block" />
         </div>
         {view === 'menu' ? (
           <MenuView ctx={ctx} />
         ) : (
-          <div className="rounded-3xl border border-border/70 bg-card p-3 shadow-card">
+          <div className="space-y-2 rounded-3xl border border-border/70 bg-card p-2 shadow-card sm:p-3">
             {loading ? (
               <Loading />
             ) : subjects.length === 0 ? (
@@ -97,7 +110,7 @@ export default function CoursesPage() {
             ) : (
               <ExpandBusProvider value={bus}>
                 {subjects.map((s) => (
-                  <SubjectNode key={s.id} subject={s} ctx={ctx} />
+                  <SubjectNode key={s.id} subject={s} ctx={ctx} stats={subjectStats[s.id]} />
                 ))}
               </ExpandBusProvider>
             )}
@@ -111,12 +124,12 @@ export default function CoursesPage() {
 /* ---------------- view toggle ---------------- */
 
 function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
-  const options: { id: ViewMode; label: string; icon: typeof ListTree }[] = [
-    { id: 'tree', label: 'شجرة', icon: ListTree },
-    { id: 'menu', label: 'قائمة', icon: LayoutGrid },
+  const options: { id: ViewMode; label: string; icon: typeof Network }[] = [
+    { id: 'menu', label: 'قائمة', icon: List },
+    { id: 'tree', label: 'شجرة', icon: Network },
   ];
   return (
-    <div className="flex shrink-0 items-center gap-1 rounded-full bg-card p-1 shadow-subtle">
+    <>
       {options.map((o) => {
         const Icon = o.icon;
         const active = view === o.id;
@@ -126,10 +139,10 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
             onClick={() => onChange(o.id)}
             aria-pressed={active}
             className={cn(
-              'flex min-h-9 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold transition-colors',
+              'flex min-h-11 shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               active
                 ? 'bg-primary text-primary-foreground shadow-glow-primary'
-                : 'text-muted-foreground hover:text-foreground',
+                : 'bg-card shadow-subtle hover:-translate-y-0.5 hover:text-primary hover:shadow-card',
             )}
           >
             <Icon className="h-4 w-4" />
@@ -137,13 +150,13 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
           </button>
         );
       })}
-    </div>
+    </>
   );
 }
 
 /* ---------------- nodes ---------------- */
 
-function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
+function SubjectNode({ subject, ctx, stats }: { subject: Subject; ctx: Ctx; stats?: SubjectProgress }) {
   const { open, items, busy, toggle, expand, collapse } = useLazy<Grade>(() => getGrades(subject.id));
   const sub = useSubtreeBus();
   const toggleSubtree = () => {
@@ -156,16 +169,21 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
     }
   };
   // 7-9 فقط في الشجرة؛ المرحلة الثانوية (10-12) تُعرض حسب مسارات الوحدات.
-  const middleGrades = items?.filter((g) => g.gradeNumber <= 9);
+  const { user } = useAuth();
+  const scope = lessonScope(user);
+  const middleGrades = items?.filter((g) => g.gradeNumber <= 9 && scope.gradeVisible(g.gradeNumber));
   return (
     <div>
       <Row
         depth={0}
+        kind="subject"
+        progress={stats}
         expandable
         expanded={open}
         onClick={toggle}
-        icon={<span className="text-lg">{subject.icon ?? '📘'}</span>}
+        icon={subject.icon === '📐' ? <RulerArt className="h-12 w-12 drop-shadow" /> : <span className="text-3xl leading-none">{subject.icon ?? '📘'}</span>}
         label={subject.nameAr}
+        subtitle={middleGrades ? `${middleGrades.length} صفوف` : undefined}
         onToggleSubtree={toggleSubtree}
         subtreeExpanded={sub.subtreeExpanded}
       />
@@ -173,10 +191,14 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
         (busy ? (
           <Loading />
         ) : (
-          <ExpandBusProvider value={sub.bus}>
-            {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
-            <HighSchoolTracks subjectId={subject.id} ctx={ctx} />
-          </ExpandBusProvider>
+          <Branch>
+            <ExpandBusProvider value={sub.bus}>
+              {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
+              {scope.tracksVisible && (
+                <HighSchoolTracks subjectId={subject.id} ctx={ctx} trackFilter={scope.trackVisible} />
+              )}
+            </ExpandBusProvider>
+          </Branch>
         ))}
     </div>
   );
@@ -198,11 +220,13 @@ function GradeNode({ grade, ctx }: { grade: Grade; ctx: Ctx }) {
     <div>
       <Row
         depth={1}
+        kind="grade"
         expandable
         expanded={open}
         onClick={toggle}
-        icon="🎓"
+        icon={<CapIcon className="h-10 w-10 drop-shadow" />}
         label={`صف ${grade.gradeNumber}`}
+        subtitle={items ? `${items.length} كتاب` : undefined}
         onToggleSubtree={toggleSubtree}
         subtreeExpanded={sub.subtreeExpanded}
       />
@@ -212,9 +236,11 @@ function GradeNode({ grade, ctx }: { grade: Grade; ctx: Ctx }) {
         ) : items?.length === 0 ? (
           <Empty text="لا مستويات." />
         ) : (
-          <ExpandBusProvider value={sub.bus}>
-            {items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />)}
-          </ExpandBusProvider>
+          <Branch>
+            <ExpandBusProvider value={sub.bus}>
+              {items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />)}
+            </ExpandBusProvider>
+          </Branch>
         ))}
     </div>
   );
@@ -236,11 +262,13 @@ function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
     <div>
       <Row
         depth={2}
+        kind="book"
         expandable
         expanded={open}
         onClick={toggle}
-        icon="📗"
+        icon={<BookIcon className="h-10 w-10 drop-shadow" />}
         label={level.name}
+        subtitle={items ? `${items.length} فصول` : undefined}
         onToggleSubtree={toggleSubtree}
         subtreeExpanded={sub.subtreeExpanded}
       />
@@ -250,9 +278,11 @@ function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
         ) : items?.length === 0 ? (
           <Empty text="لا مواضيع." />
         ) : (
-          <ExpandBusProvider value={sub.bus}>
-            {items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />)}
-          </ExpandBusProvider>
+          <Branch>
+            <ExpandBusProvider value={sub.bus}>
+              {items?.map((t, i) => <TopicNode key={t.id} topic={t} ctx={ctx} index={i} />)}
+            </ExpandBusProvider>
+          </Branch>
         ))}
     </div>
   );
