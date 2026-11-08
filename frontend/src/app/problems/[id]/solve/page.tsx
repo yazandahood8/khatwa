@@ -228,9 +228,9 @@ export default function SolvePage() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-secondary/50">
       {/* الرأس — header with progress */}
-      <header className="flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
+      <header className="m-3 mb-0 flex items-center gap-4 rounded-full bg-card px-4 py-2.5 shadow-card ring-1 ring-primary/10 sm:px-6">
         <div className="flex flex-1 items-center gap-3">
           <QuestionNav
             problems={sequence}
@@ -256,8 +256,9 @@ export default function SolvePage() {
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 scrollbar-thin sm:p-6">
           <div className="mx-auto w-full max-w-2xl space-y-4">
             {/* بطاقة المسألة — problem card */}
-            <div className="rounded-2xl border-r-4 border-primary bg-card p-5 shadow-card">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="relative overflow-hidden rounded-3xl bg-card p-6 shadow-elevated ring-1 ring-primary/10">
+              <span aria-hidden className="absolute inset-y-0 end-0 w-2 bg-primary" />
+              <p className="mb-3 inline-flex rounded-full bg-lime px-3 py-0.5 font-display text-xs font-bold text-foreground">
                 المسألة
               </p>
               <div className="text-xl leading-relaxed" dir="rtl">
@@ -277,7 +278,7 @@ export default function SolvePage() {
                     !solved && (
                       <div
                         className={cn(
-                          'rounded-lg border bg-card px-3 py-2 text-lg transition-all',
+                          'rounded-2xl border-2 bg-card px-4 py-2 text-lg transition-all',
                           shake && 'animate-error-shake border-destructive',
                           !shake && 'border-border',
                         )}
@@ -299,7 +300,7 @@ export default function SolvePage() {
             {feedback && !celebrate && (
               <p
                 className={cn(
-                  'rounded-xl px-4 py-2.5 text-sm font-medium',
+                  'rounded-2xl px-5 py-3 text-sm font-semibold',
                   feedback.correct
                     ? 'bg-success/10 text-success'
                     : 'bg-destructive/10 text-destructive',
@@ -311,7 +312,7 @@ export default function SolvePage() {
 
             {/* solved banner (after closing celebration) */}
             {solved && !celebrate && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-success/10 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-3xl bg-lime-light px-5 py-4">
                 <span className="flex items-center gap-2 font-display font-semibold text-success">
                   <CheckCircle2 className="h-5 w-5" /> حللت المسألة!
                 </span>
@@ -328,7 +329,7 @@ export default function SolvePage() {
             )}
 
             {showPad && (
-              <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+              <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-card">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="font-display text-sm font-semibold text-muted-foreground">مسودة حرة</p>
                   {/* العودة لوضع لوحة المفاتيح والخطوات */}
@@ -388,8 +389,8 @@ export default function SolvePage() {
             نبقيها مركّبة دائماً (حتى مغلقة على الجوال) كي تبقى المحادثة والـ ref ثابتَين. */}
         <aside
           className={cn(
-            'fixed inset-x-0 bottom-0 z-50 h-[78vh] rounded-t-2xl border-t border-border bg-card p-4 shadow-float transition-transform duration-300',
-            'lg:static lg:z-auto lg:h-auto lg:w-[360px] lg:shrink-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:border-r lg:bg-transparent lg:shadow-none lg:transition-none',
+            'fixed inset-x-0 bottom-0 z-50 h-[78vh] rounded-t-3xl border-t border-border bg-card p-4 shadow-float transition-transform duration-300',
+            'lg:static lg:z-auto lg:m-3 lg:h-auto lg:w-[360px] lg:shrink-0 lg:translate-y-0 lg:overflow-hidden lg:rounded-3xl lg:border lg:bg-card lg:p-0 lg:shadow-card lg:transition-none',
             showChat ? 'translate-y-0' : 'translate-y-full',
           )}
         >
@@ -429,7 +430,7 @@ export default function SolvePage() {
       {!showChat && (
         <button
           onClick={() => setShowChat(true)}
-          className="fixed bottom-5 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float lg:hidden"
+          className="fixed bottom-5 left-5 z-40 grid h-14 w-14 place-items-center rounded-full gradient-primary text-white shadow-float transition-transform hover:scale-110 lg:hidden"
           aria-label="افتح المساعد الذكي"
         >
           <MessageCircle className="h-6 w-6" />

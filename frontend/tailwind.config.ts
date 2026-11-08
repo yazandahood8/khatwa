@@ -15,10 +15,10 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        // Cairo for headings, IBM Plex Sans Arabic for body, JetBrains Mono for math
-        display: ['var(--font-cairo)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-plex-arabic)', 'var(--font-cairo)', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-plex-arabic)', 'var(--font-cairo)', 'system-ui', 'sans-serif'],
+        // Baloo Bhaijaan 2 (rounded, bold) for headings, Tajawal for body, JetBrains Mono for math
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body-ar)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-body-ar)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
       fontSize: {
@@ -59,6 +59,19 @@ const config: Config = {
           foreground: 'hsl(var(--success-foreground) / <alpha-value>)',
         },
         warning: 'hsl(var(--warning) / <alpha-value>)',
+        highlight: 'hsl(var(--highlight) / <alpha-value>)',
+        margin: 'hsl(var(--margin) / <alpha-value>)',
+        lime: {
+          DEFAULT: 'hsl(var(--lime) / <alpha-value>)',
+          light: 'hsl(var(--lime-light) / <alpha-value>)',
+          dark: 'hsl(var(--lime-dark) / <alpha-value>)',
+        },
+        tint: {
+          lavender: 'hsl(var(--tint-lavender) / <alpha-value>)',
+          sky: 'hsl(var(--tint-sky) / <alpha-value>)',
+          pink: 'hsl(var(--tint-pink) / <alpha-value>)',
+          sun: 'hsl(var(--tint-sun) / <alpha-value>)',
+        },
         gold: {
           DEFAULT: 'hsl(var(--gold) / <alpha-value>)',
           light: 'hsl(var(--gold-light) / <alpha-value>)',
@@ -78,20 +91,28 @@ const config: Config = {
         },
       },
       borderRadius: {
-        sm: '6px',
-        DEFAULT: '12px',
-        md: '12px',
+        // Big, friendly corners
+        sm: '10px',
+        DEFAULT: '14px',
+        md: '16px',
         lg: 'var(--radius)',
-        xl: '20px',
-        '2xl': '28px',
+        xl: '24px',
+        '2xl': '32px',
+        '3xl': '40px',
       },
       boxShadow: {
-        subtle: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
-        card: '0 4px 16px rgba(108,99,255,0.08), 0 1px 4px rgba(0,0,0,0.04)',
-        elevated: '0 12px 40px rgba(108,99,255,0.15), 0 4px 12px rgba(0,0,0,0.06)',
-        float: '0 24px 60px rgba(108,99,255,0.2)',
-        'glow-primary': '0 8px 24px rgba(108,99,255,0.35)',
-        'glow-streak': '0 4px 12px rgba(245,158,11,0.4)',
+        // Soft, layered, blue-tinted shadows
+        subtle: '0 1px 2px hsl(var(--foreground) / 0.06)',
+        card: '0 1px 2px hsl(var(--foreground) / 0.05), 0 8px 24px -12px hsl(var(--primary) / 0.18)',
+        elevated:
+          '0 2px 4px hsl(var(--foreground) / 0.06), 0 18px 36px -16px hsl(var(--primary) / 0.35)',
+        float: '0 28px 56px -24px hsl(var(--primary) / 0.5)',
+        // Chunky "ledge" under primary actions
+        'glow-primary': '0 4px 0 0 hsl(var(--primary-dark))',
+        'glow-streak': '0 3px 0 0 hsl(27 85% 34%)',
+        'glow-lime': '0 4px 0 0 hsl(var(--lime-dark))',
+        // Stacked ledge under colorful tiles
+        sheet: '0 6px 0 -1px hsl(var(--foreground) / 0.12), 0 18px 32px -18px hsl(var(--primary) / 0.35)',
       },
       keyframes: {
         fadeSlideUp: {
