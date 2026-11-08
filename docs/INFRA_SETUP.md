@@ -1,7 +1,7 @@
 # 🏗️ إعداد البنية التحتية — Sprint 1 Infra Checklist
 
 هذه الخطوات تحتاج **حسابات ومفاتيح حقيقية** ولا يمكن أتمتتها من الكود. أنجزها بالترتيب،
-واملأ القيم في `apps/api/.env` و `apps/web/.env.local`.
+واملأ القيم في `backend/.env` و `frontend/.env.local`.
 
 ---
 
@@ -11,7 +11,7 @@
 2. اختر **Region** قريبة (مثلاً `Central EU (Frankfurt)`).
 3. احفظ كلمة سر قاعدة البيانات.
 4. من **Project Settings → Database → Connection string → URI** انسخ الرابط.
-5. ضعه في `apps/api/.env` كـ `DATABASE_URL`.
+5. ضعه في `backend/.env` كـ `DATABASE_URL`.
 6. شغّل من جذر المشروع:
    ```bash
    npm run prisma:generate
@@ -44,7 +44,7 @@
 
 1. <https://upstash.com> → **Create Database** (نوع Redis، نفس الـ Region).
 2. انسخ **Redis URL** (`redis://default:...@...:6379`) إلى `REDIS_URL`.
-3. الكود يتصل تلقائياً عند وجود `REDIS_URL` (انظر `apps/api/src/services/redis.ts`).
+3. الكود يتصل تلقائياً عند وجود `REDIS_URL` (انظر `backend/src/services/redis.ts`).
 
 > بديل: إضافة Redis plugin على Railway.
 
@@ -53,8 +53,8 @@
 ## 4. ▲ Vercel — نشر الـ Frontend
 
 1. <https://vercel.com> → **Add New → Project** واربطه بمستودع GitHub.
-2. **Root Directory:** `apps/web`.
-3. أضف متغيرات البيئة (من `apps/web/.env.example`).
+2. **Root Directory:** `frontend`.
+3. أضف متغيرات البيئة (من `frontend/.env.example`).
 4. احفظ `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` كـ GitHub Secrets.
 
 ---
@@ -62,9 +62,9 @@
 ## 5. 🚂 Railway — نشر الـ Backend
 
 1. <https://railway.app> → **New Project → Deploy from GitHub repo**.
-2. **Root Directory:** `apps/api` — Start command: `npm run start`
+2. **Root Directory:** `backend` — Start command: `npm run start`
    (وbuild: `npm run build && npm run prisma:generate`).
-3. أضف متغيرات البيئة من `apps/api/.env.example`.
+3. أضف متغيرات البيئة من `backend/.env.example`.
 4. احفظ `RAILWAY_TOKEN` كـ GitHub Secret.
 
 ---

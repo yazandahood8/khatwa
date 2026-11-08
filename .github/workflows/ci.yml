@@ -85,7 +85,7 @@ jobs:
       # globalSetup يُنفّذ `prisma db push` على قاعدة الخدمة قبل الاختبارات.
       # test:integration:ci يشغّل Vitest مباشرة (بلا docker — الخدمات جاهزة أعلاه).
       - name: Run integration tests
-        run: npm run test:integration:ci --workspace=apps/api
+        run: npm run test:integration:ci --workspace=backend
 
   e2e:
     name: E2E (Playwright)
