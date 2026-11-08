@@ -5,12 +5,14 @@ import {
   myProgress,
   studentDashboard,
   fullProgress,
+  subjectProgress,
 } from '../controllers/progress.controller';
 
 const router = Router();
 
 router.post('/lessons/:id/progress', requireAuth, saveProgress);
 router.get('/me/progress', requireAuth, myProgress);
+router.get('/me/progress/subjects', requireAuth, subjectProgress);
 router.get('/me/dashboard', requireAuth, studentDashboard);
 router.get('/progress/me', requireAuth, fullProgress);
 

@@ -40,6 +40,46 @@ export async function myProgress(req: Request, res: Response) {
   ok(res, rows);
 }
 
+/**
+ * GET /api/me/progress/subjects — لكل مادة: عدد الدروس المنشورة وكم أكمل الطالب منها.
+ * المادة تُستنتج من مسار الدرس: topic → level → (grade → subject | subject) أو topic → questionnaire → level → subject.
+ */
+export async function subjectProgress(req: Request, res: Response) {
+  const lessons = await prisma.lesson.findMany({
+    where: { isPublished: true },
+    select: {
+      id: true,
+      topic: {
+        select: {
+          level: { select: { subjectId: true, grade: { select: { subjectId: true } } } },
+          questionnaire: { select: { level: { select: { subjectId: true } } } },
+        },
+      },
+    },
+  });
+  const done = new Set(
+    (
+      await prisma.lessonProgress.findMany({
+        where: { studentId: req.user!.id, completedAt: { not: null } },
+        select: { lessonId: true },
+      })
+    ).map((r) => r.lessonId),
+  );
+
+  const bySubject = new Map<string, { subjectId: string; total: number; completed: number }>();
+  for (const l of lessons) {
+    const lv = l.topic.level;
+    const subjectId =
+      lv?.grade?.subjectId ?? lv?.subjectId ?? l.topic.questionnaire?.level.subjectId ?? null;
+    if (!subjectId) continue;
+    const row = bySubject.get(subjectId) ?? { subjectId, total: 0, completed: 0 };
+    row.total += 1;
+    if (done.has(l.id)) row.completed += 1;
+    bySubject.set(subjectId, row);
+  }
+  ok(res, [...bySubject.values()]);
+}
+
 /** GET /api/progress/me — إحصائيات الطالب الكاملة (نقاط، إنجازات، سلسلة…). */
 export async function fullProgress(req: Request, res: Response) {
   ok(res, await computeStudentStats(req.user!.id));

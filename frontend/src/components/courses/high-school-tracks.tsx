@@ -19,17 +19,29 @@ import { cn } from '@/lib/utils';
  * مسارات المرحلة الثانوية حسب الوحدات (3/4/5): تبويبات وحدات + محتوى المسار.
  * محتوى المسار: بطاقات نماذج (رياضيات — تحت questionnaire) أو شجرة مواضيع (علوم الحاسوب — تحت المستوى مباشرةً).
  */
-export function HighSchoolTracks({ subjectId, ctx }: { subjectId: string; ctx: Ctx }) {
+export function HighSchoolTracks({
+  subjectId,
+  ctx,
+  trackFilter,
+}: {
+  subjectId: string;
+  ctx: Ctx;
+  /** يقيّد المسارات المعروضة (مثلًا مسار الطالب فقط). إن لم يطابق شيء تُعرض كلها. */
+  trackFilter?: (label: string) => boolean;
+}) {
   const [tracks, setTracks] = useState<Level[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
     getUnitTracks(subjectId)
       .then((ts) => {
-        setTracks(ts);
-        setActive(ts[0]?.id ?? null);
+        const mine = trackFilter ? ts.filter((t) => trackFilter(trackLabel(t))) : ts;
+        const shown = mine.length > 0 ? mine : ts;
+        setTracks(shown);
+        setActive(shown[0]?.id ?? null);
       })
       .catch(() => setTracks([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectId]);
 
   if (tracks === null) return <Loading />;
