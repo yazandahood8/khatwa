@@ -13,11 +13,11 @@ interface Stats {
   problems: number;
 }
 
-const CARDS: { key: keyof Stats; label: string; icon: string }[] = [
-  { key: 'students', label: 'الطلاب', icon: '👥' },
-  { key: 'subjects', label: 'المواد', icon: '📐' },
-  { key: 'lessons', label: 'الدروس', icon: '🎬' },
-  { key: 'problems', label: 'المسائل', icon: '✏️' },
+const CARDS: { key: keyof Stats; label: string; icon: string; tone: string }[] = [
+  { key: 'students', label: 'الطلاب', icon: '👥', tone: 'bg-tint-lavender' },
+  { key: 'subjects', label: 'المواد', icon: '📐', tone: 'bg-lime-light' },
+  { key: 'lessons', label: 'الدروس', icon: '🎬', tone: 'bg-tint-pink' },
+  { key: 'problems', label: 'المسائل', icon: '✏️', tone: 'bg-tint-sun' },
 ];
 
 export default function AdminDashboard() {
@@ -32,7 +32,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">لوحة الإدارة</h1>
+        <h1 className="text-3xl font-extrabold">لوحة الإدارة</h1>
         <Link href="/admin/content">
           <Button>إدارة المحتوى</Button>
         </Link>
@@ -40,15 +40,15 @@ export default function AdminDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {CARDS.map((c) => (
-          <Card key={c.key}>
+          <Card key={c.key} className={`rounded-3xl border-none shadow-none ${c.tone}`}>
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base text-muted-foreground">
+              <CardTitle className="flex items-center gap-2 text-base text-foreground/80">
                 <span>{c.icon}</span>
                 {c.label}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{stats ? stats[c.key] : '—'}</p>
+              <p className="font-display text-5xl font-extrabold">{stats ? stats[c.key] : '—'}</p>
             </CardContent>
           </Card>
         ))}

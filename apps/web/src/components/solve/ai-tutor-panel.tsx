@@ -27,7 +27,7 @@ function parseOptions(content: string): string[] {
   if (!m) return [];
   return m[1]
     .split('|')
-    .map((s) => s.replace(/[ؐ-ًؚ-ٰٟـ]/g, '').trim())
+    .map((s) => s.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u0640]/g, '').trim())
     .filter(Boolean)
     .slice(0, 4);
 }
@@ -44,12 +44,14 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   const [configured, setConfigured] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
+  const [canSpeak, setCanSpeak] = useState(false); // يُحدَّد بعد التحميل لتفادي اختلاف الـ SSR
   const mutedRef = useRef(false);
   const speakerRef = useRef<Speaker | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const starterHintIndexRef = useRef(0); // فهرس تلميح البداية المتدرّج (يُصفَّر مع كل مسألة)
 
   useEffect(() => {
+    setCanSpeak(ttsAvailable());
     primeVoices();
     const m = typeof localStorage !== 'undefined' && localStorage.getItem('khatwa_tts_muted') === '1';
     setMuted(m);
@@ -158,10 +160,10 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card">
       {/* رأس — header */}
-      <div className="flex items-center justify-between border-b border-border bg-primary-light/50 px-4 py-3">
-        <span className="flex items-center gap-2 font-display font-semibold text-primary">
+      <div className="flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground">
+        <span className="flex items-center gap-2 font-display font-bold text-primary-foreground">
           <Sparkles className="h-[18px] w-[18px]" /> المساعد الذكي
         </span>
         <div className="flex items-center gap-2">
@@ -170,7 +172,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
               {remaining < 0 ? 'غير محدود ∞' : `بقي ${remaining} اليوم`}
             </span>
           )}
-          {ttsAvailable() && (
+          {canSpeak && (
             <button
               onClick={toggleMute}
               title={muted ? 'تشغيل الصوت' : 'كتم الصوت'}
@@ -232,7 +234,7 @@ export const AiTutorPanel = forwardRef<AiTutorHandle, Props>(function AiTutorPan
           );
         })()}
         {error && (
-          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
+          <p className="rounded-2xl bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
         )}
       </div>
 

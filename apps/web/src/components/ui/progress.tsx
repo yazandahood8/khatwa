@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-/** شريط تقدّم خطّي — animated linear progress bar. */
+/** شريط تقدّم خطّي — animated linear progress bar drawn like a ruler (10% ticks). */
 export function Progress({
   value,
   className,
@@ -20,11 +20,11 @@ export function Progress({
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={cn('h-2 w-full overflow-hidden rounded-full bg-primary-light', className)}
+      className={cn('relative h-3 w-full overflow-hidden rounded-full bg-primary-light', className)}
     >
       <div
         className={cn(
-          'h-full rounded-full bg-gradient-to-l from-primary to-[#818CF8] transition-[width] duration-700 ease-soft',
+          'h-full rounded-full bg-primary transition-[width] duration-700 ease-soft',
           barClassName,
         )}
         style={{ width: `${pct}%` }}

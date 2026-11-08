@@ -15,9 +15,9 @@ function StatusBadge({ s }: { s: AdminSub }) {
   if (s.expired)
     return <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">منتهٍ</span>;
   if (s.isPaid)
-    return <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">مدفوع 💳</span>;
+    return <span className="rounded-full bg-success/10 px-3 py-0.5 text-xs font-bold text-success">مدفوع 💳</span>;
   if (s.isTrial)
-    return <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">تجربة</span>;
+    return <span className="rounded-full bg-gold-light px-3 py-0.5 text-xs font-bold text-gold-text">تجربة</span>;
   return <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">مجاني</span>;
 }
 
@@ -48,7 +48,7 @@ export default function AdminSubscriptionsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">الاشتراكات</h1>
+      <h1 className="text-3xl font-extrabold">الاشتراكات</h1>
 
       <div className="grid gap-4 sm:grid-cols-4">
         <Card>

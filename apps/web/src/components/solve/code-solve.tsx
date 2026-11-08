@@ -184,9 +184,9 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
           : null;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-secondary/50">
       {/* الرأس — header */}
-      <header className="flex items-center gap-4 border-b border-border bg-card px-4 py-3 sm:px-6">
+      <header className="m-3 mb-0 flex items-center gap-4 rounded-full bg-card px-4 py-2.5 shadow-card ring-1 ring-primary/10 sm:px-6">
         <div className="flex flex-1 items-center gap-3">
           <QuestionNav
             problems={sequence}
@@ -209,7 +209,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 scrollbar-thin sm:p-6">
         <div className="mx-auto w-full max-w-3xl space-y-4">
           {/* بطاقة المسألة — problem card */}
-          <div className="rounded-2xl border-r-4 border-primary bg-card p-5 shadow-card">
+          <div className="rounded-3xl border-e-8 border-primary bg-card p-6 shadow-elevated">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">المطلوب</p>
             <div className="whitespace-pre-wrap text-lg leading-relaxed" dir="auto">
               <QuestionText text={problem.question} />
@@ -350,7 +350,7 @@ export function CodeSolve({ problem, sequence }: { problem: ProblemFull; sequenc
 
           {/* solved banner */}
           {solved && !celebrate && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-success/10 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-3xl bg-lime-light px-5 py-4">
               <span className="flex items-center gap-2 font-display font-semibold text-success">
                 <CheckCircle2 className="h-5 w-5" /> حللت المسألة!
               </span>

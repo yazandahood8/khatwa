@@ -130,7 +130,7 @@ export default function ContentPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">إدارة المحتوى</h1>
+      <h1 className="text-3xl font-extrabold">إدارة المحتوى</h1>
 
       {/* مسار التنقل — breadcrumb */}
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">

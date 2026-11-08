@@ -28,11 +28,11 @@ export function StepPath({
           tone === 'wrong'
             ? 'border-destructive/30 bg-destructive/5'
             : tone === 'ok'
-              ? 'border-success/20 bg-success/5'
+              ? 'border-lime-dark/20 bg-lime-light'
               : 'border-border bg-muted/40';
         return (
           <li key={i} className="animate-step-reveal">
-            <div className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${box}`}>
+            <div className={`flex items-center gap-3 rounded-2xl border px-4 py-2.5 ${box}`}>
               <StepMark tone={tone} burst={tone === 'ok' && isLatest} index={i + 1} />
               <div className="flex-1 text-base" dir="ltr">
                 <Math expr={s.text} />
@@ -53,7 +53,7 @@ export function StepPath({
       {/* الخطوة الحالية — current awakening step */}
       {active && (
         <li className="animate-step-reveal">
-          <div className="flex items-center gap-3 rounded-xl border-[1.5px] border-primary/40 bg-primary-light/40 px-3 py-2.5">
+          <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-primary/40 bg-primary-light/50 px-4 py-2.5">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border-[1.5px] border-primary bg-card font-display text-sm font-bold text-primary">
               {steps.length + 1}
             </span>

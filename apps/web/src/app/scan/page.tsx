@@ -69,10 +69,10 @@ function ScanFlow() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-6 text-center">
       <div className="flex flex-col items-center gap-2">
-        <span className="grid h-14 w-14 place-items-center rounded-2xl bg-primary-light text-primary">
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow-primary">
           <QrCode className="h-7 w-7" />
         </span>
-        <h1 className="font-display text-2xl font-bold">امسح سؤال الرياضيات</h1>
+        <h1 className="font-display text-3xl font-extrabold">امسح سؤال الرياضيات</h1>
         <p className="text-sm text-muted-foreground">
           وجّه الكاميرا على الباركود الموجود بجانب السؤال في ورقتك، وبعدها صوّر حلّك ليحلّله المساعد الذكي.
         </p>
@@ -91,7 +91,7 @@ function ScanFlow() {
 
       {error && (
         <div className="space-y-3">
-          <p className="rounded-xl bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
+          <p className="rounded-2xl bg-destructive/10 px-5 py-3 text-sm font-semibold text-destructive">
             {error}
           </p>
           <Link href="/courses">
