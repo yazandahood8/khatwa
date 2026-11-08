@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ListTree, LayoutGrid, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { ListTree, LayoutGrid, ChevronsDownUp, ChevronsUpDown, GraduationCap, Library } from 'lucide-react';
 import {
   type Subject,
   type Grade,
@@ -19,6 +19,7 @@ import { AppShell } from '@/components/app-shell';
 import { studentNav } from '@/components/nav-items';
 import {
   Row,
+  Branch,
   Loading,
   Empty,
   useLazy,
@@ -64,11 +65,11 @@ export default function CoursesPage() {
 
   return (
     <AppShell nav={studentNav} title="الدروس">
-      <div className="mx-auto max-w-3xl space-y-5">
-        <div className="relative flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-3xl bg-tint-lavender p-5 sm:p-6">
+      <div className="mx-auto max-w-3xl space-y-4">
+        <div className="relative flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-3xl bg-gradient-to-l from-tint-lavender to-primary-light p-4 sm:p-5">
           <Ring className="-end-8 -top-10 h-32 w-32" />
           <DotGrid className="bottom-3 end-24 hidden h-12 w-20 sm:block" />
-          <h1 className="relative font-display text-3xl font-extrabold">الدروس</h1>
+          <h1 className="relative font-display text-2xl font-extrabold sm:text-3xl">الدروس</h1>
           <div className="relative flex flex-wrap items-center gap-2">
             {view === 'tree' && (
               <button
@@ -89,7 +90,7 @@ export default function CoursesPage() {
         {view === 'menu' ? (
           <MenuView ctx={ctx} />
         ) : (
-          <div className="rounded-3xl border border-border/70 bg-card p-3 shadow-card">
+          <div className="space-y-1 rounded-3xl border border-border/70 bg-card p-2 shadow-card sm:p-3">
             {loading ? (
               <Loading />
             ) : subjects.length === 0 ? (
@@ -161,10 +162,11 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
     <div>
       <Row
         depth={0}
+        kind="subject"
         expandable
         expanded={open}
         onClick={toggle}
-        icon={<span className="text-lg">{subject.icon ?? '📘'}</span>}
+        icon={<span className="text-xl leading-none">{subject.icon ?? '📘'}</span>}
         label={subject.nameAr}
         onToggleSubtree={toggleSubtree}
         subtreeExpanded={sub.subtreeExpanded}
@@ -173,10 +175,12 @@ function SubjectNode({ subject, ctx }: { subject: Subject; ctx: Ctx }) {
         (busy ? (
           <Loading />
         ) : (
-          <ExpandBusProvider value={sub.bus}>
-            {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
-            <HighSchoolTracks subjectId={subject.id} ctx={ctx} />
-          </ExpandBusProvider>
+          <Branch>
+            <ExpandBusProvider value={sub.bus}>
+              {middleGrades?.map((g) => <GradeNode key={g.id} grade={g} ctx={ctx} />)}
+              <HighSchoolTracks subjectId={subject.id} ctx={ctx} />
+            </ExpandBusProvider>
+          </Branch>
         ))}
     </div>
   );
@@ -198,10 +202,11 @@ function GradeNode({ grade, ctx }: { grade: Grade; ctx: Ctx }) {
     <div>
       <Row
         depth={1}
+        kind="grade"
         expandable
         expanded={open}
         onClick={toggle}
-        icon="🎓"
+        icon={<GraduationCap className="h-4 w-4 text-primary" />}
         label={`صف ${grade.gradeNumber}`}
         onToggleSubtree={toggleSubtree}
         subtreeExpanded={sub.subtreeExpanded}
@@ -212,9 +217,11 @@ function GradeNode({ grade, ctx }: { grade: Grade; ctx: Ctx }) {
         ) : items?.length === 0 ? (
           <Empty text="لا مستويات." />
         ) : (
-          <ExpandBusProvider value={sub.bus}>
-            {items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />)}
-          </ExpandBusProvider>
+          <Branch>
+            <ExpandBusProvider value={sub.bus}>
+              {items?.map((l) => <LevelNode key={l.id} level={l} ctx={ctx} />)}
+            </ExpandBusProvider>
+          </Branch>
         ))}
     </div>
   );
@@ -236,10 +243,11 @@ function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
     <div>
       <Row
         depth={2}
+        kind="book"
         expandable
         expanded={open}
         onClick={toggle}
-        icon="📗"
+        icon={<Library className="h-4 w-4 text-secondary-foreground" />}
         label={level.name}
         onToggleSubtree={toggleSubtree}
         subtreeExpanded={sub.subtreeExpanded}
@@ -250,9 +258,11 @@ function LevelNode({ level, ctx }: { level: Level; ctx: Ctx }) {
         ) : items?.length === 0 ? (
           <Empty text="لا مواضيع." />
         ) : (
-          <ExpandBusProvider value={sub.bus}>
-            {items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />)}
-          </ExpandBusProvider>
+          <Branch>
+            <ExpandBusProvider value={sub.bus}>
+              {items?.map((t) => <TopicNode key={t.id} topic={t} ctx={ctx} />)}
+            </ExpandBusProvider>
+          </Branch>
         ))}
     </div>
   );
