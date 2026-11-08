@@ -41,18 +41,36 @@ export async function myProgress(req: Request, res: Response) {
 }
 
 /**
- * GET /api/me/progress/subjects — لكل مادة: عدد الدروس المنشورة وكم أكمل الطالب منها.
- * المادة تُستنتج من مسار الدرس: topic → level → (grade → subject | subject) أو topic → questionnaire → level → subject.
+ * GET /api/me/progress/subjects — لكل مادة: عدد دروس صفّ الطالب المنشورة وكم أكمل منها.
+ * - طالب 7-9: دروس صفّه فقط. طالب ثانوي: دروس مسارات الوحدات (ومساره فقط إن اختاره وكان له دروس).
+ * - غير ذلك (ولي أمر/مدير/طالب بلا صف): كل الدروس.
+ * المادة تُستنتج من: topic → level → (grade → subject | subject) أو topic → questionnaire → level → subject.
  */
 export async function subjectProgress(req: Request, res: Response) {
+  const me = await prisma.user.findUnique({
+    where: { id: req.user!.id },
+    select: { role: true, grade: true, level: true },
+  });
+  const student = me?.role === 'student';
+  const grade = student ? (me?.grade ?? null) : null;
+  const level = student ? (me?.level ?? null) : null;
+  const restricted = grade != null || level != null;
+  const highSchool = level != null || (grade != null && grade >= 10);
+
   const lessons = await prisma.lesson.findMany({
     where: { isPublished: true },
     select: {
       id: true,
       topic: {
         select: {
-          level: { select: { subjectId: true, grade: { select: { subjectId: true } } } },
-          questionnaire: { select: { level: { select: { subjectId: true } } } },
+          level: {
+            select: {
+              subjectId: true,
+              unitLevel: true,
+              grade: { select: { subjectId: true, gradeNumber: true } },
+            },
+          },
+          questionnaire: { select: { level: { select: { subjectId: true, unitLevel: true } } } },
         },
       },
     },
@@ -66,16 +84,38 @@ export async function subjectProgress(req: Request, res: Response) {
     ).map((r) => r.lessonId),
   );
 
-  const bySubject = new Map<string, { subjectId: string; total: number; completed: number }>();
+  interface Item { id: string; subjectId: string; gradeNumber: number | null; unit: string | null }
+  const items: Item[] = [];
   for (const l of lessons) {
     const lv = l.topic.level;
-    const subjectId =
-      lv?.grade?.subjectId ?? lv?.subjectId ?? l.topic.questionnaire?.level.subjectId ?? null;
+    const track = lv?.grade ? null : (lv ?? l.topic.questionnaire?.level ?? null);
+    const subjectId = lv?.grade?.subjectId ?? track?.subjectId ?? null;
     if (!subjectId) continue;
-    const row = bySubject.get(subjectId) ?? { subjectId, total: 0, completed: 0 };
+    items.push({
+      id: l.id,
+      subjectId,
+      gradeNumber: lv?.grade?.gradeNumber ?? null,
+      unit: track?.unitLevel ? `${track.unitLevel} وحدات` : null,
+    });
+  }
+
+  // مسار الوحدات الخاص بالطالب؛ إن لم يكن له دروس في المادة نعدّ كل مسارات الثانوي (كما في الواجهة).
+  const hasMyTrack = (subjectId: string) =>
+    level != null && items.some((i) => i.subjectId === subjectId && i.gradeNumber == null && i.unit === level);
+
+  const mine = items.filter((i) => {
+    if (!restricted) return true;
+    if (!highSchool) return i.gradeNumber === grade;
+    if (i.gradeNumber != null) return false;
+    return level == null || !hasMyTrack(i.subjectId) || i.unit === level;
+  });
+
+  const bySubject = new Map<string, { subjectId: string; total: number; completed: number }>();
+  for (const i of mine) {
+    const row = bySubject.get(i.subjectId) ?? { subjectId: i.subjectId, total: 0, completed: 0 };
     row.total += 1;
-    if (done.has(l.id)) row.completed += 1;
-    bySubject.set(subjectId, row);
+    if (done.has(i.id)) row.completed += 1;
+    bySubject.set(i.subjectId, row);
   }
   ok(res, [...bySubject.values()]);
 }
